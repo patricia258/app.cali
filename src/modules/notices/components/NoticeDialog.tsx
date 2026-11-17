@@ -141,17 +141,5 @@ export function NoticeBoardLink({ href, children }: { href: string; children: Re
 }
 
 export function NoticeComposeFields({ children }: { children: ReactNode }) {
-  return (
-    <div
-      className={[
-        'tw:flex tw:flex-col tw:gap-3.5',
-        'tw:[&_label]:flex tw:[&_label]:flex-col tw:[&_label]:gap-2 tw:[&_label]:text-sm tw:[&_label]:font-bold tw:[&_label]:text-cali-neutral-text',
-        'tw:[&_:is(input,select,textarea)]:rounded-lg tw:[&_:is(input,select,textarea)]:border tw:[&_:is(input,select,textarea)]:border-solid tw:[&_:is(input,select,textarea)]:border-cali-line tw:[&_:is(input,select,textarea)]:bg-cali-neutral-surface tw:[&_:is(input,select,textarea)]:p-3.5 tw:[&_:is(input,select,textarea)]:text-cali-body tw:[&_:is(input,select,textarea)]:text-cali-neutral-strong',
-        'tw:[&_textarea]:min-h-[6.538rem] tw:[&_textarea]:resize-y tw:[&_input[type=file]]:p-3',
-        'tw:[&_label:has(>input[type=checkbox])]:m-0 tw:[&_label:has(>input[type=checkbox])]:flex-row tw:[&_label:has(>input[type=checkbox])]:items-center tw:[&_label:has(>input[type=checkbox])]:font-medium tw:[&_input[type=checkbox]]:accent-cali-brand',
-      ].join(' ')}
-    >
-      {children}
-    </div>
-  );
+  return <div className="tw:flex tw:flex-col tw:gap-3.5">{children}</div>;
 }

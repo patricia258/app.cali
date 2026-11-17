@@ -53,6 +53,57 @@ const cases = [
     },
   })),
   {
+    id: 'admin-workspace-search-desktop-and-narrow',
+    role: 'admin',
+    width: 1203,
+    async run({ page, origin, snapshot }) {
+      await page.setViewportSize({ width: 1203, height: 906 });
+      await page.goto(origin + '/admin');
+      const topbar = page.locator('#root header.topbar');
+      const search = topbar.getByRole('button', { name: 'Buscar no Workspace', exact: true });
+      const input = topbar.getByRole('textbox', { name: 'Buscar no Workspace', exact: true });
+      await search.waitFor();
+
+      const measure = () => search.evaluate((button) => {
+        const [label, shortcut] = [button.querySelector('span'), button.querySelector('kbd')];
+        function lines(element) {
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          return new Set(Array.from(range.getClientRects(), (rect) => Math.round(rect.top))).size;
+        }
+        return {
+          labelLines: lines(label),
+          shortcutLines: lines(shortcut),
+          labelFits: label.scrollWidth <= label.clientWidth + 1,
+          fitsTopbar: button.getBoundingClientRect().right <= window.innerWidth,
+        };
+      });
+      assert.deepEqual(await measure(), { labelLines: 1, shortcutLines: 1, labelFits: true, fitsTopbar: true });
+      await snapshot('search-1203', topbar);
+
+      await page.keyboard.press('Control+k');
+      await input.waitFor();
+      assert.equal(await input.evaluate((element) => element === document.activeElement), true);
+      await input.fill('horas');
+      await topbar.getByRole('option', { name: 'Horas', exact: true }).waitFor();
+      await input.press('Escape');
+      await search.waitFor();
+
+      await search.click();
+      await input.fill('horas');
+      await input.press('Enter');
+      await page.waitForURL((url) => url.pathname === '/admin/horas');
+      await search.waitFor();
+
+      await page.setViewportSize({ width: 960, height: 906 });
+      const narrow = await measure();
+      assert.equal(narrow.labelLines, 1);
+      assert.equal(narrow.shortcutLines, 1);
+      assert.equal(narrow.fitsTopbar, true);
+      await snapshot('search-960', topbar);
+    },
+  },
+  {
     id: 'admin-visual-spacing-filters-documents-staff',
     role: 'admin',
     width: 1651,

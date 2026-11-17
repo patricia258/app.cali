@@ -1,3 +1,9 @@
+import { Button } from '../../components/ds/Button';
+import { FieldLabel } from '../../components/ds/FieldLabel';
+import { Checkbox } from '../../components/ds/Checkbox';
+import { Input } from '../../components/ds/Input';
+import { Select } from '../../components/ds/Select';
+import { Textarea } from '../../components/ds/Textarea';
 import { WorkspaceAdminPage } from '../../components/workspace/components/WorkspaceAdminPage';
 import { WorkspaceAdminContent } from '../../components/workspace/components/WorkspaceAdminContent';
 import { WorkflowList, WorkflowListRow } from '../../components/ds/WorkflowList';
@@ -629,9 +635,9 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
                   A resposta fica disponível quando uma empresa comentar.
                 </span>
               ) : (
-                <div className="tw:flex tw:min-w-0 tw:flex-1 tw:rounded-lg tw:border tw:border-solid tw:border-cali-sand-line tw:max-[23rem]:min-w-full tw:[&_input]:min-w-0 tw:[&_input]:flex-1 tw:[&_input]:border-0 tw:[&_input]:bg-transparent tw:[&_input]:px-3 tw:[&_input]:py-2.5 tw:[&_input]:text-cali-body tw:[&_select]:h-11.5 tw:[&_select]:max-w-[min(40%,13.077rem)] tw:[&_select]:flex-none tw:[&_select]:rounded-lg tw:[&_select]:border tw:[&_select]:border-solid tw:[&_select]:border-cali-input-line tw:[&_select]:bg-cali-neutral-surface tw:[&_select]:px-2.5 tw:[&_select]:text-sm tw:[&_select]:text-cali-text tw:[&_button]:cursor-pointer tw:[&_button]:rounded-r-lg tw:[&_button]:border-0 tw:[&_button]:bg-cali-brand tw:[&_button]:px-4.5 tw:[&_button]:text-cali-neutral-surface tw:[&_button:disabled]:opacity-35">
+                <div className="tw:flex tw:min-w-0 tw:flex-1 tw:rounded-lg tw:border tw:border-solid tw:border-cali-sand-line tw:max-[23rem]:min-w-full">
                   {admin && commentCompanies(active.id).length > 1 && (
-                    <select
+                    <Select variant="filter" className="tw:h-11.5 tw:max-w-[min(40%,13.077rem)] tw:flex-none"
                       aria-label="Responder para"
                       value={replyCompany || commentCompanies(active.id)[0]}
                       onChange={(event) => setReplyCompany(event.target.value)}
@@ -641,9 +647,9 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
                           {companyName.get(id) || 'Empresa'}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
-                  <input
+                  <Input variant="bare" className="tw:flex-1 tw:px-3 tw:py-2.5 tw:text-cali-body"
                     placeholder={
                       admin
                         ? `Responder para ${companyName.get(replyCompany || commentCompanies(active.id)[0]) || 'a empresa'}…`
@@ -655,14 +661,16 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
                       if (event.key === 'Enter') void sendComment(active);
                     }}
                   />
-                  <button
+                  <Button
+                    variant="unstyled"
+                    className="tw:cursor-pointer tw:rounded-r-lg tw:border-0 tw:bg-cali-brand tw:px-4.5 tw:text-cali-neutral-surface tw:disabled:opacity-35"
                     type="button"
                     disabled={!commentText.trim()}
                     aria-label="Enviar comentário"
                     onClick={() => void sendComment(active)}
                   >
                     <Send size={17} />
-                  </button>
+                  </Button>
                 </div>
               )}
             </NoticeDialogFooter>
@@ -683,9 +691,9 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
             <p>O comunicado aparece no mural das empresas escolhidas e acende o sino de quem recebe.</p>
             {error && <InlineNotice>{error}</InlineNotice>}
             <NoticeComposeFields>
-              <label>
+              <FieldLabel>
                 Categoria
-                <select
+                <Select
                   value={draft.category}
                   onChange={(event) => setDraft({ ...draft, category: event.target.value as Category })}
                 >
@@ -694,61 +702,60 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
                       {label}
                     </option>
                   ))}
-                </select>
-              </label>
-              <label>
+                </Select>
+              </FieldLabel>
+              <FieldLabel>
                 Título
-                <input
+                <Input
                   value={draft.title}
                   onChange={(event) => setDraft({ ...draft, title: event.target.value })}
                   placeholder="Ex.: Feriado municipal"
                 />
-              </label>
+              </FieldLabel>
               <div className="tw:grid tw:grid-cols-2 tw:gap-3.5">
-                <label>
+                <FieldLabel>
                   Data
-                  <input
+                  <Input
                     type="date"
                     value={draft.date}
                     onChange={(event) => setDraft({ ...draft, date: event.target.value })}
                   />
-                </label>
-                <label>
+                </FieldLabel>
+                <FieldLabel>
                   Horário (opcional)
-                  <input
+                  <Input
                     value={draft.time}
                     onChange={(event) => setDraft({ ...draft, time: event.target.value })}
                     placeholder="09:00 às 13:00"
                   />
-                </label>
+                </FieldLabel>
               </div>
-              <label>
+              <FieldLabel>
                 Abrangência
-                <select
+                <Select
                   value={draft.coverage}
                   onChange={(event) => setDraft({ ...draft, coverage: event.target.value })}
                 >
                   {COVERAGES.map((item) => (
                     <option key={item}>{item}</option>
                   ))}
-                </select>
-              </label>
-              <label>
+                </Select>
+              </FieldLabel>
+              <FieldLabel>
                 Quem recebe
-                <select
+                <Select
                   value={draft.audience}
                   onChange={(event) => setDraft({ ...draft, audience: event.target.value as Draft['audience'] })}
                 >
                   <option value="all">Todas as empresas</option>
                   <option value="selected">Só as empresas que eu escolher</option>
-                </select>
-              </label>
+                </Select>
+              </FieldLabel>
               {draft.audience === 'selected' && (
                 <div className="tw:grid tw:min-h-[3.538rem] tw:max-h-[13.077rem] tw:shrink-0 tw:grid-cols-2 tw:gap-x-4.5 tw:gap-y-2 tw:overflow-y-auto tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:px-4 tw:py-3.5 tw:[scrollbar-width:none] tw:max-[53.75rem]:grid-cols-1">
                   {companies.map((company) => (
-                    <label key={company.id}>
-                      <input
-                        type="checkbox"
+                    <label key={company.id} className="tw:flex tw:items-center tw:gap-2 tw:text-sm tw:font-medium tw:text-cali-text">
+                      <Checkbox
                         checked={draft.targets.includes(company.id)}
                         onChange={(event) =>
                           setDraft({
@@ -758,20 +765,20 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
                               : draft.targets.filter((id) => id !== company.id),
                           })
                         }
-                      />{' '}
+                      />
                       {company.name}
                     </label>
                   ))}
                 </div>
               )}
-              <label>
+              <FieldLabel>
                 Imagem de capa (opcional)
-                <input
+                <Input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
                   onChange={(event) => setCoverFile(event.target.files?.[0] ?? null)}
                 />
-              </label>
+              </FieldLabel>
               {coverPreview && (
                 <img
                   className="tw:max-h-[12.308rem] tw:w-full tw:rounded-lg tw:object-cover"
@@ -779,14 +786,14 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
                   alt="Prévia da capa"
                 />
               )}
-              <label>
+              <FieldLabel>
                 Mensagem
-                <textarea
+                <Textarea className="tw:min-h-26"
                   value={draft.body}
                   onChange={(event) => setDraft({ ...draft, body: event.target.value })}
                   placeholder="O que o cliente precisa saber?"
                 />
-              </label>
+              </FieldLabel>
             </NoticeComposeFields>
           </NoticeDialogBody>
           <NoticeDialogFooter mode="compose">

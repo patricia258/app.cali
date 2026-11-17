@@ -1,3 +1,5 @@
+import { Input } from '../../../components/ds/Input';
+import { Select } from '../../../components/ds/Select';
 import { WorkflowPage } from '../../../components/ds/WorkflowPage';
 import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
 import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
@@ -100,15 +102,7 @@ export function AdminFormsPage() {
     tw:[--fm-ink:var(--cali-color-neutral-strong)] tw:[&_.wf-head_.v2-head-actions_a]:no-underline tw:[&_label>span]:block
     tw:[&_label>span]:text-sm tw:[&_label>span]:font-semibold tw:[&_label>span]:text-[color:var(--fm-ink)]
     tw:[&_label>span]:mb-2 tw:[&_label>span_em]:not-italic tw:[&_label>span_em]:font-medium
-    tw:[&_label>span_em]:text-[color:var(--fm-muted)] tw:[&_label>span_em]:ml-1 tw:[&_:is(.v2-forms-grid,.v2-forms-q,.v2-forms-scale,.v2-forms-options)_:is(input:not([type=checkbox]),select,textarea)]:w-full
-    tw:[&_:is(.v2-forms-grid,.v2-forms-q,.v2-forms-scale,.v2-forms-options)_:is(input:not([type=checkbox]),select,textarea)]:[border:1px_solid_var(--cali-color-sand-line)]
-    tw:[&_:is(.v2-forms-grid,.v2-forms-q,.v2-forms-scale,.v2-forms-options)_:is(input:not([type=checkbox]),select,textarea)]:rounded-cali-compact-control
-    tw:[&_:is(.v2-forms-grid,.v2-forms-q,.v2-forms-scale,.v2-forms-options)_:is(input:not([type=checkbox]),select,textarea)]:[padding:0.692rem_0.846rem]
-    tw:[&_:is(.v2-forms-grid,.v2-forms-q,.v2-forms-scale,.v2-forms-options)_:is(input:not([type=checkbox]),select,textarea)]:[font:400_1rem/1.4_Inter,sans-serif]
-    tw:[&_:is(.v2-forms-grid,.v2-forms-q,.v2-forms-scale,.v2-forms-options)_:is(input:not([type=checkbox]),select,textarea)]:text-[color:var(--fm-ink)]
-    tw:[&_:is(.v2-forms-grid,.v2-forms-q,.v2-forms-scale,.v2-forms-options)_:is(input:not([type=checkbox]),select,textarea)]:bg-cali-neutral-surface
-    tw:[&_textarea]:resize-y tw:[&_:is(input,select,textarea):focus]:outline-none tw:[&_:is(input,select,textarea):focus]:[border-color:var(--fm-wine)]
-    tw:[&_:is(input,select,textarea):focus]:[box-shadow:0_0_0_0.231rem_rgb(var(--cali-rgb-burgundy-accent)/0.08)]"><WorkspaceAdminContent><WorkflowPage>
+    tw:[&_label>span_em]:text-[color:var(--fm-muted)] tw:[&_label>span_em]:ml-1"><WorkspaceAdminContent><WorkflowPage>
     {open ? <FormDetail key={open.id} form={open} tab={tab} companies={companies} stats={overview[open.id]} onTab={(next) => go(open.id, next)} onBack={() => { go(null); void load(); }} onDuplicate={() => void duplicate(open)}
       onSaved={(saved) => setForms((current) => current.map((item) => item.id === saved.id ? saved : item))}
       onDeleted={() => { setForms((current) => current.filter((item) => item.id !== open.id)); go(null); }} />
@@ -164,9 +158,9 @@ export function AdminFormsPage() {
   </WorkflowPage></WorkspaceAdminContent>
   {creating && <WorkspaceDialogOverlay onMouseDown={(event) => { if (event.target === event.currentTarget && !creating.busy) setCreating(null); }}><WorkspaceConfirmDialog aria-label="Novo formulário">
     <div><small>CALI FORMS</small><h2>Novo formulário</h2><p>Começa como rascunho, já com as perguntas de nome e e-mail. Você monta o resto em seguida.</p></div>
-    <label>Nome do formulário<input value={creating.title} maxLength={160} autoFocus placeholder="Ex.: Pesquisa de clima 2026" onChange={(event) => setCreating({ ...creating, title: event.target.value, error: '' })} onKeyDown={(event) => { if (event.key === 'Enter') void create(); }} /></label>
-    <label>Categoria (aparece para quem responde)<input list="cali-form-categories" value={creating.category} maxLength={40} placeholder="Ex.: Pesquisa de satisfação" onChange={(event) => setCreating({ ...creating, category: event.target.value })} /></label>
-    <label>Para quem<select value={creating.audience} onChange={(event) => setCreating({ ...creating, audience: event.target.value as FormAudience })}><option value="cali">Uso da CALI</option><option value="client">Clientes</option></select></label>
+    <label>Nome do formulário<Input variant="compact" value={creating.title} maxLength={160} autoFocus placeholder="Ex.: Pesquisa de clima 2026" onChange={(event) => setCreating({ ...creating, title: event.target.value, error: '' })} onKeyDown={(event) => { if (event.key === 'Enter') void create(); }} /></label>
+    <label>Categoria (aparece para quem responde)<Input variant="compact" list="cali-form-categories" value={creating.category} maxLength={40} placeholder="Ex.: Pesquisa de satisfação" onChange={(event) => setCreating({ ...creating, category: event.target.value })} /></label>
+    <label>Para quem<Select variant="compact" value={creating.audience} onChange={(event) => setCreating({ ...creating, audience: event.target.value as FormAudience })}><option value="cali">Uso da CALI</option><option value="client">Clientes</option></Select></label>
     <datalist id="cali-form-categories">{CATEGORY_SUGGESTIONS.map((item) => <option key={item} value={item} />)}</datalist>
     {creating.error && <p className="v2-forms-error tw:[margin:0_0_1.077rem] tw:[padding:0.769rem_1.077rem] tw:rounded-cali-panel tw:text-cali-body
       tw:font-semibold tw:bg-cali-danger-surface tw:text-cali-danger tw:[border:1px_solid_var(--cali-color-red-soft)]" role="alert">{creating.error}</p>}

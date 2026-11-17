@@ -1,3 +1,4 @@
+import { Checkbox } from '../../components/ds/Checkbox';
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { Button } from '../../components/ds/Button';
 import { FieldLabel } from '../../components/ds/FieldLabel';
@@ -22,7 +23,7 @@ export function DocumentActionButton({ variant, className, ...props }: Omit<Comp
 
 export function DocumentOption({ label, description, ...props }: Omit<ComponentPropsWithoutRef<'input'>, 'type'> & { label: string; description: string }) {
   return <label className="tw:flex tw:cursor-pointer tw:items-start tw:gap-3 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:px-4 tw:py-3.5">
-    <input className={documentCheckboxClass + ' tw:mt-0.5!'} type="checkbox" {...props} />
+    <Checkbox className={documentCheckboxClass + ' tw:mt-0.5!'} {...props} />
     <span className="tw:flex tw:flex-col tw:gap-1">
       <strong className="tw:text-sm/[inherit] tw:text-cali-text">{label}</strong>
       <small className="tw:text-xs/[inherit] tw:text-cali-muted">{description}</small>

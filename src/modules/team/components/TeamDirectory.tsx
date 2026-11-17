@@ -1,3 +1,6 @@
+import { Checkbox } from '../../../components/ds/Checkbox';
+import { Input } from '../../../components/ds/Input';
+import { Select } from '../../../components/ds/Select';
 import { Button } from '../../../components/ds/Button';
 import { ArrowRight, Download, Search, SlidersHorizontal, UsersRound } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -44,27 +47,28 @@ export function TeamDirectory({
 }: TeamDirectoryProps) {
   return (
     <>
-      <div className="toolbar tw:mb-4.5 tw:flex tw:gap-3 tw:max-[53.125rem]:flex-wrap tw:[&>select]:min-w-40 tw:[&>select]:rounded-lg tw:[&>select]:border tw:[&>select]:border-solid tw:[&>select]:border-cali-line tw:[&>select]:bg-cali-neutral-surface tw:[&>select]:px-3.5 tw:[&>select]:py-3 tw:[&>select]:text-sm/[inherit] tw:[&>select]:text-cali-neutral-accent">
-        <label className="tw:flex tw:min-w-80 tw:flex-1 tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:max-[53.125rem]:min-w-full tw:[&_svg]:text-cali-sand-text tw:[&_input]:w-full tw:[&_input]:border-0 tw:[&_input]:bg-transparent tw:[&_input]:py-3.5 tw:[&_input]:text-sm/[inherit]">
-          <Search size={16} />
-          <input
+      <div className="toolbar tw:mb-4.5 tw:flex tw:gap-3 tw:max-[53.125rem]:flex-wrap">
+        <label className="tw:flex tw:min-w-80 tw:flex-1 tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:text-sm/[inherit] tw:focus-within:border-cali-brand tw:max-[53.125rem]:min-w-full">
+          <Search size={16} className="tw:text-cali-sand-text" aria-hidden="true" />
+          <Input variant="bare" className="tw:w-full tw:py-3.5"
+            aria-label="Buscar pessoa, cargo ou área"
             placeholder="Buscar pessoa, cargo ou área"
             value={search}
             onChange={(e) => onSearch(e.target.value)}
           />
         </label>
-        <select aria-label="Departamento" value={department} onChange={(e) => onDepartment(e.target.value)}>
+        <Select className="tw:min-w-40" aria-label="Departamento" value={department} onChange={(e) => onDepartment(e.target.value)}>
           <option value="">Todas as áreas</option>
           {departments.map((d) => (
             <option key={d}>{d}</option>
           ))}
-        </select>
-        <select aria-label="Situação" value={status} onChange={(e) => onStatus(e.target.value)}>
+        </Select>
+        <Select className="tw:min-w-40" aria-label="Situação" value={status} onChange={(e) => onStatus(e.target.value)}>
           <option value="">Todas as situações</option>
           <option value="active">Ativa</option>
           <option value="leave">Afastada</option>
           <option value="terminated">Desligada</option>
-        </select>
+        </Select>
         <div className="tw:relative">
           <Button variant="compactOutline" type="button" aria-expanded={columnOpen} onClick={() => onColumnMenuToggle()}>
             <SlidersHorizontal size={15} /> Colunas
@@ -73,11 +77,11 @@ export function TeamDirectory({
             <div className="tw:absolute tw:top-11.25 tw:right-0 tw:z-10 tw:max-h-100 tw:w-62.5 tw:overflow-auto tw:rounded-lg tw:border tw:border-solid tw:border-[var(--v2-line-e4d6ca,var(--cali-color-sand-line))] tw:bg-[var(--v2-surface-fff,var(--cali-color-neutral-surface))] tw:p-4.5 tw:shadow-[0_0.5rem_1.5625rem_rgb(var(--cali-rgb-burgundy-strong)/0.1255)] tw:[&_label]:mt-2.25 tw:[&_label]:flex tw:[&_label]:items-center tw:[&_label]:gap-2 tw:[&_label]:text-cali-label tw:[&_label]:text-[var(--v2-text-8c7462,var(--cali-color-sand-strong))]">
               <strong>Mostrar na tabela</strong>
               <label>
-                <input type="checkbox" checked readOnly /> Pessoa
+                <Checkbox checked readOnly /> Pessoa
               </label>
               {(Object.keys(columnLabels) as ColumnKey[]).map((key) => (
                 <label key={key}>
-                  <input type="checkbox" checked={columns.includes(key)} onChange={() => onColumnToggle(key)} />
+                  <Checkbox checked={columns.includes(key)} onChange={() => onColumnToggle(key)} />
                   {columnLabels[key]}
                 </label>
               ))}

@@ -6,6 +6,10 @@ import { AppErrorBoundary } from '../../src/components/feedback/AppErrorBoundary
 import { TimerFinalizationDialog } from '../../src/components/hours/TimerFinalizationDialog';
 import { WELCOME_OPEN_EVENT, WelcomeTour } from '../../src/components/workspace/WelcomeTour';
 import { Button } from '../../src/components/ds/Button';
+import { Checkbox } from '../../src/components/ds/Checkbox';
+import { Input } from '../../src/components/ds/Input';
+import { Select } from '../../src/components/ds/Select';
+import { Textarea } from '../../src/components/ds/Textarea';
 import { DataTable } from '../../src/components/ds/DataTable';
 import { DialogForm } from '../../src/components/ds/DialogForm';
 import { DialogFrame } from '../../src/components/ds/DialogFrame';
@@ -24,6 +28,28 @@ import type { ReportManualComplements } from '../../src/lib/reportManualCompleme
 import { activateWorkspaceMedia, resolveWorkspaceMedia } from '../../src/lib/workspaceMedia';
 import { ExpensesFixture, NavigationFixture, RequestFixture } from './calendar-navigation-fixtures';
 import '../../src/styles/tailwind.css';
+
+function NativeFieldsFixture() {
+  const [serialized, setSerialized] = useState('');
+  const first = useRef<HTMLInputElement>(null);
+  return (
+    <form onSubmit={(event) => {
+      event.preventDefault();
+      setSerialized(JSON.stringify(Object.fromEntries(new FormData(event.currentTarget))));
+    }}>
+      <FieldLabel>Data<Input ref={first} type="date" name="date" required /></FieldLabel>
+      <FieldLabel>Horário<Input type="time" name="time" variant="compact" /></FieldLabel>
+      <FieldLabel>Conta<Select name="company" required defaultValue=""><option value="">Selecione</option><option value="qa">Conta QA</option></Select></FieldLabel>
+      <FieldLabel>Outro campo<Select variant="filter" disabled><option>Bloqueado</option></Select></FieldLabel>
+      <FieldLabel>Vários<Select name="many" multiple size={3}><option value="x">X</option><option value="y">Y</option></Select></FieldLabel>
+      <FieldLabel>Observação<Textarea name="notes" maxLength={8} /></FieldLabel>
+      <label><Checkbox name="visible" /> Compartilhar</label>
+      <Button type="button" variant="secondary" onClick={() => first.current?.focus()}>Focar data</Button>
+      <Button type="submit" variant="primary">Registrar campos</Button>
+      <output aria-label="Dados">{serialized}</output>
+    </form>
+  );
+}
 
 function ControlsFixture() {
   const [busy, setBusy] = useState(false);
@@ -523,6 +549,7 @@ function WorkspaceMediaFixture() {
 const fixtures = {
   variants: lazy(() => import('./visual-variants').then((module) => ({ default: module.VisualVariants }))),
   controls: ControlsFixture,
+  nativeFields: NativeFieldsFixture,
   tables: TablesFixture,
   states: StatesFixture,
   loader: RouteLoaderFixture,

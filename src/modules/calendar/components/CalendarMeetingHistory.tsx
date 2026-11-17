@@ -1,3 +1,5 @@
+import { Input } from '../../../components/ds/Input';
+import { Select } from '../../../components/ds/Select';
 import './calendar-dialog-motion.css';
 import { FileText, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -17,7 +19,7 @@ type Props = {
 };
 
 const filterLabel = 'tw:flex tw:flex-col tw:gap-1.5 tw:text-cali-micro tw:font-bold tw:text-cali-muted';
-const filterInput = 'tw:h-9.5 tw:min-h-10.5 tw:w-full tw:rounded-md tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-2.5 tw:text-xs tw:font-normal tw:text-cali-text';
+const filterControl = 'tw:h-10.5 tw:w-full tw:text-xs!';
 const pending = { label: 'Sem registro', className: 'tw:bg-cali-gold-soft tw:text-cali-gold-text' };
 const completed = { label: 'Realizada', className: 'tw:bg-cali-success-surface tw:text-cali-success' };
 const missed = { label: 'Não realizada', className: 'tw:bg-cali-red-surface tw:text-cali-danger' };
@@ -54,9 +56,9 @@ export function CalendarMeetingHistory({ openedAt, companyId, events, outcomes, 
           <span className="tw:text-cali-label tw:font-semibold tw:text-cali-muted">Ver encontros e transcrições</span>
         </div>
         <div className="tw:grid tw:grid-cols-3 tw:gap-3 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:px-6 tw:py-4 tw:max-sm:grid-cols-1">
-          <label className={filterLabel}>Período<input className={filterInput} type="month" value={month} onChange={event => setMonth(event.target.value)} /></label>
-          <label className={filterLabel}>Formato<select className={filterInput} value={mode} onChange={event => setMode(event.target.value)}><option value="all">Todos</option><option value="remote">Online</option><option value="in_person">Presencial</option></select></label>
-          <label className={filterLabel}>Situação<select className={filterInput} value={outcomeFilter} onChange={event => setOutcomeFilter(event.target.value)}><option value="all">Todas</option><option value="occurred">Realizada</option><option value="not_occurred">Não realizada</option><option value="cancelled">Cancelada</option><option value="pending">Sem registro</option></select></label>
+          <label className={filterLabel}>Período<Input variant="compact" className={`${filterControl} tw:min-h-10.5! tw:py-0!`} type="month" value={month} onChange={event => setMonth(event.target.value)} /></label>
+          <label className={filterLabel}>Formato<Select variant="filter" className={`${filterControl} tw:min-h-10.5`} value={mode} onChange={event => setMode(event.target.value)}><option value="all">Todos</option><option value="remote">Online</option><option value="in_person">Presencial</option></Select></label>
+          <label className={filterLabel}>Situação<Select variant="filter" className={`${filterControl} tw:min-h-10.5`} value={outcomeFilter} onChange={event => setOutcomeFilter(event.target.value)}><option value="all">Todas</option><option value="occurred">Realizada</option><option value="not_occurred">Não realizada</option><option value="cancelled">Cancelada</option><option value="pending">Sem registro</option></Select></label>
         </div>
         <div className="tw:flex tw:max-h-77.5 tw:flex-col tw:gap-2 tw:overflow-auto tw:px-6 tw:pt-4 tw:pb-5 tw:[scrollbar-width:none]">
           {history.length ? history.map(event => {

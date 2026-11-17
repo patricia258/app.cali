@@ -1,3 +1,4 @@
+import { Select } from '../../../../components/ds/Select';
 import { EmptyState } from '../../../../components/ds/EmptyState';
 import { minutesLabel } from '../../../../lib/capacity';
 
@@ -39,12 +40,12 @@ export function ClientHoursLedger({ rows, filter, onFilter, toneOf }: {
         <span className="tw:text-xs tw:leading-[inherit] tw:text-cali-sand-text">{rows.length} {rows.length === 1 ? 'item neste período' : 'itens neste período'}</span>
         <label className="tw:flex tw:items-center tw:gap-2.5 tw:text-sm tw:leading-[inherit] tw:text-(--v2-text-746a64)">
           Tipo
-          <select className="tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:p-2.5 tw:text-sm tw:leading-[inherit]" value={filter} onChange={(event) => onFilter(event.target.value as ContextFilter)}>
+          <Select variant="filter" className="tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:py-2.5 tw:text-sm tw:leading-[inherit]" value={filter} onChange={(event) => onFilter(event.target.value as ContextFilter)}>
             <option value="all">Todos</option>
             <option value="deliverable">Entregáveis e subtarefas</option>
             <option value="project">Projeto</option>
             <option value="interaction">Ocorrências e outras</option>
-          </select>
+          </Select>
         </label>
       </header>
       {rows.length === 0 ? <EmptyState variant="workflow">Nenhum registro de horas neste período.</EmptyState> : (

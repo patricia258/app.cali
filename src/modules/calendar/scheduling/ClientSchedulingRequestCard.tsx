@@ -1,3 +1,4 @@
+import { Checkbox } from '../../../components/ds/Checkbox';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { SchedulingAction } from './SchedulingAction';
 import { formatPrice, formatSlot, type SchedulingRequest } from './schedulingRequests';
@@ -58,11 +59,10 @@ export function ClientSchedulingRequestCard({ request, highlighted, needsAck, on
             {request.admin_note && <ClientNote><strong>Mensagem da Paty:</strong> {request.admin_note}</ClientNote>}
             {needsAck && (
               <label className="tw:mt-3 tw:flex tw:items-start tw:gap-2.5 tw:text-sm/[1.4]">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={acknowledged}
                   onChange={(event) => setAcknowledged(event.currentTarget.checked)}
-                  className="tw:mt-0.5 tw:accent-cali-brand"
+                  className="tw:mt-0.5"
                 />
                 <span>{request.extra_visit ? 'Li e estou ciente das condições da visita adicional.' : 'Li e estou ciente da condição adicional informada pela CALI para este encontro.'}</span>
               </label>

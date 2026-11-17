@@ -1,3 +1,4 @@
+import { Input } from '../../ds/Input';
 import { WorkflowControls } from '../../ds/WorkflowControls';
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { Search } from 'lucide-react';
@@ -14,9 +15,7 @@ export function AdminListControls({ children, alwaysWrap = false }: { children: 
 
 export function AdminListFilter(props: Omit<ComponentPropsWithoutRef<'select'>, 'className'>) {
   return (
-    <FilterSelect {...props} className="tw:h-11 tw:min-w-0 tw:flex-[0_1_15.385rem] tw:rounded-lg!
-      tw:border tw:border-solid tw:border-cali-line! tw:bg-cali-neutral-surface! tw:py-0!
-      tw:text-sm/[inherit] tw:text-cali-text!" />
+    <FilterSelect {...props} className="tw:h-11 tw:flex-[0_1_15.385rem]" />
   );
 }
 
@@ -24,9 +23,10 @@ export function AdminListSearch(props: Omit<ComponentPropsWithoutRef<'input'>, '
   return (
     <label className="v2-record-search tw:my-0 tw:mr-0 tw:ml-auto tw:flex tw:h-11 tw:min-w-[12.308rem]
       tw:flex-[1_1_16.923rem] tw:items-center tw:gap-2 tw:rounded-lg tw:border tw:border-solid
-      tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:text-cali-muted tw:[@media(max-width:980px)]:ml-0">
+      tw:border-cali-line tw:bg-cali-input tw:px-3.5 tw:text-cali-muted
+      tw:focus-within:outline-2 tw:focus-within:outline-offset-2 tw:focus-within:outline-cali-gold-accent tw:[@media(max-width:980px)]:ml-0">
       <Search size={14} />
-      <input {...props} className="tw:min-w-0 tw:flex-1 tw:border-0 tw:bg-transparent tw:p-0 tw:text-sm/[inherit]
+      <Input variant="bare" {...props} className="tw:flex-1 tw:text-sm/[inherit]
         tw:text-cali-text tw:outline-none" />
     </label>
   );

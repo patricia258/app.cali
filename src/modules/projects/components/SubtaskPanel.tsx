@@ -1,3 +1,4 @@
+import { Select } from '../../../components/ds/Select';
 import { ProjectMessage } from './ProjectMessage';
 import { ProjectComplexityBadge } from '../../../components/projects/ProjectComplexityBadge';
 import { projectStatusColor } from './projectStatusColor';
@@ -321,12 +322,13 @@ export function SubtaskModal({
           </div>
           <div className="tw:flex tw:min-w-0 tw:flex-none tw:flex-wrap tw:items-center tw:gap-3">
             <label
-              className={`tw:order-1 tw:inline-flex tw:h-12.5 tw:items-center tw:gap-2.5 tw:rounded-cali-panel tw:pr-1 tw:pl-3.5 tw:text-cali-neutral-surface ${projectStatusColor[SUBTASK_STATUS[task.status]?.tone || 'purple'] ?? projectStatusColor.purple}`}
+              className={`tw:order-1 tw:inline-flex tw:h-12.5 tw:items-center tw:gap-2.5 tw:rounded-cali-panel tw:pl-3.5 tw:text-cali-neutral-surface ${projectStatusColor[SUBTASK_STATUS[task.status]?.tone || 'purple'] ?? projectStatusColor.purple}`}
               title="Situação da subtarefa — clique para alterar"
             >
               <i aria-hidden="true" className="tw:size-2 tw:rounded-full tw:bg-cali-neutral-surface" />
-              <select
-                className="tw:h-full tw:min-w-0 tw:cursor-pointer tw:border-0! tw:bg-transparent! tw:pr-2 tw:text-cali-body tw:font-extrabold tw:text-cali-neutral-surface! tw:disabled:cursor-default tw:disabled:opacity-100 tw:[&_option]:bg-cali-neutral-surface tw:[&_option]:text-cali-ink"
+              <Select
+                variant="bare"
+                className="tw:h-full tw:min-w-0 tw:cursor-pointer tw:text-cali-body tw:font-extrabold tw:text-cali-neutral-surface! tw:disabled:cursor-default tw:disabled:opacity-100 tw:[&_option]:bg-cali-neutral-surface tw:[&_option]:text-cali-ink"
                 aria-label="Situação da subtarefa"
                 value={task.status}
                 disabled={options.length === 1}
@@ -337,7 +339,7 @@ export function SubtaskModal({
                     {subtaskStatusLabel(value, staff)}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             {staff ? (
               timer

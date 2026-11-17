@@ -1,3 +1,4 @@
+import { Select } from '../../components/ds/Select';
 import { Button } from '../../components/ds/Button';
 import { useState } from 'react';
 import { History } from 'lucide-react';
@@ -26,9 +27,9 @@ function Timeline({ companyId, role, staff, openRecord }: {
   const loading = history.isPending || history.isFetchingNextPage;
 
   return <>
-    <label className={filterStyle}>Evento <select value={filter} onChange={(event) => setFilter(event.target.value)}>
+    <label className={filterStyle}>Evento <Select variant="filter" value={filter} onChange={(event) => setFilter(event.target.value)}>
       {filters.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-    </select></label>
+    </Select></label>
     <ol className="tw:mt-[12px] tw:grid tw:list-none tw:gap-[12px] tw:p-0">
       {rows.map((event) => <li className="tw:grid tw:grid-cols-[minmax(9rem,auto)_minmax(8rem,1fr)_minmax(9rem,2fr)] tw:items-baseline tw:gap-[8px] tw:[@media(max-width:600px)]:grid-cols-[1fr] tw:[@media(max-width:600px)]:gap-[4px] tw:[@media(max-width:600px)]:[border-bottom:1px_solid_var(--theme-line)] tw:[@media(max-width:600px)]:py-[8px]" key={event.id}>
         <time dateTime={event.happened_at}>{historyDate.format(new Date(event.happened_at))}</time>
@@ -63,9 +64,9 @@ export function CompanyConversationHistory({ companyId, companies, role, staff, 
   return <details className="tw:my-[14px] tw:rounded-[12px] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:px-[16px] tw:py-[12px]" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
     <summary className="tw:cursor-pointer tw:font-bold"><History className="tw:align-middle" size={16} aria-hidden="true" /> Histórico por empresa</summary>
     {open && <div className="tw:mt-[12px] tw:grid tw:gap-[12px]">
-      {companyId === 'all' && <label className={filterStyle}>Empresa do histórico <select value={target} onChange={(event) => setCompany(event.target.value)}>
+      {companyId === 'all' && <label className={filterStyle}>Empresa do histórico <Select variant="filter" value={target} onChange={(event) => setCompany(event.target.value)}>
         {companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-      </select></label>}
+      </Select></label>}
       <Timeline key={target} companyId={target} role={role} staff={staff} openRecord={openRecord} />
     </div>}
   </details>;

@@ -1,4 +1,8 @@
+import { FieldLabel } from '../../components/ds/FieldLabel';
 import { FilterSelect } from '../../components/ds/FilterSelect';
+import { Input } from '../../components/ds/Input';
+import { Select } from '../../components/ds/Select';
+import { Textarea } from '../../components/ds/Textarea';
 import { AdminNotice } from '../../components/ds/AdminNotice';
 import { WorkflowDialogOverlay } from '../../components/ds/WorkflowDialog';
 import { WorkspaceAdminPage } from '../../components/workspace/components/WorkspaceAdminPage';
@@ -17,7 +21,6 @@ import { WorkspacePageHeader } from '../../components/workspace/WorkspacePageHea
 import { HourSourceBadge } from './components/HourSourceBadge';
 import { HoursMoreButton } from './components/HoursMoreButton';
 import { HoursActionButton } from './components/HoursActionButton';
-import { HoursField } from './components/HoursField';
 import { HoursClientVisibility } from './components/HoursClientVisibility';
 import { HoursUsageSection } from './components/HoursUsageSection';
 import { HoursAuditDialog } from './components/HoursAuditDialog';
@@ -285,7 +288,13 @@ export function AdminHoursPage({ staff }: { staff?: StaffHoursScope } = {}){
 
   return <HoursFrame staff={Boolean(staff)}><WorkspaceAdminPage className={`tw:[&_button:disabled]:cursor-not-allowed tw:[&_button:disabled]:opacity-45 ${staff?'tw:[&_[hidden]]:hidden!':''}`}><WorkspaceAdminContent className="hours-connect hours-multi-v3">
     <WorkspacePageHeader eyebrow={staff ? 'EQUIPE CALI / HORAS' : 'BACKOFFICE / CALI RH'} title={staff ? 'Horas' : 'Horas e contratos'} description={staff ? 'Consumo das empresas e os seus lançamentos.' : 'Consumo contratual e registros de atuação por conta e período.'} actionClassName="hours-v13-header-actions">
-      <label className="tw:inline-flex tw:cursor-pointer tw:items-center tw:gap-2.5 tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-2 tw:font-bold tw:text-cali-brand"><CalendarDays size={14}/><input className="tw:border-0 tw:bg-transparent tw:font-semibold tw:text-cali-brand tw:outline-none" type="month" aria-label="Mês de referência" value={period} onChange={e=>setPeriod(e.target.value)}/></label><Button variant="adminOutline" type="button" onClick={()=>setManualOpen(true)}><PenSquare size={14}/> Lançamento manual</Button><Button variant="adminOutline" type="button" onClick={()=>setInteractionOpen(true)}><MessageSquareText size={14}/> Interação externa</Button><Button variant="adminPrimary" type="button" onClick={openTimerDialog} disabled={!companies.some(c=>!openCompanyIds.has(c.id))}><Play size={14}/> Iniciar timer</Button>
+      <label className="tw:inline-flex tw:cursor-pointer tw:items-center tw:gap-2.5 tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-2 tw:font-bold tw:text-cali-brand">
+        <CalendarDays size={14} aria-hidden="true" />
+        <Input variant="bare" className="tw:font-semibold tw:text-cali-brand" type="month" aria-label="Mês de referência" value={period} onChange={(event) => setPeriod(event.target.value)} />
+      </label>
+      <Button variant="adminOutline" type="button" onClick={() => setManualOpen(true)}><PenSquare size={14}/> Lançamento manual</Button>
+      <Button variant="adminOutline" type="button" onClick={() => setInteractionOpen(true)}><MessageSquareText size={14}/> Interação externa</Button>
+      <Button variant="adminPrimary" type="button" onClick={openTimerDialog} disabled={!companies.some((company) => !openCompanyIds.has(company.id))}><Play size={14}/> Iniciar timer</Button>
     </WorkspacePageHeader>
 
     <WorkspaceMetricGrid columns={3} metrics={[
@@ -344,13 +353,73 @@ return <Fragment key={entry.id}><tr data-hour-entry-id={entry.id} className={`${
         />
         <WorkspaceFormDialogBody>
           <div className="tw:grid tw:grid-cols-2 tw:items-start tw:gap-x-5.5 tw:gap-y-4">
-      <HoursField><span>Cliente</span><select value={timerCompanyId} onChange={e=>resetTimerContext(e.target.value)}><option value="">Selecione</option>{companies.map(c=><option key={c.id} value={c.id} disabled={openCompanyIds.has(c.id)}>{c.name}{openCompanyIds.has(c.id)?' · timer ativo':''}</option>)}</select></HoursField>
-      <HoursField><span>Projeto</span><select value={timerProjectId} disabled={!timerCompanyId} onChange={e=>{setTimerProjectId(e.target.value);setTimerDeliverableId('');setTimerTaskId('');}}><option value="">Selecione</option>{timerProjects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></HoursField>
-      <HoursField><span>Entregável</span><select value={timerDeliverableId} disabled={!timerProjectId} onChange={e=>{setTimerDeliverableId(e.target.value);setTimerTaskId('');}}><option value="">Selecione</option>{timerDeliverables.map(d=><option key={d.id} value={d.id} disabled={!staff && Boolean(d.workClosedAt || d.status === 'approved')} hidden={!staff && Boolean(d.workClosedAt || d.status === 'approved')}>{d.title}</option>)}</select></HoursField>
-      <HoursField><span>Subtarefa <em>(se houver)</em></span><select value={timerTaskId} disabled={!timerDeliverableId||timerTasks.length===0} onChange={e=>setTimerTaskId(e.target.value)}><option value="">{timerTasks.length?'Entregável geral':'Sem subtarefas cadastradas'}</option>{timerTasks.map(t=><option key={t.id} value={t.id} disabled={!staff && Boolean(t.workClosedAt || t.status === 'done')} hidden={!staff && Boolean(t.workClosedAt || t.status === 'done')}>{t.title}</option>)}</select></HoursField>
-      <HoursField><span>Natureza</span><select value={timerCategory} onChange={e=>setTimerCategory(e.target.value)}>{categories.map(c=><option key={c}>{c}</option>)}</select></HoursField>
-      <HoursField wide><span>Descrição <em>(opcional)</em></span><input value={timerDescription} onChange={e=>setTimerDescription(e.target.value)} placeholder="Se vazio, usamos o nome da subtarefa ou entregável."/></HoursField>
-    </div><div className="tw:mt-5 tw:flex tw:items-center tw:justify-between tw:gap-3">{!staff && <HoursClientVisibility value={timerClientVisible} onChange={setTimerClientVisible} />}<HoursActionButton primary type="button" onClick={()=>{void startTimer();setTimerOpen(false);}} disabled={saving||timerTargetClosed||!timerCompanyId||(!staff&&(!timerProjectId||!timerDeliverableId))||openCompanyIds.has(timerCompanyId)}><Play size={16}/>Iniciar</HoursActionButton></div>
+            <FieldLabel>
+              Cliente
+              <Select value={timerCompanyId} onChange={(event) => resetTimerContext(event.target.value)}>
+                <option value="">Selecione</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id} disabled={openCompanyIds.has(company.id)}>
+                    {company.name}{openCompanyIds.has(company.id) ? ' · timer ativo' : ''}
+                  </option>
+                ))}
+              </Select>
+            </FieldLabel>
+            <FieldLabel>
+              Projeto
+              <Select value={timerProjectId} disabled={!timerCompanyId} onChange={(event) => {
+                setTimerProjectId(event.target.value);
+                setTimerDeliverableId('');
+                setTimerTaskId('');
+              }}>
+                <option value="">Selecione</option>
+                {timerProjects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+              </Select>
+            </FieldLabel>
+            <FieldLabel>
+              Entregável
+              <Select value={timerDeliverableId} disabled={!timerProjectId} onChange={(event) => {
+                setTimerDeliverableId(event.target.value);
+                setTimerTaskId('');
+              }}>
+                <option value="">Selecione</option>
+                {timerDeliverables.map((deliverable) => {
+                  const closed = !staff && Boolean(deliverable.workClosedAt || deliverable.status === 'approved');
+                  return <option key={deliverable.id} value={deliverable.id} disabled={closed} hidden={closed}>{deliverable.title}</option>;
+                })}
+              </Select>
+            </FieldLabel>
+            <FieldLabel>
+              <span>Subtarefa <em className="tw:font-normal tw:text-cali-muted tw:not-italic">(se houver)</em></span>
+              <Select value={timerTaskId} disabled={!timerDeliverableId || timerTasks.length === 0} onChange={(event) => setTimerTaskId(event.target.value)}>
+                <option value="">{timerTasks.length ? 'Entregável geral' : 'Sem subtarefas cadastradas'}</option>
+                {timerTasks.map((task) => {
+                  const closed = !staff && Boolean(task.workClosedAt || task.status === 'done');
+                  return <option key={task.id} value={task.id} disabled={closed} hidden={closed}>{task.title}</option>;
+                })}
+              </Select>
+            </FieldLabel>
+            <FieldLabel>
+              Natureza
+              <Select value={timerCategory} onChange={(event) => setTimerCategory(event.target.value)}>
+                {categories.map((category) => <option key={category}>{category}</option>)}
+              </Select>
+            </FieldLabel>
+            <FieldLabel className="tw:col-span-full">
+              <span>Descrição <em className="tw:font-normal tw:text-cali-muted tw:not-italic">(opcional)</em></span>
+              <Input value={timerDescription} onChange={(event) => setTimerDescription(event.target.value)} placeholder="Se vazio, usamos o nome da subtarefa ou entregável." />
+            </FieldLabel>
+          </div>
+          <div className="tw:mt-5 tw:flex tw:items-center tw:justify-between tw:gap-3">
+            {!staff && <HoursClientVisibility value={timerClientVisible} onChange={setTimerClientVisible} />}
+            <HoursActionButton
+              primary
+              type="button"
+              onClick={() => { void startTimer(); setTimerOpen(false); }}
+              disabled={saving || timerTargetClosed || !timerCompanyId || (!staff && (!timerProjectId || !timerDeliverableId)) || openCompanyIds.has(timerCompanyId)}
+            >
+              <Play size={16} />Iniciar
+            </HoursActionButton>
+          </div>
         </WorkspaceFormDialogBody>
       </WorkspaceFormDialogFrame>
     </WorkspaceDialogOverlay>}
@@ -365,8 +434,90 @@ return <Fragment key={entry.id}><tr data-hour-entry-id={entry.id} className={`${
         />
         <WorkspaceFormDialogBody>
           <form className="tw:grid tw:grid-cols-2 tw:items-start tw:gap-x-5.5 tw:gap-y-4" onSubmit={saveManual}>
-      <HoursField><span>Data *</span><input type="date" value={manualDate} onChange={e=>setManualDate(e.target.value)}/></HoursField><HoursField><span>Cliente *</span><select value={manualCompanyId} onChange={e=>{setManualCompanyId(e.target.value);setManualProjectId('');setManualDeliverableId('');setManualTaskId('');}}><option value="">Selecione</option>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></HoursField><HoursField><span>Projeto *</span><select value={manualProjectId} disabled={!manualCompanyId} onChange={e=>{setManualProjectId(e.target.value);setManualDeliverableId('');setManualTaskId('');}}><option value="">Selecione</option>{manualProjects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></HoursField><HoursField><span>Entregável *</span><select value={manualDeliverableId} disabled={!manualProjectId} onChange={e=>{setManualDeliverableId(e.target.value);setManualTaskId('');}}><option value="">Selecione</option>{manualDeliverables.map(d=><option key={d.id} value={d.id} disabled={!staff && Boolean(d.workClosedAt || d.status === 'approved')} hidden={!staff && Boolean(d.workClosedAt || d.status === 'approved')}>{d.title}</option>)}</select></HoursField><HoursField><span>Subtarefa</span><select value={manualTaskId} disabled={!manualDeliverableId||manualTasks.length===0} onChange={e=>setManualTaskId(e.target.value)}><option value="">{manualTasks.length?'Entregável geral':'Sem subtarefas'}</option>{manualTasks.map(t=><option key={t.id} value={t.id} disabled={!staff && Boolean(t.workClosedAt || t.status === 'done')} hidden={!staff && Boolean(t.workClosedAt || t.status === 'done')}>{t.title}</option>)}</select></HoursField><HoursField><span>Natureza</span><select value={manualCategory} onChange={e=>setManualCategory(e.target.value)}>{categories.map(c=><option key={c}>{c}</option>)}</select></HoursField><HoursField><span>Hora início *</span><input type="time" value={manualStart} onChange={e=>setManualStart(e.target.value)}/></HoursField><HoursField><span>Hora fim *</span><input type="time" value={manualEnd} onChange={e=>setManualEnd(e.target.value)}/>{manualStart&&manualEnd&&<small role={manualDuration ? undefined : 'alert'} className={manualDuration ? undefined : 'tw:text-cali-danger'}>{manualDuration?`Duração: ${formatMinutes(manualDuration)}`:'Fim deve ser maior que início.'}</small>}</HoursField><HoursField wide><span>Descrição do trabalho *</span><textarea rows={3} value={manualDescription} onChange={e=>setManualDescription(e.target.value)} placeholder="O que foi realizado?"/></HoursField><HoursField wide><span>Justificativa do lançamento manual * <em>(interna)</em></span><textarea rows={3} value={manualJustification} onChange={e=>setManualJustification(e.target.value)} placeholder="Por que este registro não veio do timer?"/></HoursField>{!staff && <HoursClientVisibility value={manualClientVisible} onChange={setManualClientVisible} />}<div className="tw:col-span-full tw:mt-1 tw:flex tw:items-center tw:justify-end tw:gap-3"><HoursActionButton type="button" onClick={()=>setManualOpen(false)}>Cancelar</HoursActionButton><HoursActionButton primary type="submit" disabled={saving}>Salvar lançamento</HoursActionButton></div>
-    </form>
+            <FieldLabel>
+              Data *
+              <Input type="date" value={manualDate} onChange={(event) => setManualDate(event.target.value)} />
+            </FieldLabel>
+            <FieldLabel>
+              Cliente *
+              <Select value={manualCompanyId} onChange={(event) => {
+                setManualCompanyId(event.target.value);
+                setManualProjectId('');
+                setManualDeliverableId('');
+                setManualTaskId('');
+              }}>
+                <option value="">Selecione</option>
+                {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
+              </Select>
+            </FieldLabel>
+            <FieldLabel>
+              Projeto *
+              <Select value={manualProjectId} disabled={!manualCompanyId} onChange={(event) => {
+                setManualProjectId(event.target.value);
+                setManualDeliverableId('');
+                setManualTaskId('');
+              }}>
+                <option value="">Selecione</option>
+                {manualProjects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+              </Select>
+            </FieldLabel>
+            <FieldLabel>
+              Entregável *
+              <Select value={manualDeliverableId} disabled={!manualProjectId} onChange={(event) => {
+                setManualDeliverableId(event.target.value);
+                setManualTaskId('');
+              }}>
+                <option value="">Selecione</option>
+                {manualDeliverables.map((deliverable) => {
+                  const closed = !staff && Boolean(deliverable.workClosedAt || deliverable.status === 'approved');
+                  return <option key={deliverable.id} value={deliverable.id} disabled={closed} hidden={closed}>{deliverable.title}</option>;
+                })}
+              </Select>
+            </FieldLabel>
+            <FieldLabel>
+              Subtarefa
+              <Select value={manualTaskId} disabled={!manualDeliverableId || manualTasks.length === 0} onChange={(event) => setManualTaskId(event.target.value)}>
+                <option value="">{manualTasks.length ? 'Entregável geral' : 'Sem subtarefas'}</option>
+                {manualTasks.map((task) => {
+                  const closed = !staff && Boolean(task.workClosedAt || task.status === 'done');
+                  return <option key={task.id} value={task.id} disabled={closed} hidden={closed}>{task.title}</option>;
+                })}
+              </Select>
+            </FieldLabel>
+            <FieldLabel>
+              Natureza
+              <Select value={manualCategory} onChange={(event) => setManualCategory(event.target.value)}>
+                {categories.map((category) => <option key={category}>{category}</option>)}
+              </Select>
+            </FieldLabel>
+            <FieldLabel>
+              Hora início *
+              <Input type="time" value={manualStart} onChange={(event) => setManualStart(event.target.value)} />
+            </FieldLabel>
+            <FieldLabel>
+              Hora fim *
+              <Input type="time" value={manualEnd} onChange={(event) => setManualEnd(event.target.value)} />
+              {manualStart && manualEnd && <small
+                role={manualDuration ? undefined : 'alert'}
+                className={`tw:text-xs tw:font-normal ${manualDuration ? 'tw:text-cali-muted' : 'tw:text-cali-danger'}`}
+              >
+                {manualDuration ? `Duração: ${formatMinutes(manualDuration)}` : 'Fim deve ser maior que início.'}
+              </small>}
+            </FieldLabel>
+            <FieldLabel className="tw:col-span-full">
+              Descrição do trabalho *
+              <Textarea rows={3} value={manualDescription} onChange={(event) => setManualDescription(event.target.value)} placeholder="O que foi realizado?" />
+            </FieldLabel>
+            <FieldLabel className="tw:col-span-full">
+              <span>Justificativa do lançamento manual * <em className="tw:font-normal tw:text-cali-muted tw:not-italic">(interna)</em></span>
+              <Textarea rows={3} value={manualJustification} onChange={(event) => setManualJustification(event.target.value)} placeholder="Por que este registro não veio do timer?" />
+            </FieldLabel>
+            {!staff && <HoursClientVisibility value={manualClientVisible} onChange={setManualClientVisible} />}
+            <div className="tw:col-span-full tw:mt-1 tw:flex tw:items-center tw:justify-end tw:gap-3">
+              <HoursActionButton type="button" onClick={() => setManualOpen(false)}>Cancelar</HoursActionButton>
+              <HoursActionButton primary type="submit" disabled={saving}>Salvar lançamento</HoursActionButton>
+            </div>
+          </form>
         </WorkspaceFormDialogBody>
       </WorkspaceFormDialogFrame>
     </WorkspaceDialogOverlay>}
@@ -380,7 +531,62 @@ return <Fragment key={entry.id}><tr data-hour-entry-id={entry.id} className={`${
           onClose={() => setInteractionOpen(false)}
         />
         <WorkspaceFormDialogBody>
-          <form className="tw:grid tw:grid-cols-2 tw:items-start tw:gap-x-5.5 tw:gap-y-4" onSubmit={saveInteraction}><div className="tw:col-span-full tw:flex tw:min-w-0 tw:flex-col tw:gap-2 tw:text-sm tw:font-bold tw:text-cali-text"><span>Canal *</span><div className="tw:flex tw:flex-wrap tw:gap-2">{channels.map(c=><button key={c} type="button" aria-pressed={interactionChannel === c} className={`tw:cursor-pointer tw:rounded-lg tw:border tw:border-solid tw:px-3 tw:py-2.5 tw:text-xs tw:leading-[inherit] ${interactionChannel === c ? 'tw:border-cali-brand tw:bg-cali-brand tw:text-cali-neutral-surface' : 'tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:text-cali-neutral-accent'}`} onClick={()=>setInteractionChannel(c)}>{c}</button>)}</div></div><HoursField><span>Data *</span><input type="date" value={interactionDate} onChange={e=>setInteractionDate(e.target.value)}/></HoursField><HoursField><span>Cliente *</span><select value={interactionCompanyId} onChange={e=>{setInteractionCompanyId(e.target.value);setInteractionDeliverableId('');}}><option value="">Selecione</option>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></HoursField><HoursField><span>Duração estimada (min) *</span><input type="number" min="1" step="1" value={interactionMinutes} onChange={e=>setInteractionMinutes(e.target.value)}/></HoursField><HoursField><span>Entregável relacionado</span><select value={interactionDeliverableId} disabled={!interactionCompanyId} onChange={e=>setInteractionDeliverableId(e.target.value)}><option value="">Sem entregável específico</option>{interactionDeliverables.map(d=><option key={d.id} value={d.id} disabled={!staff && Boolean(d.workClosedAt || d.status === 'approved')} hidden={!staff && Boolean(d.workClosedAt || d.status === 'approved')}>{projectMap.get(d.projectId||'')?.name||'Projeto'} — {d.title}</option>)}</select></HoursField><HoursField wide><span>Descrição breve *</span><textarea rows={3} value={interactionDescription} onChange={e=>setInteractionDescription(e.target.value)} placeholder="Resumo da interação."/></HoursField>{!staff && <HoursClientVisibility value={interactionClientVisible} onChange={setInteractionClientVisible} />}<div className="tw:col-span-full tw:mt-1 tw:flex tw:items-center tw:justify-end tw:gap-3"><HoursActionButton type="button" onClick={()=>setInteractionOpen(false)}>Cancelar</HoursActionButton><HoursActionButton primary type="submit" disabled={saving}>Registrar interação</HoursActionButton></div></form>
+          <form className="tw:grid tw:grid-cols-2 tw:items-start tw:gap-x-5.5 tw:gap-y-4" onSubmit={saveInteraction}>
+            <div className="tw:col-span-full tw:flex tw:min-w-0 tw:flex-col tw:gap-2 tw:text-sm tw:font-bold tw:text-cali-text">
+              <span>Canal *</span>
+              <div className="tw:flex tw:flex-wrap tw:gap-2">
+                {channels.map((channel) => (
+                  <Button
+                    key={channel}
+                    type="button"
+                    variant="unstyled"
+                    aria-pressed={interactionChannel === channel}
+                    className={`tw:cursor-pointer tw:rounded-lg tw:border tw:border-solid tw:px-3 tw:py-2.5 tw:text-xs/[inherit] ${interactionChannel === channel ? 'tw:border-cali-brand tw:bg-cali-brand tw:text-cali-neutral-surface' : 'tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:text-cali-neutral-accent'}`}
+                    onClick={() => setInteractionChannel(channel)}
+                  >
+                    {channel}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <FieldLabel>
+              Data *
+              <Input type="date" value={interactionDate} onChange={(event) => setInteractionDate(event.target.value)} />
+            </FieldLabel>
+            <FieldLabel>
+              Cliente *
+              <Select value={interactionCompanyId} onChange={(event) => {
+                setInteractionCompanyId(event.target.value);
+                setInteractionDeliverableId('');
+              }}>
+                <option value="">Selecione</option>
+                {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
+              </Select>
+            </FieldLabel>
+            <FieldLabel>
+              Duração estimada (min) *
+              <Input type="number" min="1" step="1" value={interactionMinutes} onChange={(event) => setInteractionMinutes(event.target.value)} />
+            </FieldLabel>
+            <FieldLabel>
+              Entregável relacionado
+              <Select value={interactionDeliverableId} disabled={!interactionCompanyId} onChange={(event) => setInteractionDeliverableId(event.target.value)}>
+                <option value="">Sem entregável específico</option>
+                {interactionDeliverables.map((deliverable) => {
+                  const closed = !staff && Boolean(deliverable.workClosedAt || deliverable.status === 'approved');
+                  return <option key={deliverable.id} value={deliverable.id} disabled={closed} hidden={closed}>{projectMap.get(deliverable.projectId || '')?.name || 'Projeto'} — {deliverable.title}</option>;
+                })}
+              </Select>
+            </FieldLabel>
+            <FieldLabel className="tw:col-span-full">
+              Descrição breve *
+              <Textarea rows={3} value={interactionDescription} onChange={(event) => setInteractionDescription(event.target.value)} placeholder="Resumo da interação." />
+            </FieldLabel>
+            {!staff && <HoursClientVisibility value={interactionClientVisible} onChange={setInteractionClientVisible} />}
+            <div className="tw:col-span-full tw:mt-1 tw:flex tw:items-center tw:justify-end tw:gap-3">
+              <HoursActionButton type="button" onClick={() => setInteractionOpen(false)}>Cancelar</HoursActionButton>
+              <HoursActionButton primary type="submit" disabled={saving}>Registrar interação</HoursActionButton>
+            </div>
+          </form>
         </WorkspaceFormDialogBody>
       </WorkspaceFormDialogFrame>
     </WorkspaceDialogOverlay>}
@@ -388,8 +594,38 @@ return <Fragment key={entry.id}><tr data-hour-entry-id={entry.id} className={`${
     {pendingVisibility&&<WorkspaceDialogOverlay><WorkspaceConfirmDialog aria-labelledby="hours-v14-title"><div><small>VISIBILIDADE PARA CLIENTES</small><h2 id="hours-v14-title">{pendingVisibility.enabled?'Liberar horas para o cliente?':'Desativar visualização deste mês?'}</h2><p>{pendingVisibility.enabled?`Ao liberar, ${pendingVisibility.company.name} poderá acompanhar os registros compartilháveis a partir de ${period}.`:`Ao desativar, ${pendingVisibility.company.name} deixará de ver este mês e os próximos.`}</p><p>O histórico anterior permanece disponível. Somente a visibilidade futura será alterada.</p></div><footer><button type="button" onClick={()=>setPendingVisibility(null)}>Cancelar</button><button type="button" onClick={()=>void confirmClientHoursVisibility()} disabled={saving}>{pendingVisibility.enabled?'Sim, liberar visualização':'Sim, desativar neste mês'}</button></footer></WorkspaceConfirmDialog></WorkspaceDialogOverlay>}
     {staffEdit&&<WorkflowDialogOverlay  onMouseDown={()=>setStaffEdit(null)}><StaffDialogForm compact aria-label="Editar lançamento" onSubmit={staffSaveEdit} onMouseDown={(e)=>e.stopPropagation()}>
       <StaffDialogHeader onClose={() => setStaffEdit(null)}><div><small>{staffEdit.kind==='submission'?'HORAS · AGUARDANDO APROVAÇÃO':'HORAS · LANÇAMENTO'}</small><h2>Editar lançamento</h2></div></StaffDialogHeader>
-      <StaffDialogBody><StaffDialogFields columns={staffEdit.kind === 'submission' ? 2 : 3}>{staffEdit.kind==='submission'?<><label>Data<input type="date" value={staffEdit.date} onChange={e=>setStaffEdit({...staffEdit,date:e.target.value})}/></label><label>Duração (minutos)<input type="number" min="1" max="1440" value={staffEdit.minutes} onChange={e=>setStaffEdit({...staffEdit,minutes:e.target.value})}/></label></>:<><label>Data<input type="date" value={staffEdit.date} onChange={e=>setStaffEdit({...staffEdit,date:e.target.value})}/></label><label>Início<input type="time" value={staffEdit.start} onChange={e=>setStaffEdit({...staffEdit,start:e.target.value})}/></label><label>Fim<input type="time" value={staffEdit.end} onChange={e=>setStaffEdit({...staffEdit,end:e.target.value})}/></label>{!(staffEdit.start&&staffEdit.end)&&!staff&&<label>Duração (minutos)<input type="number" min="1" max="1440" value={staffEdit.minutes} onChange={e=>setStaffEdit({...staffEdit,minutes:e.target.value})}/></label>}</>}</StaffDialogFields>
-        <StaffDialogFields columns={1}><label>O que foi feito<input value={staffEdit.description} onChange={e=>setStaffEdit({...staffEdit,description:e.target.value})}/></label><label>{staff?'Motivo da edição (fica registrado para a Patricia)':'Motivo da edição (opcional, fica na Auditoria)'}<input value={staffEdit.reason} onChange={e=>setStaffEdit({...staffEdit,reason:e.target.value})} placeholder="Ex.: esqueci o cronômetro ligado no almoço"/></label></StaffDialogFields></StaffDialogBody>
+      <StaffDialogBody>
+        <StaffDialogFields columns={staffEdit.kind === 'submission' ? 2 : 3}>
+          <FieldLabel>
+            Data
+            <Input type="date" value={staffEdit.date} onChange={(event) => setStaffEdit({ ...staffEdit, date: event.target.value })} />
+          </FieldLabel>
+          {staffEdit.kind === 'entry' && <>
+            <FieldLabel>
+              Início
+              <Input type="time" value={staffEdit.start} onChange={(event) => setStaffEdit({ ...staffEdit, start: event.target.value })} />
+            </FieldLabel>
+            <FieldLabel>
+              Fim
+              <Input type="time" value={staffEdit.end} onChange={(event) => setStaffEdit({ ...staffEdit, end: event.target.value })} />
+            </FieldLabel>
+          </>}
+          {(staffEdit.kind === 'submission' || (!staff && !(staffEdit.start && staffEdit.end))) && <FieldLabel>
+            Duração (minutos)
+            <Input type="number" min="1" max="1440" value={staffEdit.minutes} onChange={(event) => setStaffEdit({ ...staffEdit, minutes: event.target.value })} />
+          </FieldLabel>}
+        </StaffDialogFields>
+        <StaffDialogFields columns={1}>
+          <FieldLabel>
+            O que foi feito
+            <Input value={staffEdit.description} onChange={(event) => setStaffEdit({ ...staffEdit, description: event.target.value })} />
+          </FieldLabel>
+          <FieldLabel>
+            {staff ? 'Motivo da edição (fica registrado para a Patricia)' : 'Motivo da edição (opcional, fica na Auditoria)'}
+            <Input value={staffEdit.reason} onChange={(event) => setStaffEdit({ ...staffEdit, reason: event.target.value })} placeholder="Ex.: esqueci o cronômetro ligado no almoço" />
+          </FieldLabel>
+        </StaffDialogFields>
+      </StaffDialogBody>
       <StaffDialogFooter><Button type="button" variant="workflowSecondary" onClick={()=>setStaffEdit(null)}>Cancelar</Button><Button type="submit" variant="workflowPrimary" disabled={saving||(Boolean(staff)&&staffEdit.reason.trim().length<5)||(Boolean(staff)&&staffEdit.kind==='entry'&&!(staffEdit.start&&staffEdit.end))}>{saving?'Salvando…':'Salvar edição'}</Button></StaffDialogFooter>
     </StaffDialogForm></WorkflowDialogOverlay>}
     {auditOpen && <HoursAuditDialog formatMinutes={formatMinutes} onClose={() => setAuditOpen(false)} />}

@@ -1,9 +1,12 @@
+import { Checkbox } from '../../../components/ds/Checkbox';
+import { Select } from '../../../components/ds/Select';
+import { Textarea } from '../../../components/ds/Textarea';
 import { useState } from 'react';
 import { errorMessage } from '../../../lib/errorMessage';
 import { useCalendarMeetingRecord } from '../hooks/useCalendarMeetingRecord';
 import { useSaveCalendarMeetingRecord } from '../hooks/useSaveCalendarMeetingRecord';
 import { MeetingRecordAction } from './MeetingRecordAction';
-import { recordForm, recordInput } from './meetingRecordStyles';
+import { recordForm } from './meetingRecordStyles';
 import { CalendarMeetingTranscription } from './CalendarMeetingTranscription';
 
 const reasons = {
@@ -80,14 +83,14 @@ function MeetingRecordFields({ meeting, outcome, protocol }: RecordData & { prot
             {editing === 'occurred' ? <strong>Confirmar realização</strong> : (
               <>
                 <label className="tw:grid tw:gap-1">Motivo
-                  <select name="reason" defaultValue={outcome?.reason_category ?? 'client'} className={recordInput}>
+                  <Select variant="compact" name="reason" defaultValue={outcome?.reason_category ?? 'client'} className="tw:w-full">
                     {Object.entries(reasons).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                  </select>
+                  </Select>
                 </label>
-                <label><input type="checkbox" name="justified" defaultChecked={Boolean(outcome?.justified)} /> Houve justificativa</label>
+                <label><Checkbox name="justified" defaultChecked={Boolean(outcome?.justified)} /> Houve justificativa</label>
               </>
             )}
-            <textarea name="note" aria-label="Observação do encontro" defaultValue={outcome?.note ?? ''} className={`${recordInput} tw:min-h-23`} placeholder={editing === 'occurred' ? 'Observação opcional sobre o encontro' : 'Justificativa / contexto'} />
+            <Textarea variant="compact" name="note" aria-label="Observação do encontro" defaultValue={outcome?.note ?? ''} className="tw:min-h-23 tw:w-full" placeholder={editing === 'occurred' ? 'Observação opcional sobre o encontro' : 'Justificativa / contexto'} />
             <MeetingRecordAction primary type="submit" disabled={mutation.isPending}>{editing === 'occurred' ? 'Confirmar que aconteceu' : 'Registrar não ocorrência'}</MeetingRecordAction>
           </form>
         )}

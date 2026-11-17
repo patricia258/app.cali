@@ -212,6 +212,15 @@ async function reviewMapa({ page, go }) {
 
 const states = [
   [
+    'admin',
+    'horas:lancamento-manual',
+    async ({ page, go }) => {
+      await go('/admin/horas');
+      await page.getByRole('button', { name: 'Lançamento manual', exact: true }).click();
+      await page.getByRole('heading', { name: 'Registrar horas manualmente', exact: true }).waitFor();
+    },
+  ],
+  [
     'public',
     'landing:carrossel-segunda-tela',
     async ({ page, go }) => {

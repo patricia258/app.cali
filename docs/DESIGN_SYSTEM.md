@@ -46,7 +46,9 @@ As listas de Propostas, Mapa de People e Auditoria compartilham [indicadores](..
 | Componente | Contrato |
 | --- | --- |
 | [Button](../src/components/ds/Button.tsx) | Variantes tipadas, submissão nativa, ação em andamento e foco de teclado. Botões de fechamento têm nome acessível. |
-| [FieldLabel](../src/components/ds/FieldLabel.tsx), [FilterSelect](../src/components/ds/FilterSelect.tsx), [GuidedField](../src/components/ds/GuidedField.tsx) | Mantêm rótulo, autocomplete, seleção, referência DOM e validação nativa. O recuo da seta em `FilterSelect` usa a mesma medida do recuo inicial do texto. A seta nativa volta em alto contraste. |
+| [FieldLabel](../src/components/ds/FieldLabel.tsx), [Input](../src/components/ds/Input.tsx), [Textarea](../src/components/ds/Textarea.tsx), [Checkbox](../src/components/ds/Checkbox.tsx) | Mantêm label, autocomplete, referência DOM, validação e serialização nativas. O campo de data, mês e horário usa o seletor do navegador. |
+| [Select](../src/components/ds/Select.tsx), [FilterSelect](../src/components/ds/FilterSelect.tsx) | O texto e a seta usam o mesmo recuo de 3,5 passos da escala Tailwind. A caixa reserva espaço extra para a largura da seta e o texto. Alto contraste usa a seta nativa. O select múltiplo mantém o listbox nativo. |
+| [GuidedField](../src/components/ds/GuidedField.tsx) | Preserva o campo sublinhado dos formulários públicos guiados. |
 | [DialogFrame](../src/components/ds/DialogFrame.tsx), [DialogForm](../src/components/ds/DialogForm.tsx) | Nome acessível, entrada e retorno de foco, Tab circular e Escape quando há ação de fechar. Formulário continua sendo um formulário nativo. |
 | [InlineNotice](../src/components/ds/InlineNotice.tsx), [EmptyState](../src/components/ds/EmptyState.tsx), [LoadingState](../src/components/ds/LoadingState.tsx), [WorkspaceRouteLoader](../src/components/ds/WorkspaceRouteLoader.tsx) | Feedback de erro, confirmação, vazio e carregamento. A cor complementa texto e estado semântico. Avisos `warning` usam `px-4` e `py-3` e mantêm o texto corrido em um bloco. |
 | [WorkflowList](../src/components/ds/WorkflowList.tsx), [WorkflowControls](../src/components/ds/WorkflowControls.tsx), [WorkflowHeading](../src/components/ds/WorkflowHeading.tsx) | Reutilizam grade, linha e filtros responsivos. Mantêm controles nativos e permitem que o módulo configure colunas e ações. |
@@ -54,6 +56,14 @@ As listas de Propostas, Mapa de People e Auditoria compartilham [indicadores](..
 | [StatusBadge](../src/components/ds/StatusBadge.tsx), [DataTable](../src/components/ds/DataTable.tsx) | Preservam o elemento semântico e as variantes usadas pelos fluxos. Rótulos e estados persistidos pertencem ao domínio. |
 
 As primitivas preservam seletores que fazem parte da integração com estilos e runtimes. As ações, as permissões e o conteúdo ficam nos componentes de domínio.
+
+## Campos de formulário
+
+- Use as primitivas para campos comuns em páginas, filtros, formulários, diálogos e tabelas. Separe a moldura e os estados do campo, que pertencem ao DS, da largura, da posição na grade e das dependências, que pertencem ao fluxo.
+- Use `field` nos formulários com respiro padrão, `compact` em editores densos e `filter` nos selects de barras e tabelas. Use `bare` se a moldura e o estado de foco ficam em outro elemento, como uma busca com ícone. `embedded` preserva a geometria ou a apresentação própria de uma composição especializada, como uma célula da matriz editorial, o perfil com editor de assinatura ou o campo com menções.
+- Regras ancestrais podem cuidar de campos ainda integrados a uma composição especial. Preserve o recuo horizontal da primitiva `Select`, inclusive em temas, diálogos e portais. Use `background-color` para trocar só a cor de fundo e preservar a imagem da seta.
+- Controles especializados de upload, rádio, cor, range e campos ocultos podem usar o elemento nativo. Escolha rótulos, nomes, foco, estados desabilitados e mensagens de erro conforme a função. O teste de arquitetura protege a adoção das primitivas em toda a interface React.
+- A revisão inclui filtros de Horas, Projetos e da Visão geral, lançamento e auditoria de Horas, Agenda, Equipe, Propostas, Formulários, Relatórios, Documentos, Ocorrências, Avisos, DISC e superfícies do Cliente e do Partner. A busca do Admin preserva texto e atalho em uma linha a 1203 × 906 e usa truncamento quando a largura cai.
 
 ## Aceite visual
 

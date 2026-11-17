@@ -1,3 +1,4 @@
+import { Textarea } from '../../../../components/ds/Textarea';
 /* Pedidos de privacidade (LGPD, art. 18) feitos pelos usuários no perfil. A administradora vê o prazo e registra a resposta;
    quem pediu recebe a resposta no sino e por e-mail. A exclusão ou correção em si continua sendo feita caso a caso. */
 import { Button } from '../../../../components/ds/Button';
@@ -97,7 +98,7 @@ export function PrivacyRequestsPanel() {
               {isOpen && (answering?.id === row.id ? (
                 <div className="tw:mt-3 tw:flex tw:flex-col tw:gap-2.5">
                   <label htmlFor={`privacy-answer-${row.id}`} className="tw:text-cali-caption tw:font-semibold tw:text-cali-text">Resposta ao pedido</label>
-                  <textarea
+                  <Textarea
                     id={`privacy-answer-${row.id}`} rows={3} maxLength={4000} value={answering.text} autoFocus
                     className="tw:box-border tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-input-line tw:px-3 tw:py-2.5 tw:font-cali-body tw:text-cali-body"
                     onChange={(event) => setAnswering({ id: row.id, text: event.target.value })}

@@ -1,3 +1,4 @@
+import { Input } from '../../../../components/ds/Input';
 import { Button } from '../../../../components/ds/Button';
 import { useEffect, useState } from 'react';
 import { Copy, Download, ExternalLink, QrCode } from 'lucide-react';
@@ -30,9 +31,7 @@ export function FormSharePanel({ form, url, onOpen }: { form: FormRecord; url: s
         tw:[&_small]:font-bold tw:[&_small]:tracking-[.12em] tw:[&_small]:text-cali-gold tw:[&_p]:m-0
         tw:[&_p]:text-cali-body tw:[&_p]:leading-[1.55] tw:[&_p]:text-[color:var(--fm-muted)]">
         <small>LINK DO FORMULÁRIO</small>
-        <div className="v2-forms-link tw:flex tw:gap-2.5 tw:[&_input]:flex-1 tw:[&_input]:min-w-0 tw:[&_input]:[border:1px_solid_var(--cali-color-sand-line)]
-          tw:[&_input]:rounded-cali-compact-control tw:[&_input]:[padding:0.692rem_0.846rem] tw:[&_input]:[font:500_1rem_Inter,sans-serif]
-          tw:[&_input]:text-[color:var(--fm-wine)] tw:[&_input]:bg-cali-surface-soft tw:[@media(max-width:760px)]:flex-col"><input readOnly value={url} onFocus={(event) => event.target.select()} /><Button type="button" variant="workflowPrimary" onClick={() => { void navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2200); }); }}><Copy size={15} /> {copied ? 'Copiado' : 'Copiar link'}</Button></div>
+        <div className="v2-forms-link tw:flex tw:gap-2.5 tw:max-[47.5rem]:flex-col"><Input variant="compact" className="tw:flex-1 tw:bg-cali-surface-soft! tw:font-medium! tw:text-cali-brand!" aria-label="Link do formulário" readOnly value={url} onFocus={(event) => event.target.select()} /><Button type="button" variant="workflowPrimary" onClick={() => { void navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2200); }); }}><Copy size={15} /> {copied ? 'Copiado' : 'Copiar link'}</Button></div>
         <p>Envie o link por e-mail ou WhatsApp. Para eventos, apresentações e materiais impressos, use o QR Code ou o cartão pronto para divulgar.</p>
         <div className="v2-forms-share-actions tw:flex tw:flex-wrap tw:gap-2.5 tw:[&_a]:no-underline">
           <Button type="button" variant="formSecondary" onClick={() => void downloadQrPng(url, `${fileBase}-qrcode.png`)}><QrCode size={15} /> Baixar QR Code</Button>

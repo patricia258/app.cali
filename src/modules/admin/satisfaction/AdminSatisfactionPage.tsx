@@ -1,3 +1,5 @@
+import { Select } from '../../../components/ds/Select';
+import { Textarea } from '../../../components/ds/Textarea';
 import { WorkflowPage } from '../../../components/ds/WorkflowPage';
 import { StatusBadge } from '../../../components/ds/StatusBadge';
 import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
@@ -301,8 +303,8 @@ export function AdminSatisfactionPage(){
   </WorkflowPage></WorkspaceAdminContent>
   {editing&&<WorkspaceDialogOverlay onMouseDown={(event)=>{if(event.target===event.currentTarget)setEditing(null);}}><WorkspaceConfirmDialog className="tw:[&_p]:mb-2! tw:[&_p]:text-cali-body! tw:[&_footer>button]:text-sm! tw:[&_footer>button]:font-bold!" aria-label="Tratativa da avaliação">
     <div><small>SATISFAÇÃO · NOTA {editing.score}/5</small><h2>{followups[followKey(editing)]?'Tratativa registrada':'Marcar como tratada'}</h2><p>{editing.company} · {editing.responderName||'Cliente'} · {editing.title||'Avaliação do cliente'}</p>{editing.comment?.trim()&&<p className="tw:border-0 tw:border-l-[.23rem] tw:border-solid tw:border-cali-gold-line tw:bg-cali-warning-surface tw:px-3.5 tw:py-3 tw:text-cali-muted tw:italic">“{editing.comment.trim()}”</p>}</div>
-    <label>Tema do comentário<select className="tw:h-12.5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-4 tw:font-normal" value={draft.theme} onChange={(event)=>setDraft((current)=>({...current,theme:event.target.value}))}><option value="">Sem tema</option>{THEMES.map(([key,label])=><option value={key} key={key}>{label}</option>)}</select></label>
-    <label>O que foi feito<textarea className="tw:font-normal" value={draft.note} onChange={(event)=>setDraft((current)=>({...current,note:event.target.value}))} placeholder="Ex.: liguei em 12/10 e alinhamos novo prazo."/></label>
+    <label>Tema do comentário<Select variant="embedded" className="tw:h-12.5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:font-normal" value={draft.theme} onChange={(event)=>setDraft((current)=>({...current,theme:event.target.value}))}><option value="">Sem tema</option>{THEMES.map(([key,label])=><option value={key} key={key}>{label}</option>)}</Select></label>
+    <label>O que foi feito<Textarea variant="embedded" className="tw:font-normal" value={draft.note} onChange={(event)=>setDraft((current)=>({...current,note:event.target.value}))} placeholder="Ex.: liguei em 12/10 e alinhamos novo prazo."/></label>
     {error&&<small className="tw:text-cali-danger" role="alert">{error}</small>}
     <footer>{followups[followKey(editing)]&&<button type="button" className="tw:mr-auto tw:border-cali-danger-line! tw:bg-cali-neutral-surface! tw:text-cali-danger!" disabled={savingFollow} onClick={()=>void removeFollowup()}>Remover marcação</button>}<button type="button" onClick={()=>setEditing(null)}>Voltar</button><button type="button" disabled={savingFollow} onClick={()=>void saveFollowup()}>{savingFollow?'Salvando…':'Salvar'}</button></footer>
   </WorkspaceConfirmDialog></WorkspaceDialogOverlay>}

@@ -1,3 +1,5 @@
+import { Select } from '../../components/ds/Select';
+import { Textarea } from '../../components/ds/Textarea';
 import { Button } from '../../components/ds/Button';
 import { useEffect, useState, type FormEvent } from 'react';
 import { assignMaterialReview, decideMaterialReview, readMaterialCompanies, readMaterialPartners, readMaterialReview, type MaterialKind, type MaterialReview } from '../../api/materials/reviews';
@@ -75,20 +77,20 @@ function Review({ kind, entityId, companyId, onApproved }: ReviewProps) {
     {record?.status === 'pending' ? <>
       <h3>{materialText[kind]} para revisão</h3>
       <p className="tw:whitespace-pre-wrap">{record.draft_text}</p>
-      <label className="tw:grid tw:gap-[8px]">Motivo da devolução<textarea className="tw:w-full" value={note} maxLength={2000} onChange={(event) => setNote(event.target.value)} /></label>
+      <label className="tw:grid tw:gap-[8px]">Motivo da devolução<Textarea variant="embedded" className="tw:w-full" value={note} maxLength={2000} onChange={(event) => setNote(event.target.value)} /></label>
       <div className="tw:flex tw:flex-wrap tw:gap-[8px]">
         <Button className="tw:[justify-self:start]" type="button" variant="workflowSecondary" disabled={busy || note.trim().length < 3} onClick={() => void decide(false)}>Devolver para ajuste</Button>
         <Button className="tw:[justify-self:start]" type="button" variant="workflowPrimary" disabled={busy} onClick={() => void decide(true)}>Aprovar e aplicar ao rascunho</Button>
       </div>
     </> : <form className="tw:grid tw:gap-[8px]" onSubmit={assign}>
-      {!companyId && <label className="tw:grid tw:gap-[8px]">Empresa<select className="tw:w-full" value={target} required onChange={(event) => { setTarget(event.target.value); setAuthor(''); }}>
+      {!companyId && <label className="tw:grid tw:gap-[8px]">Empresa<Select variant="embedded" className="tw:w-full" value={target} required onChange={(event) => { setTarget(event.target.value); setAuthor(''); }}>
         <option value="">Escolha a empresa</option>
         {companies.map((company) => <option value={company.id} key={company.id}>{company.display_name}</option>)}
-      </select></label>}
-      <label className="tw:grid tw:gap-[8px]">Partner<select className="tw:w-full" value={author} required onChange={(event) => setAuthor(event.target.value)}>
+      </Select></label>}
+      <label className="tw:grid tw:gap-[8px]">Partner<Select variant="embedded" className="tw:w-full" value={author} required onChange={(event) => setAuthor(event.target.value)}>
         <option value="">Escolha o responsável</option>
         {staff.map((person) => <option value={person.user_id ?? ''} key={person.user_id}>{person.full_name}</option>)}
-      </select></label>
+      </Select></label>
       <Button className="tw:[justify-self:start]" variant="workflowSecondary" type="submit" disabled={busy || !target || !author}>Atribuir material</Button>
     </form>}
     {error && <p role="alert">{error}</p>}

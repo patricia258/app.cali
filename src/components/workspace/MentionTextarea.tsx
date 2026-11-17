@@ -1,3 +1,4 @@
+import { Textarea } from '../ds/Textarea';
 import { forwardRef, useEffect, useId, useRef, useState, type ComponentPropsWithoutRef, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import type { MentionCandidate } from '../../api/workspace/mentions';
@@ -80,7 +81,7 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, Props>(function M
   );
 
   return <>
-    <textarea {...props} ref={(element) => {
+    <Textarea variant="embedded" {...props} ref={(element) => {
       field.current = element;
       if (typeof forwarded === 'function') forwarded(element);
       else if (forwarded) forwarded.current = element;

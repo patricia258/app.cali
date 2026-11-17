@@ -3,6 +3,7 @@ import { WorkspaceAdminPanelHeader } from '../../../components/workspace/compone
 import { Eye, EyeOff, Filter } from 'lucide-react';
 import { Button } from '../../../components/ds/Button';
 import { EmptyState } from '../../../components/ds/EmptyState';
+import { Input } from '../../../components/ds/Input';
 import { minutesLabel } from '../../../lib/capacity';
 import { HoursMoreButton } from './HoursMoreButton';
 import { HoursCompanyLogo } from './HoursCompanyLogo';
@@ -92,8 +93,8 @@ export function HoursUsageSection<Company extends UsageCompany>({
         </div>
         <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.5">
           <label className="tw:flex tw:min-w-[15.385rem] tw:items-center tw:gap-2 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3 tw:text-cali-muted">
-            <Filter size={13} />
-            <input className="tw:w-full tw:min-w-0 tw:border-0 tw:bg-transparent tw:px-1 tw:py-3 tw:text-sm tw:leading-[inherit] tw:text-cali-muted" value={query} onChange={(event) => onQuery(event.target.value)} placeholder="Buscar conta" aria-label="Buscar conta" />
+            <Filter size={13} aria-hidden="true" />
+            <Input variant="bare" className="tw:w-full tw:min-w-0 tw:px-1 tw:py-3 tw:text-sm/[inherit] tw:text-cali-muted" value={query} onChange={(event) => onQuery(event.target.value)} placeholder="Buscar conta" aria-label="Buscar conta" />
           </label>
           <Button
             variant="unstyled"

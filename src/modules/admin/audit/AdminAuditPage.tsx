@@ -1,3 +1,4 @@
+import { Input } from '../../../components/ds/Input';
 import { WorkflowPage } from '../../../components/ds/WorkflowPage';
 import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
 import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
@@ -105,7 +106,7 @@ export function AdminAuditPage() {
       <AdminListFilter aria-label="Agrupar por" value={grouping} onChange={(event) => setGrouping(event.target.value as 'day' | 'protocol')}><option value="day">Agrupar por dia</option><option value="protocol">Agrupar por protocolo</option></AdminListFilter>
       <label className="tw:flex tw:h-11 tw:min-w-0 tw:flex-[1_1_16.923rem] tw:items-center tw:gap-2.5 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:text-cali-muted tw:focus-within:border-cali-gold">
         <Search size={14} className="tw:shrink-0" />
-        <input
+        <Input variant="embedded"
           className="tw:min-w-0 tw:flex-1 tw:border-0 tw:bg-transparent tw:p-0 tw:text-sm/[inherit] tw:text-cali-text tw:outline-none"
           aria-label="Buscar na auditoria"
           placeholder="Buscar ação, pessoa, protocolo ou detalhe"

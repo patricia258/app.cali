@@ -1,3 +1,5 @@
+import { Input } from '../../../components/ds/Input';
+import { Select } from '../../../components/ds/Select';
 import { useSaveAdminSchedulingRequest } from './useSaveAdminSchedulingRequest';
 import { SchedulingDialog } from './SchedulingDialog';
 import { SchedulingFields, SchedulingNoteField, SlotFields } from './SchedulingFields';
@@ -27,8 +29,8 @@ export function AdminSchedulingDialog({ selection, onClose, onSaved }: {
       >
         <label className="tw:mb-4 tw:flex tw:flex-col tw:gap-2">
           <span className="tw:text-cali-label tw:font-black tw:text-cali-muted tw:uppercase">Valor em reais (tabela: 1 hora R$ 200 · 1h30 R$ 300)</span>
-          <input name="amount" type="number" min="1" step="0.01" defaultValue={longMeeting ? 300 : 200} required
-            className="tw:w-full tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-input tw:px-3.5 tw:py-3 tw:text-cali-text"
+          <Input name="amount" type="number" min="1" step="0.01" defaultValue={longMeeting ? 300 : 200} required
+            className="tw:w-full"
           />
         </label>
         <SchedulingNoteField label="Condições e escopo" required minLength={5} placeholder="Explique a duração e o que está incluído."
@@ -85,7 +87,7 @@ export function AdminSchedulingDialog({ selection, onClose, onSaved }: {
       <SchedulingFields>
         <label className="tw:col-span-full tw:flex tw:flex-col tw:gap-2">
           <span className="tw:text-cali-label tw:font-black tw:text-cali-muted tw:uppercase">Duração</span>
-          <select name="duration" defaultValue={duration} className="tw:w-full tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-input tw:px-3.5 tw:py-3 tw:text-cali-text">
+          <Select name="duration" defaultValue={duration} className="tw:w-full">
             {request.extra_visit ? <option value={240}>4 horas</option> : (
               <>
                 <option value={30}>30 minutos</option>
@@ -95,7 +97,7 @@ export function AdminSchedulingDialog({ selection, onClose, onSaved }: {
                 <option value={120}>2 horas</option>
               </>
             )}
-          </select>
+          </Select>
         </label>
         <SlotFields position={1} minDate={minDate} required />
         <SlotFields position={2} minDate={minDate} required={Boolean(request.extra_visit)} />

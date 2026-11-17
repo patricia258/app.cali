@@ -1,3 +1,4 @@
+import { Textarea } from '../../../components/ds/Textarea';
 import { CalendarDays, Clock3, Download, ExternalLink, MapPin, Pencil, Users, Video, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { isSupabaseConfigured } from '../../../api/access/session';
@@ -139,8 +140,8 @@ export function CalendarEventDetails(props: Props) {
               {cancelling && canEdit && <section className="tw:flex tw:flex-col tw:gap-2.5 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-danger-line tw:bg-cali-sand-surface tw:px-3.5 tw:py-3">
                 <strong className={cardTitle}>Cancelar compromisso</strong>
                 <p className={cardCopy}>O motivo fica registrado. Quando a régua de notificações estiver ativada, ele também poderá compor a comunicação aos participantes.</p>
-                <textarea value={cancelReason} onChange={event => onCancelReasonChange(event.target.value)} rows={2} placeholder="Motivo do cancelamento" aria-label="Motivo do cancelamento"
-                  className="tw:min-h-20 tw:w-full tw:resize-y tw:rounded-md tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3 tw:py-2.5 tw:text-xs tw:text-cali-text" />
+                <Textarea variant="compact" value={cancelReason} onChange={event => onCancelReasonChange(event.target.value)} rows={2} placeholder="Motivo do cancelamento" aria-label="Motivo do cancelamento"
+                  className="tw:min-h-20 tw:w-full tw:text-xs!" />
                 {error && <InlineNotice tone="danger">{error}</InlineNotice>}
                 <div className="tw:flex tw:flex-wrap tw:justify-end tw:gap-2">
                   <Button type="button" className={footerButton} variant="secondary" disabled={saving} onClick={onStopCancel}>Voltar</Button>

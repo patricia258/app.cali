@@ -1,3 +1,4 @@
+import { Input } from '../../../components/ds/Input';
 import { CompactPageHeading } from '../../../components/workspace/components/CompactPageHeading';
 /* Perguntas frequentes do cliente — contrato e utilização de horas. Textos do documento da proprietária (2026-10-13),
    sem alteração. Pesquisável, por assunto, com perguntas que abrem e fecham. */
@@ -34,7 +35,7 @@ export function ClientFaqPage() {
       <CompactPageHeading eyebrow="AJUDA / CONTRATO E HORAS" title="Dúvidas frequentes" description="Como funcionam as horas contratadas, os avisos de consumo e os excedentes." />
       <label className="tw:mb-5.5 tw:flex tw:h-13 tw:max-w-[35.385rem] tw:items-center tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-4 tw:focus-within:outline tw:focus-within:outline-cali-brand">
         <Search size={15} />
-        <input
+        <Input variant="embedded"
           className="tw:min-w-0 tw:flex-1 tw:border-0 tw:bg-transparent tw:font-[inherit] tw:text-base tw:leading-[inherit] tw:outline-none"
           value={query}
           onChange={(event) => setQuery(event.target.value)}

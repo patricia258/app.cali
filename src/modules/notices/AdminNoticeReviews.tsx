@@ -1,3 +1,5 @@
+import { FieldLabel } from '../../components/ds/FieldLabel';
+import { Textarea } from '../../components/ds/Textarea';
 import {
   NoticeButton,
   NoticeComposeFields,
@@ -103,16 +105,16 @@ export function AdminNoticeReviews({
             <p className="tw:whitespace-pre-wrap">{selected.body}</p>
             {returning && (
               <NoticeComposeFields>
-                <label>
+                <FieldLabel>
                   Ajuste solicitado
-                  <textarea
+                  <Textarea className="tw:min-h-26"
                     required
                     minLength={3}
                     maxLength={2000}
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
                   />
-                </label>
+                </FieldLabel>
               </NoticeComposeFields>
             )}
             {error && <p role="alert">{error}</p>}

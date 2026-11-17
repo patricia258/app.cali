@@ -1,3 +1,6 @@
+import { Input } from '../../../components/ds/Input';
+import { Select } from '../../../components/ds/Select';
+import { Textarea } from '../../../components/ds/Textarea';
 import { WorkflowPage } from '../../../components/ds/WorkflowPage';
 import { StatusBadge } from '../../../components/ds/StatusBadge';
 import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
@@ -83,14 +86,8 @@ export function AdminProposalsPage(){
    tw:max-w-none! tw:flex-col tw:rounded-none! tw:border-0 tw:border-l tw:border-solid tw:border-cali-line
    tw:bg-cali-neutral-surface tw:p-0! tw:text-cali-body tw:text-cali-text tw:shadow-[-18px_0_60px_rgb(var(--cali-rgb-red-inverse)/0.2)] tw:[font-family:Inter,system-ui,sans-serif]
    tw:[&_label]:flex tw:[&_label]:min-w-0 tw:[&_label]:flex-col tw:[&_label]:gap-2 tw:[&_label]:text-xs
-   tw:[&_label]:font-bold tw:[&_label]:text-cali-muted tw:[&_:is(input,select,textarea)]:box-border
-   tw:[&_:is(input,select,textarea)]:w-full tw:[&_:is(input,select,textarea)]:rounded-lg tw:[&_:is(input,select,textarea)]:border
-   tw:[&_:is(input,select,textarea)]:border-solid tw:[&_:is(input,select,textarea)]:border-cali-input-line
-   tw:[&_:is(input,select,textarea)]:bg-cali-neutral-surface tw:[&_:is(input,select,textarea)]:px-3.5 tw:[&_:is(input,select,textarea)]:text-cali-body
-   tw:[&_:is(input,select,textarea)]:text-cali-text tw:[&_:is(input,select,textarea)]:outline-none
-   tw:[&_:is(input,select,textarea):focus]:border-cali-brand tw:[&_:is(input,select)]:h-11.5
-   tw:[&_:is(input,select)]:font-normal tw:[&_textarea]:min-h-[7.38rem] tw:[&_textarea]:resize-y
-   tw:[&_textarea]:py-3 tw:[&_:is(button.primary,button.secondary)]:inline-flex tw:[&_:is(button.primary,button.secondary)]:h-auto
+   tw:[&_label]:font-bold tw:[&_label]:text-cali-muted
+   tw:[&_[data-ds-field]]:w-full tw:[&_:is(button.primary,button.secondary)]:inline-flex tw:[&_:is(button.primary,button.secondary)]:h-auto
    tw:[&_:is(button.primary,button.secondary)]:items-center tw:[&_:is(button.primary,button.secondary)]:justify-center
    tw:[&_:is(button.primary,button.secondary)]:gap-2 tw:[&_:is(button.primary,button.secondary)]:self-start
    tw:[&_:is(button.primary,button.secondary)]:rounded-lg tw:[&_:is(button.primary,button.secondary)]:border
@@ -111,9 +108,9 @@ export function AdminProposalsPage(){
    tw:[&>*]:rounded-none! tw:[&>*]:border-0! tw:[&>*]:bg-transparent! tw:[&>*]:p-0! tw:[&>*]:shadow-none!
    tw:[&>div]:flex tw:[&>div]:min-w-0 tw:[&>div]:flex-col tw:[&>div]:gap-2 tw:[&>div]:text-xs
    tw:[&>div]:font-bold tw:[&>div]:text-cali-muted tw:[&_strong]:flex tw:[&_strong]:h-11.5 tw:[&_strong]:items-center
-   tw:[&_strong]:text-cali-body tw:[&_strong]:text-cali-text"><label>Status<select value={selected.status} disabled={saving} onChange={e=>void saveStatus(e.target.value as PortalSubmissionStatus)}>{PORTAL_STATUS.map(item=><option value={item.value} key={item.value}>{item.label}</option>)}</select></label><div><span>Entrada</span><strong>{formatDate(selected.created_at,true)}</strong></div></div><div className="portal-contact-edit-grid tw:grid tw:grid-cols-2 tw:gap-x-4.5 tw:gap-y-3.5 tw:max-[560px]:grid-cols-1
+   tw:[&_strong]:text-cali-body tw:[&_strong]:text-cali-text"><label>Status<Select variant="compact" value={selected.status} disabled={saving} onChange={e=>void saveStatus(e.target.value as PortalSubmissionStatus)}>{PORTAL_STATUS.map(item=><option value={item.value} key={item.value}>{item.label}</option>)}</Select></label><div><span>Entrada</span><strong>{formatDate(selected.created_at,true)}</strong></div></div><div className="portal-contact-edit-grid tw:grid tw:grid-cols-2 tw:gap-x-4.5 tw:gap-y-3.5 tw:max-[560px]:grid-cols-1
    tw:[&>label]:rounded-none! tw:[&>label]:border-0! tw:[&>label]:bg-transparent! tw:[&>label]:p-0!
-   tw:[&>label]:shadow-none!"><label>Nome do contato<input value={contact.contact_name} onChange={e=>setContact(v=>({...v,contact_name:e.target.value}))}/></label><label>Cargo<input value={contact.contact_role} onChange={e=>setContact(v=>({...v,contact_role:e.target.value}))}/></label><label>E-mail<input type="email" value={contact.contact_email} onChange={e=>setContact(v=>({...v,contact_email:e.target.value}))}/></label><label>WhatsApp<input value={contact.contact_phone} onChange={e=>setContact(v=>({...v,contact_phone:e.target.value}))}/></label><label>Empresa<input value={contact.company_name} onChange={e=>setContact(v=>({...v,company_name:e.target.value}))}/></label><label>Localidade<input value={contact.company_location} onChange={e=>setContact(v=>({...v,company_location:e.target.value}))}/></label></div><Button variant="secondary" className="portal-save-contact" disabled={saving||!contactDirty} onClick={()=>void saveContact()}>{saving?'Salvando…':'Salvar cadastro'}</Button></section><section className="portal-admin-drawer-section tw:m-0! tw:flex tw:shrink-0 tw:flex-col tw:gap-3.5 tw:rounded-xl!
+   tw:[&>label]:shadow-none!"><label>Nome do contato<Input variant="compact" value={contact.contact_name} onChange={e=>setContact(v=>({...v,contact_name:e.target.value}))}/></label><label>Cargo<Input variant="compact" value={contact.contact_role} onChange={e=>setContact(v=>({...v,contact_role:e.target.value}))}/></label><label>E-mail<Input variant="compact" type="email" value={contact.contact_email} onChange={e=>setContact(v=>({...v,contact_email:e.target.value}))}/></label><label>WhatsApp<Input variant="compact" value={contact.contact_phone} onChange={e=>setContact(v=>({...v,contact_phone:e.target.value}))}/></label><label>Empresa<Input variant="compact" value={contact.company_name} onChange={e=>setContact(v=>({...v,company_name:e.target.value}))}/></label><label>Localidade<Input variant="compact" value={contact.company_location} onChange={e=>setContact(v=>({...v,company_location:e.target.value}))}/></label></div><Button variant="secondary" className="portal-save-contact" disabled={saving||!contactDirty} onClick={()=>void saveContact()}>{saving?'Salvando…':'Salvar cadastro'}</Button></section><section className="portal-admin-drawer-section tw:m-0! tw:flex tw:shrink-0 tw:flex-col tw:gap-3.5 tw:rounded-xl!
    tw:border! tw:border-solid! tw:border-cali-line! tw:bg-cali-paper! tw:px-5! tw:py-4.5!
    tw:shadow-none! tw:[&_h3]:m-0 tw:[&_h3]:text-cali-body tw:[&_h3]:font-bold tw:[&_h3]:text-cali-text
    tw:[&_p]:mx-0 tw:[&_p]:mt-1 tw:[&_p]:mb-0 tw:[&_p]:text-sm tw:[&_p]:leading-normal
@@ -123,7 +120,7 @@ export function AdminProposalsPage(){
    tw:border! tw:border-solid! tw:border-cali-line! tw:bg-cali-paper! tw:px-5! tw:py-4.5!
    tw:shadow-none! tw:[&_h3]:m-0 tw:[&_h3]:text-cali-body tw:[&_h3]:font-bold tw:[&_h3]:text-cali-text
    tw:[&_p]:mx-0 tw:[&_p]:mt-1 tw:[&_p]:mb-0 tw:[&_p]:text-sm tw:[&_p]:leading-normal
-   tw:[&_p]:text-cali-muted"><h3>Nota interna</h3><textarea rows={5} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Observações da CALI sobre esta oportunidade."/><Button variant="secondary" disabled={saving||notes===(selected.internal_notes||'')} onClick={()=>void saveNotes()}>{saving?'Salvando…':'Salvar nota'}</Button></section><section className="portal-admin-drawer-section tw:m-0! tw:flex tw:shrink-0 tw:flex-col tw:gap-3.5 tw:rounded-xl!
+   tw:[&_p]:text-cali-muted"><h3>Nota interna</h3><Textarea variant="compact" rows={5} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Observações da CALI sobre esta oportunidade."/><Button variant="secondary" disabled={saving||notes===(selected.internal_notes||'')} onClick={()=>void saveNotes()}>{saving?'Salvando…':'Salvar nota'}</Button></section><section className="portal-admin-drawer-section tw:m-0! tw:flex tw:shrink-0 tw:flex-col tw:gap-3.5 tw:rounded-xl!
    tw:border! tw:border-solid! tw:border-cali-line! tw:bg-cali-paper! tw:px-5! tw:py-4.5!
    tw:shadow-none! tw:[&_h3]:m-0 tw:[&_h3]:text-cali-body tw:[&_h3]:font-bold tw:[&_h3]:text-cali-text
    tw:[&_p]:mx-0 tw:[&_p]:mt-1 tw:[&_p]:mb-0 tw:[&_p]:text-sm tw:[&_p]:leading-normal

@@ -1,3 +1,5 @@
+import { FieldLabel } from '../../../components/ds/FieldLabel';
+import { Textarea } from '../../../components/ds/Textarea';
 import { WorkflowPage } from '../../../components/ds/WorkflowPage';
 import { WorkflowDialogOverlay } from '../../../components/ds/WorkflowDialog';
 import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
@@ -56,7 +58,7 @@ export function StaffMaterials() {
       <StaffDialogHeader><h2>{selected.title}</h2></StaffDialogHeader>
       <StaffDialogBody>
         {selected.decision_note && <p>{selected.decision_note}</p>}
-        <StaffDialogFields columns={1}><label>{materialText[selected.kind]}<textarea required minLength={5} maxLength={12000} rows={10} value={draft} onChange={(event) => setDraft(event.target.value)} /></label></StaffDialogFields>
+        <StaffDialogFields columns={1}><FieldLabel>{materialText[selected.kind]}<Textarea required minLength={5} maxLength={12000} rows={10} value={draft} onChange={(event) => setDraft(event.target.value)} /></FieldLabel></StaffDialogFields>
         {error && <p role="alert">{error}</p>}
       </StaffDialogBody>
       <StaffDialogFooter>

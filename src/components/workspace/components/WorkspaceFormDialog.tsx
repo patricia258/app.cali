@@ -50,11 +50,11 @@ export function WorkspaceFormDialogFields({ children, className = '' }: { childr
 export function WorkspaceFormDialogField({ children, wide }: { children: ReactNode; wide?: boolean }) {
   return (
     <label className={`tw:flex tw:min-w-0 tw:flex-col tw:gap-2 tw:text-sm/[inherit] tw:font-bold
-      tw:[&_:is(input,select,textarea)]:min-h-[3.231rem] tw:[&_:is(input,select,textarea)]:max-w-full tw:[&_:is(input,select,textarea)]:rounded-cali-compact-control
-      tw:[&_:is(input,select,textarea)]:border tw:[&_:is(input,select,textarea)]:border-solid tw:[&_:is(input,select,textarea)]:border-cali-sand-line
-      tw:[&_:is(input,select,textarea)]:bg-cali-neutral-surface tw:[&_:is(input,select,textarea)]:px-3.5 tw:[&_:is(input,select,textarea)]:py-3
-      tw:[&_:is(input,select,textarea)]:text-cali-body/[inherit] tw:[&_:is(input,select,textarea)]:font-normal tw:[&_:is(input,select,textarea)]:text-cali-text
-      tw:[&_textarea]:min-h-[7.154rem] ${wide ? 'tw:col-span-full' : ''}`}>
+      tw:[&_:is(input,select,textarea):not([data-ds-field])]:min-h-[3.231rem] tw:[&_:is(input,select,textarea):not([data-ds-field])]:max-w-full tw:[&_:is(input,select,textarea):not([data-ds-field])]:rounded-cali-compact-control
+      tw:[&_:is(input,select,textarea):not([data-ds-field])]:border tw:[&_:is(input,select,textarea):not([data-ds-field])]:border-solid tw:[&_:is(input,select,textarea):not([data-ds-field])]:border-cali-sand-line
+      tw:[&_:is(input,select,textarea):not([data-ds-field])]:bg-cali-neutral-surface tw:[&_:is(input,textarea):not([data-ds-field])]:px-3.5 tw:[&_:is(input,select,textarea):not([data-ds-field])]:py-3
+      tw:[&_:is(input,select,textarea):not([data-ds-field])]:text-cali-body/[inherit] tw:[&_:is(input,select,textarea):not([data-ds-field])]:font-normal tw:[&_:is(input,select,textarea):not([data-ds-field])]:text-cali-text
+      tw:[&_textarea:not([data-ds-field])]:min-h-[7.154rem] ${wide ? 'tw:col-span-full' : ''}`}>
       {children}
     </label>
   );

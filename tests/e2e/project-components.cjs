@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const { browserSuite } = require('./browser-suite.cjs');
+const { assertSelectInsets } = require('./select-geometry.cjs');
 const { companyId, projectId, tables } = require('./fixtures.cjs');
 
 const delivery = tables.deliverables.find((row) => row.title === 'Entrega QA C');
@@ -21,7 +22,57 @@ async function openDelivery(page, origin, route = '/admin/projetos') {
   return dialog;
 }
 
+async function projectFilters({ page, context, origin, snapshot }) {
+  const secondCompany = { ...tables.companies[0], id: '11111112-1111-4111-8111-111111111111', display_name: 'Empresa B QA' };
+  const secondProject = { ...tables.projects[0], id: '33333334-3333-4333-8333-333333333333', company_id: secondCompany.id, name: 'Projeto B QA' };
+  const draftProject = { ...secondProject, id: '33333335-3333-4333-8333-333333333333', name: 'Rascunho de treinamento QA', planning_status: 'draft' };
+  await context.route((url) => where(url, 'companies'), (route) => {
+    if (route.request().method() !== 'GET') return route.fallback();
+    return reply(route, origin, [...tables.companies, secondCompany]);
+  });
+  await context.route((url) => where(url, 'projects'), (route) => {
+    if (route.request().method() !== 'GET') return route.fallback();
+    return reply(route, origin, [...tables.projects, secondProject, draftProject]);
+  });
+
+  let navigations = 0;
+  page.on('request', (request) => { if (request.isNavigationRequest() && request.frame() === page.mainFrame()) navigations++; });
+  await page.goto(origin + '/admin/projetos?project=' + projectId);
+  const company = page.getByRole('combobox', { name: 'Empresa', exact: true });
+  const project = page.getByRole('combobox', { name: 'Projeto', exact: true });
+  const status = page.getByRole('combobox', { name: 'Situação do cronograma', exact: true });
+  const search = page.getByPlaceholder('Buscar projeto ou protocolo');
+  await company.getByRole('option', { name: secondCompany.display_name }).waitFor({ state: 'attached' });
+  await company.selectOption(secondCompany.id);
+  assert.equal(await project.inputValue(), secondProject.id);
+  await project.selectOption(draftProject.id);
+  await page.getByRole('heading', { name: draftProject.name, exact: true }).waitFor();
+  await status.selectOption('approved');
+  const result = page.getByRole('button', { name: new RegExp(secondProject.name) });
+  await result.click();
+  await page.getByRole('heading', { name: secondProject.name, exact: true }).waitFor();
+  assert.equal(await project.inputValue(), secondProject.id);
+  await search.fill('projeto ausente QA');
+  await page.getByText('Nenhum projeto corresponde à busca.', { exact: true }).waitFor();
+  await search.clear();
+  await status.selectOption('all');
+
+  for (const filter of [company, project, status]) {
+    await assertSelectInsets(filter);
+    const contained = await filter.evaluate((select) => {
+      const bounds = select.getBoundingClientRect();
+      return bounds.left >= 0 && bounds.right <= innerWidth + 1;
+    });
+    assert.ok(contained, 'O seletor precisa caber no viewport.');
+  }
+  assert.equal(navigations, 1);
+  await snapshot('filtros');
+  return { responsiveFilters: true, symmetricArrow: true, companyProjectAndStatus: true, documentLoads: navigations };
+}
+
 browserSuite([
+  { id: 'admin-project-filters-desktop', role: 'admin', width: 1203, run: projectFilters },
+  { id: 'admin-project-filters-mobile', role: 'admin', width: 390, input: 'touch', run: projectFilters },
   {
     id: 'admin-deliverable-conversation-keeps-channel-and-draft-on-retry',
     role: 'admin',

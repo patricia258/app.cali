@@ -1,3 +1,6 @@
+import { Checkbox } from '../../../components/ds/Checkbox';
+import { Input } from '../../../components/ds/Input';
+import { Textarea } from '../../../components/ds/Textarea';
 import { ArrowRight, X } from 'lucide-react';
 import { Button } from '../../../components/ds/Button';
 import {
@@ -52,13 +55,13 @@ export function AdditionalAccessDialog({ available, error, onClose, onRequest }:
             </ul>
           </div>
           <WorkspaceFormDialogFields>
-            <WorkspaceFormDialogField>Nome completo<form.Field name="name">{(field) => <input autoComplete="name" value={field.state.value} onChange={(event) => field.handleChange(event.target.value)} required />}</form.Field></WorkspaceFormDialogField>
-            <WorkspaceFormDialogField>Cargo<form.Field name="job">{(field) => <input autoComplete="organization-title" value={field.state.value} onChange={(event) => field.handleChange(event.target.value)} />}</form.Field></WorkspaceFormDialogField>
-            <WorkspaceFormDialogField>E-mail<form.Field name="email">{(field) => <input type="email" autoComplete="email" value={field.state.value} onChange={(event) => field.handleChange(event.target.value)} required />}</form.Field></WorkspaceFormDialogField>
-            <WorkspaceFormDialogField>Telefone / WhatsApp<form.Field name="phone">{(field) => <input type="tel" autoComplete="tel" value={field.state.value} onChange={(event) => field.handleChange(event.target.value)} />}</form.Field></WorkspaceFormDialogField>
+            <WorkspaceFormDialogField>Nome completo<form.Field name="name">{(field) => <Input autoComplete="name" value={field.state.value} onChange={(event) => field.handleChange(event.target.value)} required />}</form.Field></WorkspaceFormDialogField>
+            <WorkspaceFormDialogField>Cargo<form.Field name="job">{(field) => <Input autoComplete="organization-title" value={field.state.value} onChange={(event) => field.handleChange(event.target.value)} />}</form.Field></WorkspaceFormDialogField>
+            <WorkspaceFormDialogField>E-mail<form.Field name="email">{(field) => <Input type="email" autoComplete="email" value={field.state.value} onChange={(event) => field.handleChange(event.target.value)} required />}</form.Field></WorkspaceFormDialogField>
+            <WorkspaceFormDialogField>Telefone / WhatsApp<form.Field name="phone">{(field) => <Input type="tel" autoComplete="tel" value={field.state.value} onChange={(event) => field.handleChange(event.target.value)} />}</form.Field></WorkspaceFormDialogField>
           </WorkspaceFormDialogFields>
-          <WorkspaceFormDialogField>Observações<form.Field name="notes">{(field) => <textarea value={field.state.value} onChange={(event) => field.handleChange(event.target.value)} placeholder="Algo que a CALI precise saber sobre este acesso" />}</form.Field></WorkspaceFormDialogField>
-          <WorkspaceFormDialogCheck><form.Field name="ack">{(field) => <input className="tw:m-0 tw:shrink-0 tw:accent-cali-brand" type="checkbox" checked={field.state.value} onChange={(event) => field.handleChange(event.target.checked)} />}</form.Field><span>Li e estou ciente das condições acima.</span></WorkspaceFormDialogCheck>
+          <WorkspaceFormDialogField>Observações<form.Field name="notes">{(field) => <Textarea value={field.state.value} onChange={(event) => field.handleChange(event.target.value)} placeholder="Algo que a CALI precise saber sobre este acesso" />}</form.Field></WorkspaceFormDialogField>
+          <WorkspaceFormDialogCheck><form.Field name="ack">{(field) => <Checkbox className="tw:m-0" checked={field.state.value} onChange={(event) => field.handleChange(event.target.checked)} />}</form.Field><span>Li e estou ciente das condições acima.</span></WorkspaceFormDialogCheck>
           {error && <p role="alert" className="tw:m-0 tw:text-sm tw:text-cali-danger">{error}</p>}
         </div>
         <WorkflowDialogActions>

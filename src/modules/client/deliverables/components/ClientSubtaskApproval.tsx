@@ -1,3 +1,4 @@
+import { Textarea } from '../../../../components/ds/Textarea';
 import { CheckCircle2, RefreshCw } from 'lucide-react';
 import type { ComponentPropsWithoutRef } from 'react';
 import { Button } from '../../../../components/ds/Button';
@@ -31,7 +32,7 @@ export function ClientSubtaskApproval({
       {phase === 'adjusting' ? (
         <label className="tw:flex tw:flex-col tw:gap-2 tw:font-bold tw:text-cali-ink">
           O que precisa ser ajustado nesta parte?
-          <textarea
+          <Textarea variant="embedded"
             rows={3}
             value={adjustmentText}
             onChange={(event) => onAdjustmentTextChange(event.target.value)}

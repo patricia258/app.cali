@@ -159,7 +159,7 @@ body {
 &:is(html)[data-workspace-theme='night'] input,
 &:is(html)[data-workspace-theme='night'] select,
 &:is(html)[data-workspace-theme='night'] textarea {
-  background: var(--theme-input) !important;
+  background-color: var(--theme-input) !important;
   @apply tw:border-cali-input-line! tw:text-cali-text!;
   caret-color: var(--theme-accent) !important;
 }

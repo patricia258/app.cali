@@ -1,3 +1,4 @@
+import { Textarea } from '../../../components/ds/Textarea';
 import { useState } from 'react';
 import type { ScheduleReviewRequest } from '../../../api/projects/schedule';
 import { scheduleChangeSummary } from '../../../domain/projects';
@@ -27,9 +28,9 @@ export function ScheduleAdjustmentDecisionDialog({ projectId, review, accept, on
       <p className="tw:m-0 tw:text-cali-detail tw:leading-[1.45] tw:text-cali-muted">{review.response_note}</p>
     </div>
     <label className="tw:grid tw:gap-2 tw:text-sm tw:font-bold">Justificativa da decisão
-      <textarea rows={5} value={note} onChange={(event) => setNote(event.target.value)}
+      <Textarea rows={5} value={note} onChange={(event) => setNote(event.target.value)}
         placeholder="Explique ao cliente o que será feito e por quê."
-        className="tw:w-full tw:resize-y tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body tw:font-normal" />
+        className="tw:w-full" />
     </label>
     <p className="tw:m-0 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-warning-line tw:bg-cali-warning-surface tw:px-4.5 tw:py-3.5 tw:text-sm tw:leading-[1.6] tw:text-cali-warning">
       Depois da decisão, o cronograma volta para validação do cliente. Se o pedido for acolhido, faça a alteração correspondente antes da aprovação final.

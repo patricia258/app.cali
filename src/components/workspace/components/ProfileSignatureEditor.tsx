@@ -1,3 +1,4 @@
+import { Input } from '../../ds/Input';
 import { Upload } from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import '../../reports/report-signature-fonts.css';
@@ -26,7 +27,7 @@ export function ProfileSignatureEditor({ name, uploadedSource, onNameChange, onU
       ) : (
         <label className="tw:grid tw:w-full tw:gap-2.5 tw:text-cali-body/[inherit] tw:font-bold tw:text-cali-brand tw:workspace-night:text-cali-paper">
           <span>Nome para assinatura</span>
-          <input
+          <Input variant="embedded"
             className="tw:h-25 tw:w-full tw:rounded-[0.923rem]! tw:border-cali-brand/22! tw:bg-cali-paper! tw:px-5.5! tw:py-2.5! tw:text-[clamp(2.308rem,4vw,3.538rem)]/[1.1]! tw:font-normal! tw:text-cali-brand! tw:[font-family:'Mrs_Saint_Delafield','Apple_Chancery',cursive]! tw:tracking-[0.01em] tw:placeholder:text-cali-sand-text tw:workspace-night:border-cali-sand-accent! tw:workspace-night:bg-cali-sand-soft! tw:[@media(max-width:43.75rem)]:h-23 tw:[@media(max-width:43.75rem)]:text-cali-display-lg/[1.1]!"
             value={name}
             onChange={(event) => onNameChange(event.target.value)}

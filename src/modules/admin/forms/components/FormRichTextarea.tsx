@@ -1,3 +1,4 @@
+import { Textarea } from '../../../../components/ds/Textarea';
 import { useRef, useState } from 'react';
 import { Bold, Italic, Smile, Underline } from 'lucide-react';
 
@@ -21,11 +22,7 @@ export function FormRichTextarea({ value, onChange, rows, maxLength, placeholder
     requestAnimationFrame(() => { area?.focus(); area?.setSelectionRange(start + text.length, start + text.length); });
   }
   return <div className="v2-forms-rich tw:[border:1px_solid_var(--cali-color-sand-line)] tw:rounded-cali-compact-control tw:bg-cali-neutral-surface tw:relative tw:[&:focus-within]:border-cali-brand
-    tw:[&:focus-within]:[box-shadow:0_0_0_0.231rem_rgb(var(--cali-rgb-burgundy-accent)/0.08)] tw:[&_textarea]:block tw:[&_textarea]:w-full
-    tw:[&_textarea]:border-0! tw:[&_textarea]:shadow-none! tw:[&_textarea]:[border-radius:0_0_0.615rem_0.615rem]
-    tw:[&_textarea]:[padding:0.769rem_0.846rem] tw:[&_textarea]:[font:400_1rem/1.5_Inter,sans-serif]
-    tw:[&_textarea]:text-[color:var(--fm-ink)] tw:[&_textarea]:resize-y tw:[&_textarea]:outline-none
-    tw:[&_textarea]:bg-cali-neutral-surface">
+    tw:[&:focus-within]:[box-shadow:0_0_0_0.231rem_rgb(var(--cali-rgb-burgundy-accent)/0.08)]">
     <div className="v2-forms-rich-bar tw:flex tw:items-center tw:gap-1 tw:[padding:0.462rem_0.615rem] tw:[border-bottom:1px_solid_var(--cali-color-neutral-soft)]
       tw:bg-cali-surface-soft tw:[border-radius:0.615rem_0.615rem_0_0] tw:[&>button]:grid tw:[&>button]:place-items-center
       tw:[&>button]:w-8.5 tw:[&>button]:h-8.5 tw:[&>button]:[border:1px_solid_transparent]
@@ -46,6 +43,6 @@ export function FormRichTextarea({ value, onChange, rows, maxLength, placeholder
         tw:[&_button]:border-0 tw:[&_button]:rounded-lg tw:[&_button]:bg-transparent tw:[&_button]:text-xl
         tw:[&_button]:cursor-pointer tw:[&_button:hover]:bg-cali-surface-soft">{EMOJIS.map((emoji) => <button type="button" key={emoji} onClick={() => insert(emoji)}>{emoji}</button>)}</div>}
     </div>
-    <textarea ref={ref} rows={rows} maxLength={maxLength} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
+    <Textarea variant="bare" className="tw:block tw:w-full tw:resize-y tw:rounded-b-cali-compact-control tw:px-3.5! tw:py-3! tw:text-cali-body/[1.5]! tw:focus:outline-none" ref={ref} rows={rows} maxLength={maxLength} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
   </div>;
 }

@@ -1,3 +1,6 @@
+import { Checkbox } from '../ds/Checkbox';
+import { Input } from '../ds/Input';
+import { Select } from '../ds/Select';
 import { StatusBadge } from '../ds/StatusBadge';
 /* Dependências do cliente no entregável + histórico do prazo (regra oficial de complexidade, itens 4 a 6).
    A administradora registra, marca recebimento e reprograma o prazo com justificativa; a Equipe CALI registra e marca
@@ -259,14 +262,14 @@ export function DeliverableDependencies({
       )}
       {editable && (
         <div className="tw:flex tw:items-center tw:gap-3 tw:max-[51.25rem]:flex-wrap tw:[&_input]:box-border tw:[&_input]:h-12.5 tw:[&_input]:min-w-0 tw:[&_input]:rounded-cali-panel tw:[&_input]:border tw:[&_input]:border-solid tw:[&_input]:border-cali-input-line tw:[&_input]:bg-cali-neutral-surface tw:[&_input]:px-3.5 tw:[&_input]:text-cali-body tw:[&_input:first-child]:flex-1 tw:[&_input[type=date]]:w-[12.308rem] tw:[&_input[type=date]]:flex-none">
-          <input
+          <Input variant="embedded"
             value={draft.title}
             onChange={(event) => setDraft({ ...draft, title: event.target.value })}
             placeholder="O que o cliente precisa enviar ou aprovar"
             aria-label="Dependência do cliente"
             maxLength={200}
           />
-          <input
+          <Input variant="embedded"
             type="date"
             value={draft.due}
             max={due || undefined}
@@ -291,10 +294,10 @@ export function DeliverableDependencies({
             {mode === 'admin' && !plan && <DependencyButton onClick={openPlan}>Revisar prazo</DependencyButton>}
           </div>
           {plan && (
-            <div className="tw:grid tw:grid-cols-[13.846rem_minmax(0,1fr)] tw:gap-3.5 tw:max-[51.25rem]:grid-cols-1 tw:[&>label]:flex tw:[&>label]:flex-col tw:[&>label]:gap-1.5 tw:[&>label]:text-cali-detail tw:[&>label]:font-bold tw:[&>label]:tracking-[0.04em] tw:[&>label]:text-cali-muted tw:[&>label]:uppercase tw:[&_:is(input:not([type=checkbox]),select)]:box-border tw:[&_:is(input:not([type=checkbox]),select)]:h-12.5 tw:[&_:is(input:not([type=checkbox]),select)]:min-w-0 tw:[&_:is(input:not([type=checkbox]),select)]:rounded-cali-panel tw:[&_:is(input:not([type=checkbox]),select)]:border tw:[&_:is(input:not([type=checkbox]),select)]:border-solid tw:[&_:is(input:not([type=checkbox]),select)]:border-cali-input-line tw:[&_:is(input:not([type=checkbox]),select)]:bg-cali-neutral-surface tw:[&_:is(input:not([type=checkbox]),select)]:px-3.5 tw:[&_:is(input:not([type=checkbox]),select)]:text-cali-body">
+            <div className="tw:grid tw:grid-cols-[13.846rem_minmax(0,1fr)] tw:gap-3.5 tw:max-[51.25rem]:grid-cols-1 tw:[&>label]:flex tw:[&>label]:flex-col tw:[&>label]:gap-1.5 tw:[&>label]:text-cali-detail tw:[&>label]:font-bold tw:[&>label]:tracking-[0.04em] tw:[&>label]:text-cali-muted tw:[&>label]:uppercase">
               <label>
                 Novo prazo
-                <input
+                <Input
                   type="date"
                   value={plan.date}
                   onChange={(event) => setPlan({ ...plan, date: event.target.value })}
@@ -302,17 +305,17 @@ export function DeliverableDependencies({
               </label>
               <label>
                 Motivo
-                <select value={plan.cause} onChange={(event) => setPlan({ ...plan, cause: event.target.value })}>
+                <Select value={plan.cause} onChange={(event) => setPlan({ ...plan, cause: event.target.value })}>
                   {Object.entries(CAUSES).map(([value, label]) => (
                     <option key={value} value={value}>
                       {label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
               <label className="tw:col-span-full">
                 Justificativa (o cliente vê)
-                <input
+                <Input variant="embedded"
                   value={plan.reason}
                   onChange={(event) => setPlan({ ...plan, reason: event.target.value })}
                   maxLength={1000}
@@ -326,8 +329,7 @@ export function DeliverableDependencies({
                     .filter((item) => item.dueAt)
                     .map((item) => (
                       <label key={item.id}>
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={plan.shift.includes(item.id)}
                           onChange={(event) =>
                             setPlan({

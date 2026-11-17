@@ -1,3 +1,4 @@
+import { Select } from '../../../components/ds/Select';
 import { DataTable } from '../../../components/ds/DataTable';
 import { usePoints } from '../hooks/usePoints';
 import { PointsRangeSelect } from './PointsRangeSelect';
@@ -691,8 +692,8 @@ export function PeopleAnalyticsMonth({ series, metrics, working, privateRows, mo
           title="Tempo de permanência"
           what="Há quanto tempo as pessoas ativas estão na empresa"
           control={
-            <select
-              className="tw:rounded-md tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-cali-brand"
+            <Select variant="filter"
+              className="tw:font-semibold! tw:text-cali-brand!"
               aria-label="Área"
               value={area}
               onChange={(event) => setArea(event.target.value)}
@@ -701,7 +702,7 @@ export function PeopleAnalyticsMonth({ series, metrics, working, privateRows, mo
               {departments.map((name) => (
                 <option key={name}>{name}</option>
               ))}
-            </select>
+            </Select>
           }
           results={[
             ['Tempo médio de casa', tenureText],

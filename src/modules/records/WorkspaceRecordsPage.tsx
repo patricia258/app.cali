@@ -1,3 +1,7 @@
+import { Checkbox } from '../../components/ds/Checkbox';
+import { Input } from '../../components/ds/Input';
+import { Select } from '../../components/ds/Select';
+import { Textarea } from '../../components/ds/Textarea';
 import { WorkflowPage } from '../../components/ds/WorkflowPage';
 import { StatusBadge } from '../../components/ds/StatusBadge';
 import { WorkflowDialogOverlay, WorkflowDialogForm, WorkflowDialogHeader, WorkflowDialogActions } from '../../components/ds/WorkflowDialog';
@@ -202,7 +206,7 @@ function RecordsFrame({ staff, role, children }: { staff: boolean; role: Role; c
    e "Enviar para aprovação da Patricia" no lugar de Finalizar. Sem criar, enriquecer ou excluir registros. */
 export type StaffRecordsScope = { companies: Company[] };
 export function StaffRecordsPage({ companies }: StaffRecordsScope) { return <WorkspaceRecordsPage role="admin" staff={{ companies }} />; }
-const adminFilterClass = 'tw:h-11 tw:min-w-0 tw:flex-[0_1_14.62rem] tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:py-0 tw:text-sm tw:text-cali-text';
+const adminFilterClass = 'tw:h-11 tw:flex-[0_1_14.62rem]';
 const actionBadgeClass = 'tw:inline-flex tw:items-center tw:rounded-md tw:bg-cali-red-surface tw:px-2 tw:py-1 tw:align-middle tw:text-cali-label tw:font-bold tw:tracking-[.04em] tw:text-cali-danger';
 const adminRecordColumns = 'tw:grid-cols-[2.62rem_minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,.9fr)_minmax(0,1fr)_minmax(0,.9fr)_1.38rem]! tw:[@media(max-width:860px)]:grid-cols-[2.62rem_minmax(0,1fr)_1.38rem]!';
 const adminRecordDetail = 'tw:[@media(max-width:860px)]:hidden!';
@@ -611,13 +615,13 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
           <FilterSelect className={adminFilterClass} aria-label="Tipo" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as RecordType | 'all')}><option value="all">Todos os tipos</option>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</FilterSelect>
           <FilterSelect className={adminFilterClass} aria-label="Agrupar por" value={groupBy} onChange={(event) => setGroupBy(event.target.value as typeof groupBy)}><option value="status">Agrupar por situação</option><option value="company">Agrupar por empresa</option><option value="type">Agrupar por tipo</option><option value="none">Sem agrupamento</option></FilterSelect>
           <button type="button" className="v2-record-toggle tw:inline-flex tw:h-11 tw:flex-none tw:items-center tw:gap-2 tw:whitespace-nowrap tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:text-sm tw:font-semibold tw:text-cali-muted tw:aria-pressed:border-cali-danger tw:aria-pressed:bg-cali-red-surface tw:aria-pressed:text-cali-danger" aria-pressed={actionOnly} onClick={() => setActionOnly((current) => !current)}><i className="tw:inline-block tw:size-2.5 tw:rounded-sm tw:bg-cali-danger"/>Só com ação necessária</button>
-          <label className="v2-record-search tw:ml-auto tw:flex tw:h-11 tw:min-w-[12.31rem] tw:flex-[1_1_15.38rem] tw:items-center tw:gap-2 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:text-cali-muted tw:[@media(max-width:1100px)]:ml-0"><Search size={14} /><input className="tw:min-w-0 tw:flex-1 tw:border-0 tw:bg-transparent tw:p-0 tw:text-sm tw:text-cali-text tw:outline-none" aria-label="Buscar ocorrências" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar assunto, protocolo ou empresa" /></label>
+          <label className="v2-record-search tw:ml-auto tw:flex tw:h-11 tw:min-w-[12.31rem] tw:flex-[1_1_15.38rem] tw:items-center tw:gap-2 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:text-cali-muted tw:focus-within:outline-2 tw:focus-within:outline-offset-2 tw:focus-within:outline-cali-gold-accent tw:[@media(max-width:1100px)]:ml-0"><Search size={14} aria-hidden="true" /><Input variant="bare" className="tw:flex-1 tw:text-sm/[inherit] tw:text-cali-text tw:outline-none" aria-label="Buscar ocorrências" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar assunto, protocolo ou empresa" /></label>
         </WorkflowControls> : <WorkflowControls>
           <WorkflowSegments>{clientSegments.map(([value,label])=><button type="button" key={value} className={statusFilter===value?'on':''} onClick={()=>setStatusFilter(value)}>{label}</button>)}</WorkflowSegments>
           <WorkflowControlsAside>
             <FilterSelect aria-label="Tipo" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as RecordType | 'all')}><option value="all">Todos os tipos</option>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</FilterSelect>
             <FilterSelect aria-label="Situação" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as WorkflowStatus | 'all')}><option value="all">Todas as situações</option>{(Object.keys(workflowLabels) as WorkflowStatus[]).map((status) => <option value={status} key={status}>{statusLabel(status, role)}</option>)}</FilterSelect>
-            <Search size={14} /><input aria-label="Buscar ocorrências" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar ocorrência..." />
+            <Search size={14} aria-hidden="true" /><Input variant="bare" aria-label="Buscar ocorrências" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar ocorrência..." />
           </WorkflowControlsAside>
         </WorkflowControls>}
       </>
@@ -750,37 +754,31 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
         <h2>{editing ? 'Enriquecer memória da conta' : 'Registrar contexto'}</h2>
         <p>{editing ? 'Aqui entram interpretação, decisões e contexto para relatório. A conversa original permanece intacta.' : 'Registre um fato consultivo ou abra uma interação com o cliente.'}</p>
       </>}
-      <div className="tw:flex tw:flex-col tw:gap-4.5 tw:[&_label]:m-0 tw:[&_label]:flex tw:[&_label]:flex-col tw:[&_label]:gap-2
-        tw:[&_label]:text-sm/[inherit] tw:[&_label]:font-semibold tw:[&_label]:text-cali-muted
-        tw:[&_:is(input,select,textarea)]:h-auto tw:[&_:is(input,select,textarea)]:min-h-0 tw:[&_:is(input,select,textarea)]:w-full
-        tw:[&_:is(input,select,textarea)]:rounded-cali-compact-control tw:[&_:is(input,select,textarea)]:border tw:[&_:is(input,select,textarea)]:border-solid
-        tw:[&_:is(input,select,textarea)]:border-cali-line tw:[&_:is(input,select,textarea)]:bg-cali-neutral-surface tw:[&_:is(input,select,textarea)]:p-3.5
-        tw:[&_:is(input,select,textarea)]:font-cali-body tw:[&_:is(input,select,textarea)]:text-sm/[inherit]
-        tw:[&_:is(input,select,textarea)]:text-cali-text tw:[&_:is(input,select,textarea)]:outline-cali-gold tw:[&_textarea]:h-31 tw:[&_textarea]:resize-y">
+      <div className="tw:flex tw:flex-col tw:gap-4.5 tw:text-cali-muted">
         {role === 'admin' && <div className={`tw:grid tw:grid-cols-2 tw:gap-4.5 tw:[@media(max-width:40.625rem)]:grid-cols-1 ${adminFormGrid}`}>
-          <FieldLabel>Cliente<select value={form.companyId} onChange={(event) => setForm((current) => ({ ...current, companyId: event.target.value, projectId: '', eventId: '' }))}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></FieldLabel>
-          <FieldLabel>Projeto<select value={form.projectId} onChange={(event) => setForm((current) => ({ ...current, projectId: event.target.value }))}><option value="">Sem projeto específico</option>{projects.filter((project) => project.companyId === form.companyId).map((project) => <option value={project.id} key={project.id}>{project.name}</option>)}</select></FieldLabel>
-          <FieldLabel>Reunião do calendário<select value={form.eventId} onChange={(event) => selectEvent(event.target.value)}><option value="">Sem evento vinculado</option>{events.filter((item) => item.companyId === form.companyId).map((item) => <option value={item.id} key={item.id}>{formatDateTime(item.startsAt)} · {item.title}</option>)}</select></FieldLabel>
+          <FieldLabel>Cliente<Select value={form.companyId} onChange={(event) => setForm((current) => ({ ...current, companyId: event.target.value, projectId: '', eventId: '' }))}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</Select></FieldLabel>
+          <FieldLabel>Projeto<Select value={form.projectId} onChange={(event) => setForm((current) => ({ ...current, projectId: event.target.value }))}><option value="">Sem projeto específico</option>{projects.filter((project) => project.companyId === form.companyId).map((project) => <option value={project.id} key={project.id}>{project.name}</option>)}</Select></FieldLabel>
+          <FieldLabel>Reunião do calendário<Select value={form.eventId} onChange={(event) => selectEvent(event.target.value)}><option value="">Sem evento vinculado</option>{events.filter((item) => item.companyId === form.companyId).map((item) => <option value={item.id} key={item.id}>{formatDateTime(item.startsAt)} · {item.title}</option>)}</Select></FieldLabel>
         </div>}
         <div className={`tw:grid tw:grid-cols-2 tw:gap-4.5 tw:[@media(max-width:40.625rem)]:grid-cols-1 ${role === 'admin' ? adminFormGrid : ''}`}>
-          <FieldLabel>{role === 'client' ? 'Tipo de ocorrência' : 'Tipo'}<select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as RecordType }))}>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</select></FieldLabel>
-          <FieldLabel>Data e horário<input type="datetime-local" value={form.occurredAt} onChange={(event) => setForm((current) => ({ ...current, occurredAt: event.target.value }))} /></FieldLabel>
-          {role === 'admin' && <FieldLabel>Impacto<select value={form.impactLevel} onChange={(event) => setForm((current) => ({ ...current, impactLevel: event.target.value as FormState['impactLevel'] }))}><option value="low">Baixo</option><option value="medium">Médio</option><option value="high">Alto</option><option value="critical">Crítico</option></select></FieldLabel>}
+          <FieldLabel>{role === 'client' ? 'Tipo de ocorrência' : 'Tipo'}<Select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as RecordType }))}>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</Select></FieldLabel>
+          <FieldLabel>Data e horário<Input type="datetime-local" value={form.occurredAt} onChange={(event) => setForm((current) => ({ ...current, occurredAt: event.target.value }))} /></FieldLabel>
+          {role === 'admin' && <FieldLabel>Impacto<Select value={form.impactLevel} onChange={(event) => setForm((current) => ({ ...current, impactLevel: event.target.value as FormState['impactLevel'] }))}><option value="low">Baixo</option><option value="medium">Médio</option><option value="high">Alto</option><option value="critical">Crítico</option></Select></FieldLabel>}
         </div>
-        <FieldLabel>{role === 'client' ? 'Assunto' : 'Título'}<input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder={role === 'admin' ? 'Ex.: Reunião mensal / mudança de prioridade' : 'Ex.: Revisão de responsabilidades'} /></FieldLabel>
-        <FieldLabel>{role === 'admin' ? 'Contexto / registro' : 'Descreva a situação'}<textarea rows={4} value={form.summary} onChange={(event) => setForm((current) => ({ ...current, summary: event.target.value }))} placeholder={role === 'admin' ? 'Descreva com clareza o que aconteceu ou o que precisa ser acompanhado.' : 'Qual é o contexto, o que mudou e qual apoio você precisa?'} />{role !== 'admin' && <SensitiveDataNote />}</FieldLabel>
+        <FieldLabel>{role === 'client' ? 'Assunto' : 'Título'}<Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder={role === 'admin' ? 'Ex.: Reunião mensal / mudança de prioridade' : 'Ex.: Revisão de responsabilidades'} /></FieldLabel>
+        <FieldLabel>{role === 'admin' ? 'Contexto / registro' : 'Descreva a situação'}<Textarea className="tw:h-31" rows={4} value={form.summary} onChange={(event) => setForm((current) => ({ ...current, summary: event.target.value }))} placeholder={role === 'admin' ? 'Descreva com clareza o que aconteceu ou o que precisa ser acompanhado.' : 'Qual é o contexto, o que mudou e qual apoio você precisa?'} />{role !== 'admin' && <SensitiveDataNote />}</FieldLabel>
         {role === 'admin' && <>
-          <FieldLabel>Pessoas envolvidas<input value={form.participants} onChange={(event) => setForm((current) => ({ ...current, participants: event.target.value }))} placeholder="Nome ou e-mail, separados por vírgula" /></FieldLabel>
-          <FieldLabel>Transcrição / notas completas<textarea rows={7} value={form.transcript} onChange={(event) => setForm((current) => ({ ...current, transcript: event.target.value }))} placeholder="Fonte completa para a leitura executiva, quando houver." /></FieldLabel>
+          <FieldLabel>Pessoas envolvidas<Input value={form.participants} onChange={(event) => setForm((current) => ({ ...current, participants: event.target.value }))} placeholder="Nome ou e-mail, separados por vírgula" /></FieldLabel>
+          <FieldLabel>Transcrição / notas completas<Textarea className="tw:h-31" rows={7} value={form.transcript} onChange={(event) => setForm((current) => ({ ...current, transcript: event.target.value }))} placeholder="Fonte completa para a leitura executiva, quando houver." /></FieldLabel>
           <div className={`tw:grid tw:grid-cols-2 tw:gap-4.5 tw:[@media(max-width:40.625rem)]:grid-cols-1 ${adminFormGrid}`}>
-            <FieldLabel>Decisões<textarea rows={4} value={form.decisions} onChange={(event) => setForm((current) => ({ ...current, decisions: event.target.value }))} placeholder="Uma decisão por linha" /></FieldLabel>
-            <FieldLabel>Pontos de atenção<textarea rows={4} value={form.attentionPoints} onChange={(event) => setForm((current) => ({ ...current, attentionPoints: event.target.value }))} placeholder="Um ponto por linha" /></FieldLabel>
-            <FieldLabel>Próximas ações<textarea rows={4} value={form.nextActions} onChange={(event) => setForm((current) => ({ ...current, nextActions: event.target.value }))} placeholder="Uma ação por linha" /></FieldLabel>
+            <FieldLabel>Decisões<Textarea className="tw:h-31" rows={4} value={form.decisions} onChange={(event) => setForm((current) => ({ ...current, decisions: event.target.value }))} placeholder="Uma decisão por linha" /></FieldLabel>
+            <FieldLabel>Pontos de atenção<Textarea className="tw:h-31" rows={4} value={form.attentionPoints} onChange={(event) => setForm((current) => ({ ...current, attentionPoints: event.target.value }))} placeholder="Um ponto por linha" /></FieldLabel>
+            <FieldLabel>Próximas ações<Textarea className="tw:h-31" rows={4} value={form.nextActions} onChange={(event) => setForm((current) => ({ ...current, nextActions: event.target.value }))} placeholder="Uma ação por linha" /></FieldLabel>
           </div>
           <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-x-7 tw:gap-y-3 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:px-4.5 tw:py-3.5 tw:[&>label]:m-0 tw:[&>label]:inline-flex! tw:[&>label]:w-auto tw:[&>label]:flex-row! tw:[&>label]:items-center! tw:[&>label]:gap-2.5! tw:[&>label]:text-sm tw:[&>label]:font-semibold tw:[&>label]:text-cali-text tw:[&_input]:m-0 tw:[&_input]:size-4.5! tw:[&_input]:min-h-0! tw:[&_input]:flex-none tw:[&_input]:p-0! tw:[&_input]:accent-cali-brand">
-            <label><input type="checkbox" checked={form.includeInReport} onChange={(event) => setForm((current) => ({ ...current, includeInReport: event.target.checked }))} /><span>Pode alimentar o relatório</span></label>
-            <label><input type="checkbox" checked={form.requiresAction} onChange={(event) => setForm((current) => ({ ...current, requiresAction: event.target.checked }))} /><span>Exige acompanhamento</span></label>
-            <label><input type="checkbox" checked={form.visibility === 'client'} onChange={(event) => setForm((current) => ({ ...current, visibility: event.target.checked ? 'client' : 'internal' }))} /><span>Compartilhar com o cliente</span></label>
+            <label><Checkbox checked={form.includeInReport} onChange={(event) => setForm((current) => ({ ...current, includeInReport: event.target.checked }))} /><span>Pode alimentar o relatório</span></label>
+            <label><Checkbox checked={form.requiresAction} onChange={(event) => setForm((current) => ({ ...current, requiresAction: event.target.checked }))} /><span>Exige acompanhamento</span></label>
+            <label><Checkbox checked={form.visibility === 'client'} onChange={(event) => setForm((current) => ({ ...current, visibility: event.target.checked ? 'client' : 'internal' }))} /><span>Compartilhar com o cliente</span></label>
           </div>
         </>}
       </div>

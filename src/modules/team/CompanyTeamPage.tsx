@@ -1,3 +1,7 @@
+import { Checkbox } from '../../components/ds/Checkbox';
+import { Input } from '../../components/ds/Input';
+import { Select } from '../../components/ds/Select';
+import { Textarea } from '../../components/ds/Textarea';
 import { Button } from '../../components/ds/Button';
 import { CompactPageHeading } from '../../components/workspace/components/CompactPageHeading';
 import { WorkflowDialog, WorkflowDialogForm } from '../../components/ds/WorkflowDialog';
@@ -71,6 +75,7 @@ function errorText<Value>(error: Value) {
 }
 
 type Tab = 'people' | 'changes' | 'indicators';
+const referenceField = 'tw:min-h-0! tw:px-1.75! tw:py-1! tw:font-bold!';
 const sparkFields: Record<string, 'active' | 'admissions' | 'exits'> = {
   'Quadro ativo': 'active',
   Admissões: 'admissions',
@@ -1356,15 +1361,15 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
         <div className="context-strip tw:mb-4.5 tw:flex tw:flex-wrap tw:items-center tw:gap-x-6 tw:gap-y-3 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:pb-4.5 tw:text-cali-neutral-accent tw:[&>span:not(.context-end):not(.context-sep)]:flex tw:[&>span:not(.context-end):not(.context-sep)]:items-center tw:[&>span:not(.context-end):not(.context-sep)]:gap-2.5 tw:[&_strong]:text-base/[inherit] tw:[&_strong]:text-cali-neutral-text">
           {(admin || staff) && (
             <>
-              <label className="tw:m-0 tw:inline-flex tw:items-center tw:gap-2.25 tw:text-cali-label tw:text-cali-muted tw:[&_select]:max-w-60 tw:[&_select]:rounded-md tw:[&_select]:border tw:[&_select]:border-solid tw:[&_select]:border-cali-line tw:[&_select]:bg-cali-neutral-surface tw:[&_select]:px-2.5 tw:[&_select]:py-1.75 tw:[&_select]:font-bold tw:[&_select]:text-cali-brand">
+              <label className="tw:m-0 tw:inline-flex tw:items-center tw:gap-2.25 tw:text-cali-label tw:text-cali-muted">
                 <span>Empresa</span>
-                <select aria-label="Empresa" value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
+                <Select variant="filter" className="tw:max-w-60 tw:py-1.75! tw:font-bold! tw:text-cali-brand!" aria-label="Empresa" value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
                   {companies.map((c) => (
                     <option value={c.id} key={c.id}>
                       {c.display_name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
               <span className="context-sep tw:text-cali-neutral-line" />
             </>
@@ -1378,11 +1383,11 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
             <strong>{departments.length}</strong> {departments.length === 1 ? 'departamento' : 'departamentos'}
           </span>
           <span className="context-sep tw:text-cali-neutral-line" />
-          <span className="tw:inline-flex tw:min-w-0 tw:flex-wrap tw:items-center tw:gap-1.75 tw:whitespace-nowrap tw:[&_input]:rounded-md tw:[&_input]:border tw:[&_input]:border-solid tw:[&_input]:border-cali-line tw:[&_input]:bg-cali-neutral-surface tw:[&_input]:px-1.75 tw:[&_input]:py-1 tw:[&_input]:font-bold tw:[&_input]:text-cali-text">
+          <span className="tw:inline-flex tw:min-w-0 tw:flex-wrap tw:items-center tw:gap-1.75 tw:whitespace-nowrap">
             Referência{' '}
             {periodMode ? (
               <>
-                <input
+                <Input variant="compact" className={referenceField}
                   type="month"
                   aria-label="De"
                   value={periodStart}
@@ -1390,7 +1395,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   onChange={(e) => setPeriodStart(e.target.value)}
                 />{' '}
                 a{' '}
-                <input
+                <Input variant="compact" className={referenceField}
                   type="month"
                   aria-label="Até"
                   value={periodEnd}
@@ -1403,7 +1408,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 />
               </>
             ) : (
-              <input
+              <Input variant="compact" className={referenceField}
                 type="month"
                 aria-label="Mês de referência"
                 value={month}
@@ -1589,9 +1594,9 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   </p>
                 </div>
                 {!periodMode && (
-                  <label className="v2-compare tw:m-0 tw:inline-flex tw:items-center tw:gap-3 tw:text-sm tw:text-cali-muted tw:[&_select]:rounded-lg tw:[&_select]:border tw:[&_select]:border-solid tw:[&_select]:border-cali-line tw:[&_select]:bg-cali-neutral-surface tw:[&_select]:px-3 tw:[&_select]:py-2 tw:[&_select]:font-bold tw:[&_select]:text-cali-brand tw:[&_small]:text-xs tw:[&_small]:text-cali-sand-text">
+                  <label className="v2-compare tw:m-0 tw:inline-flex tw:items-center tw:gap-3 tw:text-sm tw:text-cali-muted tw:[&_small]:text-xs tw:[&_small]:text-cali-sand-text">
                     Comparar com
-                    <select value={cmpMode} onChange={(e) => setCmpMode(e.target.value)}>
+                    <Select variant="filter" className="tw:max-w-full" value={cmpMode} onChange={(e) => setCmpMode(e.target.value)}>
                       <option value="prev">Mês anterior</option>
                       <option value="year">Mesmo mês do ano anterior</option>
                       {series
@@ -1603,7 +1608,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                             {monthLabel(point.month)}
                           </option>
                         ))}
-                    </select>
+                    </Select>
                     {confirmed && !compareValues && <small>{cmpLabel} não foi confirmado: sem comparativo.</small>}
                   </label>
                 )}
@@ -2489,12 +2494,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
               </TeamDialogHeader>
               <div className="tw:flex tw:min-h-0 tw:flex-col tw:gap-4.5 tw:overflow-y-auto tw:px-6 tw:pt-4.5 tw:pb-5
                 tw:[scrollbar-width:none] tw:[&_label]:m-0 tw:[&_label]:flex tw:[&_label]:flex-col tw:[&_label]:gap-2
-                tw:[&_label]:text-sm/[inherit] tw:[&_label]:font-semibold tw:[&_label]:text-cali-muted
-                tw:[&_:is(input,textarea)]:w-full tw:[&_:is(input,textarea)]:min-h-0 tw:[&_:is(input,textarea)]:rounded-cali-compact-control
-                tw:[&_:is(input,textarea)]:border tw:[&_:is(input,textarea)]:border-solid tw:[&_:is(input,textarea)]:border-cali-line
-                tw:[&_:is(input,textarea)]:bg-cali-neutral-surface tw:[&_:is(input,textarea)]:p-3.5 tw:[&_:is(input,textarea)]:font-cali-body
-                tw:[&_:is(input,textarea)]:text-sm/[inherit] tw:[&_:is(input,textarea)]:text-cali-text
-                tw:[&_:is(input,textarea)]:outline-cali-gold tw:[&_textarea]:h-18.5 tw:[&_textarea]:resize-y">
+                tw:[&_label]:text-sm/[inherit] tw:[&_label]:font-semibold tw:[&_label]:text-cali-muted">
                 <h3 className="tw:col-span-full tw:mt-2.5 tw:mb-0 tw:border-t tw:border-solid tw:border-cali-line tw:pt-3.5 tw:text-cali-detail tw:font-semibold tw:text-cali-brand tw:first:mt-0 tw:first:border-0 tw:first:pt-0">
                   Jornada e ausências (horas)
                 </h3>
@@ -2512,7 +2512,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   ).map(([key, label]) => (
                     <label key={key}>
                       {label}
-                      <input
+                      <Input variant="compact" className="tw:w-full"
                         inputMode="decimal"
                         value={metricDraft[key]}
                         onChange={(e) => setMetricDraft({ ...metricDraft, [key]: e.target.value })}
@@ -2528,7 +2528,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                     {departments.map((name) => (
                       <label key={name}>
                         {name}
-                        <input
+                        <Input variant="compact" className="tw:w-full"
                           inputMode="numeric"
                           value={metricDraft.approved[name] || ''}
                           onChange={(e) =>
@@ -2552,7 +2552,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 <div className="tw:grid tw:grid-cols-2 tw:gap-4.5 tw:[@media(max-width:40.625rem)]:grid-cols-1">
                   <label>
                     eNPS (−100 a 100)
-                    <input
+                    <Input variant="compact" className="tw:w-full"
                       inputMode="numeric"
                       value={metricDraft.enps}
                       onChange={(e) => setMetricDraft({ ...metricDraft, enps: e.target.value })}
@@ -2560,7 +2560,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   </label>
                   <label>
                     Nota de clima (0 a 10)
-                    <input
+                    <Input variant="compact" className="tw:w-full"
                       inputMode="decimal"
                       value={metricDraft.climate}
                       onChange={(e) => setMetricDraft({ ...metricDraft, climate: e.target.value })}
@@ -2568,7 +2568,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   </label>
                   <label>
                     Participação (%)
-                    <input
+                    <Input variant="compact" className="tw:w-full"
                       inputMode="decimal"
                       value={metricDraft.participation}
                       onChange={(e) => setMetricDraft({ ...metricDraft, participation: e.target.value })}
@@ -2577,7 +2577,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 </div>
                 <label>
                   Observações
-                  <textarea
+                  <Textarea variant="compact" className="tw:min-h-18.5 tw:w-full"
                     value={metricDraft.notes}
                     onChange={(e) => setMetricDraft({ ...metricDraft, notes: e.target.value })}
                     placeholder="Contexto do mês, se houver"
@@ -2592,7 +2592,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
               {admin && (
                 <label className="wide">
                   Motivo da correção
-                  <textarea
+                  <Textarea variant="compact" className="tw:min-h-18.5 tw:w-full"
                     value={metricDraft.reason}
                     onChange={(event) => setMetricDraft({ ...metricDraft, reason: event.target.value })}
                     minLength={3}
@@ -2686,7 +2686,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 }
                 <label>
                   Código interno <small>Opcional — a CALI gera um código se ficar vazio</small>
-                  <input
+                  <Input
                     value={editor.employee_code}
                     onChange={(e) => setEditor({ ...editor, employee_code: e.target.value })}
                     maxLength={60}
@@ -2696,7 +2696,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 </label>
                 <label>
                   Nome completo
-                  <input
+                  <Input
                     value={editor.full_name}
                     onChange={(e) => setEditor({ ...editor, full_name: e.target.value })}
                     required
@@ -2704,7 +2704,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 </label>
                 <label>
                   Data de admissão
-                  <input
+                  <Input
                     type="date"
                     value={editor.admission_date}
                     onChange={(e) => setEditor({ ...editor, admission_date: e.target.value })}
@@ -2713,7 +2713,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 </label>
                 <label>
                   Cargo
-                  <input
+                  <Input
                     value={editor.job_title}
                     onChange={(e) => setEditor({ ...editor, job_title: e.target.value })}
                     required
@@ -2726,7 +2726,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 }
                 <label>
                   Senioridade
-                  <select
+                  <Select
                     value={editor.seniority || ''}
                     onChange={(e) => setEditor({ ...editor, seniority: e.target.value || null })}
                   >
@@ -2760,11 +2760,11 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                         'Gerência',
                         'Direção',
                       ].includes(editor.seniority) && <option value={editor.seniority}>{editor.seniority}</option>}
-                  </select>
+                  </Select>
                 </label>
                 <label>
                   Departamento
-                  <input
+                  <Input
                     list="team-departments"
                     value={editor.department}
                     onChange={(e) => setEditor({ ...editor, department: e.target.value })}
@@ -2780,14 +2780,13 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 </label>
                 <label>
                   Setor <small>Opcional, se diferente do departamento</small>
-                  <input
+                  <Input
                     value={editor.team_area || ''}
                     onChange={(e) => setEditor({ ...editor, team_area: e.target.value || null })}
                   />
                 </label>
                 <label>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={editor.is_leader}
                     onChange={(e) => setEditor({ ...editor, is_leader: e.target.checked })}
                   />{' '}
@@ -2795,7 +2794,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 </label>
                 <label>
                   Gestor direto
-                  <select
+                  <Select
                     value={editor.manager_code || ''}
                     onChange={(e) => setEditor({ ...editor, manager_code: e.target.value || null })}
                   >
@@ -2812,7 +2811,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                           {m.is_leader ? ' · liderança' : ''}
                         </option>
                       ))}
-                  </select>
+                  </Select>
                 </label>
                 {
                   <h3 className="tw:col-span-full tw:mt-2.5 tw:mb-0 tw:border-t tw:border-solid tw:border-cali-line tw:pt-3.5 tw:text-cali-detail tw:font-semibold tw:text-cali-brand tw:first:mt-0 tw:first:border-0 tw:first:pt-0">
@@ -2821,7 +2820,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 }
                 <label>
                   Vínculo
-                  <select
+                  <Select
                     value={editor.employment_type}
                     onChange={(e) => setEditor({ ...editor, employment_type: e.target.value })}
                   >
@@ -2831,11 +2830,11 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                     <option value="temporary">Temporário</option>
                     <option value="outsourced">Terceirizado</option>
                     <option value="other">Outro</option>
-                  </select>
+                  </Select>
                 </label>
                 <label>
                   Jornada semanal (horas)
-                  <input
+                  <Input
                     type="number"
                     min="0"
                     max="80"
@@ -2848,7 +2847,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 </label>
                 <label>
                   Modelo de trabalho
-                  <select
+                  <Select
                     value={editor.work_model || ''}
                     onChange={(e) => setEditor({ ...editor, work_model: e.target.value || null })}
                   >
@@ -2856,11 +2855,11 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                     <option value="presencial">Presencial</option>
                     <option value="hibrido">Híbrido</option>
                     <option value="remoto">Remoto</option>
-                  </select>
+                  </Select>
                 </label>
                 <label>
                   Unidade / localidade <small>Cidade ou unidade onde trabalha</small>
-                  <input
+                  <Input
                     value={editor.location || ''}
                     onChange={(e) => setEditor({ ...editor, location: e.target.value || null })}
                   />
@@ -2872,7 +2871,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 }
                 <label>
                   E-mail corporativo
-                  <input
+                  <Input
                     type="email"
                     value={editor.work_email || ''}
                     onChange={(e) => setEditor({ ...editor, work_email: e.target.value || null })}
@@ -2880,7 +2879,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 </label>
                 <label>
                   Telefone profissional
-                  <input
+                  <Input
                     value={editor.work_phone || ''}
                     onChange={(e) => setEditor({ ...editor, work_phone: e.target.value || null })}
                     placeholder="Ex.: (41) 99999-9999"
@@ -2888,20 +2887,20 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 </label>
                 <label>
                   Situação
-                  <select
+                  <Select
                     value={editor.status}
                     onChange={(e) => setEditor({ ...editor, status: e.target.value as Draft['status'] })}
                   >
                     <option value="active">Ativa</option>
                     <option value="leave">Afastada / férias</option>
                     <option value="terminated">Desligada</option>
-                  </select>
+                  </Select>
                 </label>
                 {editor.status === 'leave' && (
                   <>
                     <label>
                       Motivo do afastamento / férias
-                      <select
+                      <Select
                         value={editor.leave_reason || ''}
                         onChange={(e) => setEditor({ ...editor, leave_reason: e.target.value || null })}
                         required
@@ -2912,11 +2911,11 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                         <option value="parental_leave">Licença maternidade / paternidade</option>
                         <option value="unpaid_leave">Licença não remunerada</option>
                         <option value="other">Outro</option>
-                      </select>
+                      </Select>
                     </label>
                     <label>
                       Data de início
-                      <input
+                      <Input
                         type="date"
                         value={editor.leave_start_date || ''}
                         onChange={(e) => setEditor({ ...editor, leave_start_date: e.target.value || null })}
@@ -2925,7 +2924,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                     </label>
                     <label>
                       Previsão de retorno <small>Opcional</small>
-                      <input
+                      <Input
                         type="date"
                         value={editor.expected_return_date || ''}
                         onChange={(e) => setEditor({ ...editor, expected_return_date: e.target.value || null })}
@@ -2937,7 +2936,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   <>
                     <label>
                       Data do desligamento
-                      <input
+                      <Input
                         type="date"
                         value={editor.termination_date || ''}
                         onChange={(e) => setEditor({ ...editor, termination_date: e.target.value || null })}
@@ -2948,7 +2947,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                       <label>
                         Motivo do desligamento · código eSocial{' '}
                         <small>Tabela 19; confirme a classificação com o Departamento Pessoal</small>
-                        <select
+                        <Select
                           value={editor.termination_code}
                           onChange={(e) => {
                             const selected = terminationCodes.find((item) => item.code === e.target.value);
@@ -2965,12 +2964,12 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                               {item.code} · {item.label}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       </label>
                     ) : (
                       <label>
                         Forma de encerramento <small>Sem código eSocial de vínculo CLT</small>
-                        <select
+                        <Select
                           value={editor.termination_initiative || ''}
                           onChange={(e) =>
                             setEditor({
@@ -2986,19 +2985,19 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                               {label}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       </label>
                     )}
                     <label>
                       Observações do desligamento <small>Opcional; não substitui a classificação do DP</small>
-                      <input
+                      <Input
                         value={editor.termination_reason || ''}
                         onChange={(e) => setEditor({ ...editor, termination_reason: e.target.value || null })}
                       />
                     </label>
                     <label>
                       Aviso prévio
-                      <select
+                      <Select
                         value={editor.notice_type || ''}
                         onChange={(e) => setEditor({ ...editor, notice_type: e.target.value || null })}
                       >
@@ -3007,7 +3006,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                         <option value="indemnified">Indenizado</option>
                         <option value="waived">Dispensado</option>
                         <option value="not_applicable">Não se aplica</option>
-                      </select>
+                      </Select>
                     </label>
                   </>
                 )}
@@ -3021,7 +3020,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 <TeamEditorFields optional>
                   <label>
                     Identificação de gênero
-                    <select
+                    <Select
                       value={editor.gender}
                       onChange={(e) =>
                         setEditor({
@@ -3036,12 +3035,12 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                       <option value="male">Masculino</option>
                       <option value="other">Outra identificação</option>
                       <option value="prefer_not">Prefiro não informar</option>
-                    </select>
+                    </Select>
                   </label>
                   {editor.gender === 'other' && (
                     <label>
                       Como se identifica? <small>Opcional</small>
-                      <input
+                      <Input
                         maxLength={120}
                         value={editor.gender_detail}
                         onChange={(e) => setEditor({ ...editor, gender_detail: e.target.value })}
@@ -3050,7 +3049,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   )}
                   <label>
                     Tem filhos?
-                    <select
+                    <Select
                       value={editor.has_children}
                       onChange={(e) => setEditor({ ...editor, has_children: e.target.value })}
                     >
@@ -3058,11 +3057,11 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                       <option value="yes">Sim</option>
                       <option value="no">Não</option>
                       <option value="prefer_not">Prefiro não informar</option>
-                    </select>
+                    </Select>
                   </label>
                   <label>
                     Remuneração atual <small>Acesso restrito</small>
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       step="0.01"
@@ -3072,16 +3071,15 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   </label>
                   <label>
                     Data da última revisão salarial <small>Acesso restrito</small>
-                    <input
+                    <Input
                       type="date"
                       value={editor.salary_review_date}
                       onChange={(e) => setEditor({ ...editor, salary_review_date: e.target.value })}
                     />
                   </label>
                 </TeamEditorFields>
-                <label className="tw:mt-3.25 tw:flex tw:items-start tw:gap-2 tw:font-medium tw:[&_input]:m-0 tw:[&_input]:size-4 tw:[&_input]:accent-cali-brand">
-                  <input
-                    type="checkbox"
+                <label className="tw:mt-3.25 tw:flex tw:items-start tw:gap-2 tw:font-medium">
+                  <Checkbox className="tw:m-0 tw:size-4"
                     checked={editor.optional_data_declared}
                     onChange={(e) => setEditor({ ...editor, optional_data_declared: e.target.checked })}
                   />{' '}

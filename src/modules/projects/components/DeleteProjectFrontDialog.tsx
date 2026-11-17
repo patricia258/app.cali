@@ -1,3 +1,4 @@
+import { Select } from '../../../components/ds/Select';
 import { useState } from 'react';
 import { useDeleteProjectFront } from '../hooks/useDeleteProjectFront';
 import { ProjectActionDialog } from './ProjectActionDialog';
@@ -26,11 +27,11 @@ export function DeleteProjectFrontDialog({ front, totalDeliverables, targets, on
         <p>Para excluí-la sem perder trabalho, escolha a frente que receberá todos eles.</p>
       </div>
       <label className="tw:grid tw:gap-2 tw:text-sm tw:font-bold">Transferir entregáveis para
-        <select value={destination} onChange={(event) => setDestination(event.target.value)} required
-          className="tw:min-h-[3.2308rem] tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body tw:font-normal">
+        <Select value={destination} onChange={(event) => setDestination(event.target.value)} required
+          className="tw:w-full">
           <option value="">Selecionar frente de destino</option>
           {targets.map((target) => <option key={target.id} value={target.id}>{target.name}</option>)}
-        </select>
+        </Select>
       </label>
       {!targets.length && <p className="tw:text-cali-danger">Crie outra frente antes de excluir esta, pois há entregáveis vinculados.</p>}
     </> : <div className="tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface-soft tw:px-4.5 tw:py-3.5">

@@ -1,8 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { Pencil, Trash2, X } from 'lucide-react';
 import { Button } from '../../../components/ds/Button';
+import { Checkbox } from '../../../components/ds/Checkbox';
 import { DialogForm } from '../../../components/ds/DialogForm';
+import { FieldLabel } from '../../../components/ds/FieldLabel';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
+import { Input } from '../../../components/ds/Input';
+import { Select } from '../../../components/ds/Select';
+import { Textarea } from '../../../components/ds/Textarea';
 import type { HourAuditEntry } from '../../../api/hours/audit';
 import { errorMessage } from '../../../lib/errorMessage';
 import { useDeleteAuditedHourEntry } from '../hooks/useDeleteAuditedHourEntry';
@@ -54,20 +59,38 @@ export function AuditedHourEntryDialog({ kind, entry, categories, onClose, onSav
         </div>
         <Button type="button" variant="close" className="tw:ml-auto tw:shrink-0" disabled={busy} onClick={onClose} aria-label="Fechar"><X size={19} /></Button>
       </header>
-      <div className="tw:grid tw:gap-3.5 tw:px-6 tw:py-5 tw:[&_label]:grid tw:[&_label]:gap-1.5 tw:[&_label]:text-sm tw:[&_label]:font-bold tw:[&_:is(input:not([type=checkbox]),select,textarea)]:w-full tw:[&_:is(input:not([type=checkbox]),select,textarea)]:rounded-xl tw:[&_:is(input:not([type=checkbox]),select,textarea)]:border tw:[&_:is(input:not([type=checkbox]),select,textarea)]:border-solid tw:[&_:is(input:not([type=checkbox]),select,textarea)]:border-cali-input-line tw:[&_:is(input:not([type=checkbox]),select,textarea)]:bg-cali-input tw:[&_:is(input:not([type=checkbox]),select,textarea)]:px-3 tw:[&_:is(input:not([type=checkbox]),select,textarea)]:py-2.5 tw:[&_textarea]:min-h-22 tw:[&_textarea]:resize-y">
+      <div className="tw:grid tw:gap-3.5 tw:px-6 tw:py-5">
         {!deleting && <>
           <div className="tw:grid tw:gap-3 tw:sm:grid-cols-2">
-            <label>Data<input type="date" value={draft.workDate} onChange={(event) => setDraft({ ...draft, workDate: event.target.value })} /></label>
-            <label>Duração (minutos)<input type="number" min="1" max="1440" value={draft.minutes} onChange={(event) => setDraft({ ...draft, minutes: event.target.value })} /></label>
+            <FieldLabel>
+              Data
+              <Input type="date" value={draft.workDate} onChange={(event) => setDraft({ ...draft, workDate: event.target.value })} />
+            </FieldLabel>
+            <FieldLabel>
+              Duração (minutos)
+              <Input type="number" min="1" max="1440" value={draft.minutes} onChange={(event) => setDraft({ ...draft, minutes: event.target.value })} />
+            </FieldLabel>
           </div>
-          <label>Descrição<textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
-          <label>Natureza<select value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })}>
-            {!categories.includes(draft.category) && <option>{draft.category}</option>}
-            {categories.map((category) => <option key={category}>{category}</option>)}
-          </select></label>
-          <label className="tw:flex! tw:items-center tw:gap-2 tw:font-semibold"><input type="checkbox" checked={draft.clientVisible} onChange={(event) => setDraft({ ...draft, clientVisible: event.target.checked })} /> Compartilhável no extrato do cliente</label>
+          <FieldLabel>
+            Descrição
+            <Textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} />
+          </FieldLabel>
+          <FieldLabel>
+            Natureza
+            <Select value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })}>
+              {!categories.includes(draft.category) && <option>{draft.category}</option>}
+              {categories.map((category) => <option key={category}>{category}</option>)}
+            </Select>
+          </FieldLabel>
+          <label className="tw:flex tw:items-center tw:gap-2 tw:text-sm/[inherit] tw:font-semibold">
+            <Checkbox checked={draft.clientVisible} onChange={(event) => setDraft({ ...draft, clientVisible: event.target.checked })} />
+            Compartilhável no extrato do cliente
+          </label>
         </>}
-        <label>{deleting ? 'Por que você está excluindo?' : 'Justificativa da edição'}<textarea autoFocus value={reason} onChange={(event) => setReason(event.target.value)} placeholder={deleting ? 'Ex.: teste de timer' : 'Explique o motivo da correção'} /></label>
+        <FieldLabel>
+          {deleting ? 'Por que você está excluindo?' : 'Justificativa da edição'}
+          <Textarea autoFocus value={reason} onChange={(event) => setReason(event.target.value)} placeholder={deleting ? 'Ex.: teste de timer' : 'Explique o motivo da correção'} />
+        </FieldLabel>
         {failure && <InlineNotice tone="danger">{failure}</InlineNotice>}
       </div>
       <footer className="tw:flex tw:justify-end tw:gap-2.5 tw:border-0 tw:border-t tw:border-solid tw:border-cali-line tw:px-6 tw:pt-4 tw:pb-5">

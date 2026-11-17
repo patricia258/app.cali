@@ -1,3 +1,7 @@
+import { Checkbox } from '../../../components/ds/Checkbox';
+import { Input } from '../../../components/ds/Input';
+import { Select } from '../../../components/ds/Select';
+import { Textarea } from '../../../components/ds/Textarea';
 import { useId, useState } from 'react';
 import type { AdminProjectLifecycle, ProjectLifecycleScope } from '../../../api/projects/lifecycle';
 import { formatProjectDate } from '../../../domain/projects';
@@ -58,7 +62,7 @@ export function ProjectLifecycleManageDialog({ context, onClose, onResume, onSav
     </section>}
     {cancelled ? <div className="tw:flex tw:gap-3 tw:rounded-lg tw:border tw:border-solid tw:border-cali-danger-line tw:bg-cali-danger-surface tw:px-4 tw:py-3 tw:text-sm tw:text-cali-danger">
       <strong>Este projeto foi cancelado.</strong><span>O histórico permanece disponível. O cancelamento não é revertido por esta tela.</span>
-    </div> : <fieldset disabled={change.isPending} className="tw:m-0 tw:grid tw:min-w-0 tw:gap-4.5 tw:border-0 tw:p-0 tw:[&_label]:text-sm tw:[&_label]:font-bold tw:[&_:is(select,textarea,input[type=date])]:min-h-[3.23rem] tw:[&_:is(select,textarea,input[type=date])]:w-full tw:[&_:is(select,textarea,input[type=date])]:rounded-lg tw:[&_:is(select,textarea,input[type=date])]:border tw:[&_:is(select,textarea,input[type=date])]:border-solid tw:[&_:is(select,textarea,input[type=date])]:border-cali-input-line tw:[&_:is(select,textarea,input[type=date])]:bg-cali-neutral-surface tw:[&_:is(select,textarea,input[type=date])]:px-3.5 tw:[&_:is(select,textarea,input[type=date])]:py-3 tw:[&_:is(select,textarea,input[type=date])]:text-cali-body tw:[&_:is(select,textarea,input[type=date])]:font-normal">
+    </div> : <fieldset disabled={change.isPending} className="tw:m-0 tw:grid tw:min-w-0 tw:gap-4.5 tw:border-0 tw:p-0 tw:[&_label]:text-sm tw:[&_label]:font-bold">
       <div role="radiogroup" aria-label="Ação" className="tw:grid tw:grid-cols-3 tw:gap-3 tw:max-sm:grid-cols-1">
         {(Object.keys(lifecycleOptions) as LifecycleInterruption[]).map((option) => <label key={option}
           className={`tw:flex tw:cursor-pointer tw:flex-col tw:gap-1.5 tw:rounded-lg tw:border tw:border-solid tw:px-4.5 tw:py-4 tw:focus-within:outline-2 tw:focus-within:outline-offset-2 tw:focus-within:outline-cali-accent ${option === action ? 'tw:border-cali-brand tw:bg-cali-paper tw:shadow-[inset_.231rem_0_var(--cali-color-burgundy-accent)]' : 'tw:border-cali-line tw:bg-cali-neutral-surface'}`}>
@@ -70,29 +74,29 @@ export function ProjectLifecycleManageDialog({ context, onClose, onResume, onSav
       </div>
       <div className="tw:grid tw:gap-1.5">
         <label htmlFor={`${fieldsId}-scope`}>Escopo</label>
-        <select id={`${fieldsId}-scope`} value={scope} onChange={(event) => { setScope(event.target.value as ProjectLifecycleScope); setTargetId(''); }}>
+        <Select id={`${fieldsId}-scope`} value={scope} onChange={(event) => { setScope(event.target.value as ProjectLifecycleScope); setTargetId(''); }}>
           <option value="project">Projeto inteiro</option><option value="front">Uma frente</option><option value="deliverable">Um entregável</option>
-        </select>
+        </Select>
       </div>
       {scope !== 'project' && <div className="tw:grid tw:gap-1.5">
         <label htmlFor={`${fieldsId}-target`}>{scope === 'front' ? 'Frente' : 'Entregável'}</label>
-        <select id={`${fieldsId}-target`} value={targetId} onChange={(event) => setTargetId(event.target.value)}>
+        <Select id={`${fieldsId}-target`} value={targetId} onChange={(event) => setTargetId(event.target.value)}>
           <option value="">{scope === 'front' ? 'Selecionar frente' : 'Selecionar entregável'}</option>
           {targets.map((target) => <option key={target.id} value={target.id}>{'name' in target ? target.name : `${target.title}${target.workstream ? ` · ${target.workstream}` : ''}`}</option>)}
-        </select>
+        </Select>
       </div>}
       <div className="tw:grid tw:gap-1.5">
         <label htmlFor={`${fieldsId}-reason`}>Motivo principal</label>
-        <select id={`${fieldsId}-reason`} value={reason} onChange={(event) => setReason(event.target.value)}>
+        <Select id={`${fieldsId}-reason`} value={reason} onChange={(event) => setReason(event.target.value)}>
           <option value="">Selecione o motivo principal</option>
           {lifecycleReasons[action].map((value) => <option key={value}>{value}</option>)}
-        </select>
+        </Select>
       </div>
       {action !== 'cancel' && <label className="tw:grid tw:gap-1.5">Previsão de retomada (opcional)
-        <input type="date" value={resumeDate} onChange={(event) => setResumeDate(event.target.value)} />
+        <Input type="date" value={resumeDate} onChange={(event) => setResumeDate(event.target.value)} />
       </label>}
       <label className="tw:grid tw:gap-1.5">Justificativa / mensagem ao cliente
-        <textarea value={details} onChange={(event) => setDetails(event.target.value)} className="tw:min-h-[6.46rem] tw:resize-y"
+        <Textarea value={details} onChange={(event) => setDetails(event.target.value)}
           placeholder="Explique o contexto de forma objetiva. Esta mensagem ficará registrada e, se o cronograma já foi compartilhado, será enviada ao cliente." />
       </label>
       <div className="tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-warning-line tw:bg-cali-warning-surface tw:px-4.5 tw:py-3.5 tw:text-sm tw:leading-relaxed tw:text-cali-warning">
@@ -100,7 +104,7 @@ export function ProjectLifecycleManageDialog({ context, onClose, onResume, onSav
         <p className="tw:m-0">A pausa ou suspensão não altera o escopo nem a qualidade da entrega. O cronograma fica congelado durante a interrupção. Na retomada, o Workspace contabiliza o período efetivamente interrompido em dias úteis, desloca os prazos afetados e recalcula a <strong>Previsão CALI</strong>. A Meta desejada permanece como referência.</p>
       </div>
       {action === 'cancel' && <label className="tw:flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-solid tw:border-cali-danger-line tw:bg-cali-danger-surface tw:px-4 tw:py-3 tw:text-cali-danger">
-        <input type="checkbox" checked={confirmCancel} onChange={(event) => setConfirmCancel(event.target.checked)} />
+        <Checkbox checked={confirmCancel} onChange={(event) => setConfirmCancel(event.target.checked)} />
         Confirmo que desejo cancelar definitivamente o escopo selecionado.
       </label>}
     </fieldset>}

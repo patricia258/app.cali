@@ -1,3 +1,6 @@
+import { Input } from '../../../../components/ds/Input';
+import { Select } from '../../../../components/ds/Select';
+import { Textarea } from '../../../../components/ds/Textarea';
 import { useId, useState } from 'react';
 import type { ClientScheduleReview, ScheduleAdjustment } from '../../../../api/projects/schedule';
 import { useRequestClientScheduleAdjustment } from '../hooks/useRequestClientScheduleAdjustment';
@@ -66,42 +69,42 @@ export function ClientScheduleAdjustmentDialog({ companyId, review, onClose, onS
     action="Enviar pedido" pending={adjustment.isPending} error={validation || adjustment.error?.message} onClose={onClose} onSubmit={submit}>
     <div className="tw:grid tw:gap-1.5">
       <label htmlFor={`${fieldsId}-type`}>O que você quer ajustar?</label>
-      <select id={`${fieldsId}-type`} value={type} onChange={(event) => changeType(event.target.value as ScheduleAdjustment['p_target_type'])}>
+      <Select variant="embedded" id={`${fieldsId}-type`} value={type} onChange={(event) => changeType(event.target.value as ScheduleAdjustment['p_target_type'])}>
         <option value="workstream">Prioridade de uma frente</option>
         <option value="deliverable">Um entregável</option>
         <option value="project">Outro ponto do cronograma</option>
-      </select>
+      </Select>
     </div>
     {type !== 'project' && <div className="tw:grid tw:gap-1.5">
       <label htmlFor={`${fieldsId}-target`}>{type === 'workstream' ? 'Frente' : 'Entregável'}</label>
-      <select id={`${fieldsId}-target`} value={targetId} onChange={(event) => { setTargetId(event.target.value); setSwapTargetId(''); }}>
+      <Select variant="embedded" id={`${fieldsId}-target`} value={targetId} onChange={(event) => { setTargetId(event.target.value); setSwapTargetId(''); }}>
         {type === 'workstream' ? fronts.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)
           : deliverables.map((row) => <option key={row.id} value={row.id}>{deliverableLabel(row)}</option>)}
-      </select>
+      </Select>
     </div>}
     {type === 'workstream' && <div className="tw:grid tw:gap-1.5">
       <label htmlFor={`${fieldsId}-priority`}>Como você quer reorganizar esta frente?</label>
-      <select id={`${fieldsId}-priority`} value={priority} onChange={(event) => setPriority(event.target.value)}>
+      <Select variant="embedded" id={`${fieldsId}-priority`} value={priority} onChange={(event) => setPriority(event.target.value)}>
         {frontPriorities.map((item) => <option key={item}>{item}</option>)}
-      </select>
+      </Select>
     </div>}
     {type === 'deliverable' && <div className="tw:grid tw:gap-1.5">
       <label htmlFor={`${fieldsId}-action`}>O que você quer mudar neste entregável?</label>
-      <select id={`${fieldsId}-action`} value={action} onChange={(event) => { setAction(event.target.value as typeof action); setSwapTargetId(''); }}>
+      <Select variant="embedded" id={`${fieldsId}-action`} value={action} onChange={(event) => { setAction(event.target.value as typeof action); setSwapTargetId(''); }}>
         <option value="reschedule">Alterar a data</option>
         <option value="swap_order">Trocar a ordem/prioridade com outro entregável</option>
         <option value="change_proposal">Solicitar uma proposta diferente para este entregável</option>
-      </select>
+      </Select>
     </div>}
     {rescheduling && <label>Nova data desejada
-      <input type="date" value={requestedDate} onChange={(event) => setRequestedDate(event.target.value)} />
+      <Input variant="embedded" type="date" value={requestedDate} onChange={(event) => setRequestedDate(event.target.value)} />
     </label>}
     {swapping && <div className="tw:grid tw:gap-1.5">
       <label htmlFor={`${fieldsId}-swap`}>Trocar a prioridade com</label>
-      <select id={`${fieldsId}-swap`} value={swapTargetId} onChange={(event) => setSwapTargetId(event.target.value)}>
+      <Select variant="embedded" id={`${fieldsId}-swap`} value={swapTargetId} onChange={(event) => setSwapTargetId(event.target.value)}>
         <option value="">Selecionar outro entregável</option>
         {deliverables.filter((row) => row.id !== targetId).map((row) => <option key={row.id} value={row.id}>{deliverableLabel(row)}</option>)}
-      </select>
+      </Select>
     </div>}
     {swapping && primary && <p role="status" className={`tw:m-0 tw:rounded-lg tw:border tw:border-solid tw:px-3 tw:py-2.5 tw:text-xs tw:leading-relaxed ${swap ? sameComplexity ? 'tw:border-cali-success/25 tw:bg-cali-success/5 tw:text-cali-success' : 'tw:border-cali-danger/25 tw:bg-cali-danger/5 tw:text-cali-danger' : 'tw:border-cali-line tw:bg-(--theme-surface-soft) tw:text-cali-muted'}`}>
       {!swap ? `${primary.title} é ${primary.complexity || 'sem MC'}. Selecione outro entregável da mesma complexidade.`
@@ -109,7 +112,7 @@ export function ClientScheduleAdjustmentDialog({ companyId, review, onClose, onS
           : `Só é possível trocar a prioridade entre entregáveis da mesma complexidade. “${primary.title}” é ${primary.complexity || 'sem MC'} e “${swap.title}” é ${swap.complexity || 'sem MC'}.`}
     </p>}
     <label>Explique o ajuste
-      <textarea rows={5} value={reason} placeholder="Explique o contexto e o que precisa mudar." onChange={(event) => setReason(event.target.value)} />
+      <Textarea variant="embedded" rows={5} value={reason} placeholder="Explique o contexto e o que precisa mudar." onChange={(event) => setReason(event.target.value)} />
     </label>
     <p className="tw:m-0 tw:rounded-lg tw:border tw:border-solid tw:border-cali-gold/30 tw:bg-cali-gold/10 tw:px-3.5 tw:py-3 tw:text-xs tw:leading-relaxed tw:text-cali-muted">A CALI recebe o pedido, analisa e responde com justificativa. A aprovação final confirma o cronograma, mas não altera a data de início nem desloca as deadlines automaticamente.</p>
   </ClientScheduleDialog>;

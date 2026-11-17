@@ -9,6 +9,7 @@ Use Node 22 atualizado ou mais recente e instale as versões do lockfile com `np
 | `npm run check` | Lint, TypeScript e build de produção. O CI executa esse comando. |
 | `npm test` | Regras de domínio, componentes de apresentação, APIs do frontend, handler Vercel e Edge Functions com transporte controlado. Descobre arquivos de teste em subdiretórios. |
 | `npm run test:components` | Montagem direta dos componentes do DS e de componentes compartilhados. Chrome exercita clique, teclado, foco, refs, submissão, estados e acessibilidade. |
+| `CALI_QA_BROWSER_BATCH=1 npm run test:components` | Recicla o navegador a cada cenário de componente. Inclui os campos do DS, serialização nativa, recuo do Select e alto contraste. |
 | `npm run test:e2e` | Navegação de todas as rotas registradas, guardas de acesso e jornadas com ações verificadas. |
 | `npm run test:visual:pages` | Comparação de páginas inteiras e estados entre a referência Git e o candidato. |
 | `npm run test:visual:components` | Comparação de componentes montados pelas duas versões em temas e larguras equivalentes. |

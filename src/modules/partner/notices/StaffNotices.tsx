@@ -1,3 +1,8 @@
+import { FieldLabel } from '../../../components/ds/FieldLabel';
+import { Checkbox } from '../../../components/ds/Checkbox';
+import { Input } from '../../../components/ds/Input';
+import { Select } from '../../../components/ds/Select';
+import { Textarea } from '../../../components/ds/Textarea';
 import { WorkflowDialogOverlay } from '../../../components/ds/WorkflowDialog';
 import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
 import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
@@ -78,17 +83,17 @@ export function StaffNotices({ me }: { me: PartnerWorkspace }) {
       <StaffDialogHeader onClose={() => setDraft(null)} disabled={busy}><h2>{draft.id ? 'Ajustar comunicado' : 'Novo comunicado'}</h2></StaffDialogHeader>
       <StaffDialogBody>
         <StaffDialogFields>
-          <label>Tipo<select value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })}>
+          <FieldLabel>Tipo<Select value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })}>
             {noticeCategories.map(([id, label]) => <option value={id} key={id}>{label}</option>)}
-          </select></label>
-          <label>Data do aviso<input type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></label>
+          </Select></FieldLabel>
+          <FieldLabel>Data do aviso<Input type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></FieldLabel>
         </StaffDialogFields>
         <StaffDialogFields columns={1}>
-          <label>Título<input value={draft.title} required maxLength={180} onChange={(event) => setDraft({ ...draft, title: event.target.value })} /></label>
-          <label>Mensagem<textarea rows={4} value={draft.body} required maxLength={5000} onChange={(event) => setDraft({ ...draft, body: event.target.value })} /></label>
+          <FieldLabel>Título<Input value={draft.title} required maxLength={180} onChange={(event) => setDraft({ ...draft, title: event.target.value })} /></FieldLabel>
+          <FieldLabel>Mensagem<Textarea rows={4} value={draft.body} required maxLength={5000} onChange={(event) => setDraft({ ...draft, body: event.target.value })} /></FieldLabel>
         </StaffDialogFields>
         <fieldset><legend>Empresas</legend><div className="tw:grid tw:grid-cols-2 tw:gap-2.5 tw:[@media(max-width:860px)]:grid-cols-1 tw:[&>label]:flex tw:[&>label]:cursor-pointer tw:[&>label]:items-start tw:[&>label]:gap-3 tw:[&>label]:rounded-cali-compact-control tw:[&>label]:border tw:[&>label]:border-solid tw:[&>label]:border-cali-line tw:[&>label]:bg-cali-neutral-surface tw:[&>label]:px-3.5 tw:[&>label]:py-3 tw:[&>label]:text-cali-body tw:[&>label]:text-cali-text tw:[&>label:has(input:checked)]:border-cali-brand tw:[&>label:has(input:checked)]:bg-cali-sand-soft tw:[&_input]:mx-0 tw:[&_input]:mt-0.5 tw:[&_input]:mb-0 tw:[&_input]:flex-none tw:[&_input]:accent-cali-brand">{me.companies.map((item) => <label key={item.id}>
-          <input type="checkbox" checked={draft.companies.includes(item.id)} onChange={() => setDraft({ ...draft,
+          <Checkbox checked={draft.companies.includes(item.id)} onChange={() => setDraft({ ...draft,
             companies: draft.companies.includes(item.id) ? draft.companies.filter((id) => id !== item.id) : [...draft.companies, item.id],
           })} /><span>{item.display_name}</span>
         </label>)}</div></fieldset>

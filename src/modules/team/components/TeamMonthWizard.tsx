@@ -1,3 +1,5 @@
+import { Input } from '../../../components/ds/Input';
+import { Select } from '../../../components/ds/Select';
 import { WorkflowDialog } from '../../../components/ds/WorkflowDialog';
 import { TeamDialogOverlay } from './TeamDialogOverlay';
 import { TeamDialogEyebrow, TeamDialogFooter, TeamDialogHeader } from './TeamDialogParts';
@@ -264,12 +266,12 @@ export function TeamMonthWizard({
             <>
               {rows[stage].map((r, i) => (
                 <div
-                  className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.25 tw:border-b tw:border-solid tw:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:py-3.5 tw:[&>:is(input,select)]:min-w-30 tw:[&>:is(input,select)]:flex-1 tw:[&>:is(input,select)]:text-cali-label tw:[&_button]:border tw:[&_button]:border-solid tw:[&_button]:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:[&_button]:bg-cali-surface tw:[&_button]:text-cali-brand tw:my-2.5 tw:rounded-xl tw:[&_label]:text-cali-label tw:[&_input]:h-10.5 tw:[&_input]:rounded-cali-panel tw:[&_input]:px-3 tw:[&_select]:h-10.5 tw:[&_select]:rounded-cali-panel tw:[&_select]:px-3 tw:[&_button]:grid tw:[&_button]:size-9.5 tw:[&_button]:place-items-center"
+                  className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.25 tw:border-b tw:border-solid tw:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:py-3.5 tw:[&>:is(input,select)]:min-w-30 tw:[&>:is(input,select)]:flex-1 tw:[&_button]:border tw:[&_button]:border-solid tw:[&_button]:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:[&_button]:bg-cali-surface tw:[&_button]:text-cali-brand tw:my-2.5 tw:rounded-xl tw:[&_label]:text-cali-label tw:[&_input]:min-h-10.5 tw:[&_select]:min-h-10.5 tw:[&_button]:grid tw:[&_button]:size-9.5 tw:[&_button]:place-items-center"
                   key={r.rowId}
                 >
                   {fields[stage].map((f) =>
                     f.key === 'code' && stage !== 1 ? (
-                      <select
+                      <Select variant="filter" className="tw:text-cali-label!"
                         key={f.key}
                         aria-label={f.label}
                         value={r.code || ''}
@@ -286,9 +288,9 @@ export function TeamMonthWizard({
                               {m.full_name}
                             </option>
                           ))}
-                      </select>
+                      </Select>
                     ) : f.key === 'initiative' ? (
-                      <select
+                      <Select variant="filter" className="tw:text-cali-label!"
                         key={f.key}
                         aria-label={f.label}
                         value={r.initiative || ''}
@@ -314,9 +316,9 @@ export function TeamMonthWizard({
                             <option value="other">Outra forma de encerramento</option>
                           </>
                         )}
-                      </select>
+                      </Select>
                     ) : f.key === 'notice' ? (
-                      <select
+                      <Select variant="filter" className="tw:text-cali-label!"
                         key={f.key}
                         aria-label={f.label}
                         value={r.notice || ''}
@@ -327,9 +329,9 @@ export function TeamMonthWizard({
                         <option value="indemnified">Indenizado</option>
                         <option value="waived">Dispensado</option>
                         <option value="not_applicable">Não se aplica</option>
-                      </select>
+                      </Select>
                     ) : (
-                      <input
+                      <Input variant="compact" className="tw:text-cali-label!"
                         key={f.key}
                         aria-label={f.label}
                         placeholder={f.key === 'code' && stage === 1 ? 'Código interno (opcional)' : f.label}
@@ -365,16 +367,16 @@ export function TeamMonthWizard({
             <>
               {jobs.map((v, i) => (
                 <div
-                  className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.25 tw:border-b tw:border-solid tw:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:py-3.5 tw:[&>:is(input,select)]:min-w-30 tw:[&>:is(input,select)]:flex-1 tw:[&>:is(input,select)]:text-cali-label tw:[&_button]:border tw:[&_button]:border-solid tw:[&_button]:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:[&_button]:bg-cali-surface tw:[&_button]:text-cali-brand tw:my-2.5 tw:rounded-xl tw:[&_label]:text-cali-label tw:[&_input]:h-10.5 tw:[&_input]:rounded-cali-panel tw:[&_input]:px-3 tw:[&_select]:h-10.5 tw:[&_select]:rounded-cali-panel tw:[&_select]:px-3 tw:[&_button]:grid tw:[&_button]:size-9.5 tw:[&_button]:place-items-center"
+                  className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.25 tw:border-b tw:border-solid tw:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:py-3.5 tw:[&>:is(input,select)]:min-w-30 tw:[&>:is(input,select)]:flex-1 tw:[&_button]:border tw:[&_button]:border-solid tw:[&_button]:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:[&_button]:bg-cali-surface tw:[&_button]:text-cali-brand tw:my-2.5 tw:rounded-xl tw:[&_label]:text-cali-label tw:[&_input]:min-h-10.5 tw:[&_select]:min-h-10.5 tw:[&_button]:grid tw:[&_button]:size-9.5 tw:[&_button]:place-items-center"
                   key={v.vacancy_code}
                 >
-                  <input
+                  <Input variant="compact" className="tw:text-cali-label!"
                     aria-label="Nome da vaga"
                     placeholder="Nome da vaga"
                     value={v.title}
                     onChange={(e) => updateJob(i, 'title', e.target.value)}
                   />
-                  <input
+                  <Input variant="compact" className="tw:text-cali-label!"
                     aria-label="Departamento"
                     placeholder="Departamento"
                     value={v.department || ''}
@@ -382,7 +384,7 @@ export function TeamMonthWizard({
                   />
                   <label>
                     Aberta em
-                    <input
+                    <Input variant="compact" className="tw:text-cali-label!"
                       type="date"
                       max={max}
                       value={v.opened_on}
@@ -390,7 +392,7 @@ export function TeamMonthWizard({
                       onChange={(e) => updateJob(i, 'opened_on', e.target.value)}
                     />
                   </label>
-                  <select
+                  <Select variant="filter" className="tw:text-cali-label!"
                     aria-label="Situação"
                     value={v.status}
                     onChange={(e) => updateJob(i, 'status', e.target.value)}
@@ -398,11 +400,11 @@ export function TeamMonthWizard({
                     <option value="open">Em andamento</option>
                     <option value="filled">Preenchida</option>
                     <option value="cancelled">Cancelada</option>
-                  </select>
+                  </Select>
                   {v.status !== 'open' && (
                     <label>
                       Encerrada em
-                      <input
+                      <Input variant="compact" className="tw:text-cali-label!"
                         type="date"
                         min={v.opened_on}
                         max={max}

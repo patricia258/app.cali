@@ -1,3 +1,7 @@
+import { Checkbox } from '../../../../components/ds/Checkbox';
+import { Input } from '../../../../components/ds/Input';
+import { Select } from '../../../../components/ds/Select';
+import { Textarea } from '../../../../components/ds/Textarea';
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
 export function CompanyFormFields({ children, profile }: { children: ReactNode; profile?: boolean }) {
@@ -9,15 +13,15 @@ export function CompanyField({ children, fullWidth, className = '' }: { children
 }
 
 export function CompanyInput({ className = '', ...props }: ComponentPropsWithoutRef<'input'>) {
-  return <input {...props} className={`tw:min-h-[3.308rem] tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body tw:font-normal tw:text-cali-text tw:outline-offset-2 tw:read-only:bg-cali-surface-soft tw:read-only:text-cali-muted ${className}`} />;
+  return <Input {...props} className={`tw:w-full tw:read-only:bg-cali-surface-soft tw:read-only:text-cali-muted ${className}`} />;
 }
 
 export function CompanySelect({ className = '', ...props }: ComponentPropsWithoutRef<'select'>) {
-  return <select {...props} className={`tw:min-h-[3.308rem] tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body tw:font-normal tw:text-cali-text tw:outline-offset-2 tw:disabled:bg-cali-surface-soft tw:disabled:text-cali-muted ${className}`} />;
+  return <Select {...props} className={`tw:w-full tw:disabled:bg-cali-surface-soft tw:disabled:text-cali-muted ${className}`} />;
 }
 
 export function CompanyTextarea({ className = '', ...props }: ComponentPropsWithoutRef<'textarea'>) {
-  return <textarea {...props} className={`tw:min-h-[5.846rem] tw:w-full tw:resize-y tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body tw:font-normal tw:text-cali-text ${className}`} />;
+  return <Textarea {...props} className={`tw:w-full ${className}`} />;
 }
 
 export function CompanyFileInput({ preview, ...props }: ComponentPropsWithoutRef<'input'> & { preview?: string }) {
@@ -32,7 +36,7 @@ export function CompanyFileInput({ preview, ...props }: ComponentPropsWithoutRef
 export function CompanyAccessCheckbox(props: ComponentPropsWithoutRef<'input'>) {
   return (
     <label className="tw:flex tw:items-center tw:gap-3 tw:text-sm tw:font-bold">
-      <input {...props} type="checkbox" className="tw:size-5 tw:shrink-0" /> Solicitar acesso à plataforma
+      <Checkbox {...props} className="tw:size-5 tw:shrink-0" /> Solicitar acesso à plataforma
     </label>
   );
 }
@@ -48,7 +52,7 @@ export function CompanyCheckCard({ title, description, fullWidth, ...props }: Co
 }) {
   return (
     <label className={`tw:flex tw:cursor-pointer tw:items-start tw:gap-3 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-4.5 tw:py-3.5 tw:text-sm ${fullWidth ? 'tw:col-span-full' : ''}`}>
-      <input {...props} type="checkbox" className="tw:mt-0.5 tw:shrink-0 tw:accent-cali-brand" />
+      <Checkbox {...props} className="tw:mt-0.5 tw:shrink-0 tw:accent-cali-brand" />
       <span className="tw:flex tw:flex-col tw:gap-1">
         {description ? <><strong>{title}</strong><small className="tw:font-normal tw:text-cali-muted">{description}</small></> : title}
       </span>

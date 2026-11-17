@@ -1,3 +1,4 @@
+import { Input } from '../components/ds/Input';
 import { Button } from '../components/ds/Button';
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
@@ -126,7 +127,7 @@ function ActorMfaGate({ actorId, children }: { actorId: string; children: ReactN
       </>}
       {stage === 'verify' && <p className="tw:m-0 tw:text-base tw:leading-[1.55] tw:text-cali-muted">Abra o aplicativo autenticador do seu celular e digite o código de 6 dígitos do CALI Workspace.</p>}
       {stage !== 'error' && <form onSubmit={(event) => void confirm(event)} className="tw:flex tw:flex-col tw:gap-3">
-        <label className="tw:flex tw:flex-col tw:gap-2 tw:text-cali-body tw:font-bold tw:text-cali-muted">Código do aplicativo<input className="tw:box-border tw:h-14 tw:rounded-xl tw:border tw:border-solid tw:border-cali-input-line tw:px-4.5 tw:text-center tw:text-2xl tw:tracking-[.3em]" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} autoFocus /></label>
+        <label className="tw:flex tw:flex-col tw:gap-2 tw:text-cali-body tw:font-bold tw:text-cali-muted">Código do aplicativo<Input className="tw:box-border tw:h-14 tw:rounded-xl tw:border tw:border-solid tw:border-cali-input-line tw:px-4.5 tw:text-center tw:text-2xl tw:tracking-[.3em]" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} autoFocus /></label>
         {message && <AccessGateError>{message}</AccessGateError>}
         <Button type="submit" variant="gatePrimary" disabled={busy || code.length !== 6}>{busy ? 'Conferindo…' : 'Confirmar'}</Button>
       </form>}

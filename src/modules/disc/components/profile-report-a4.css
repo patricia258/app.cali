@@ -48,7 +48,7 @@
 .cali-profile-report .cpr-matrix th{@apply tw:text-left;padding:8px 12px;background:var(--marfim);@apply tw:text-[9.5px];@apply tw:font-bold;letter-spacing:.06em;@apply tw:uppercase;color:var(--muted)}
 .cali-profile-report .cpr-matrix td{padding:10px 12px;border-top:1px solid var(--cali-color-neutral-soft);@apply tw:align-top}
 .cali-profile-report .cpr-matrix tr.gap td{background:var(--cali-color-sand-soft)}
-.cali-profile-report .cpr-matrix select{font:inherit;padding:3px 6px;border:1px solid var(--line);@apply tw:rounded-[6px];background:var(--cali-color-neutral-surface)}
+.cali-profile-report .cpr-matrix select{font:inherit;padding-block:3px;border:1px solid var(--line);@apply tw:rounded-[6px];background-color:var(--cali-color-neutral-surface)}
 .cali-profile-report .cpr-data td{font-variant-numeric:tabular-nums}
 .cali-profile-report .cpr-matrix td.cpr-style-cell{@apply tw:whitespace-nowrap}
 .cali-profile-report .cpr-team{@apply tw:flex tw:flex-col tw:gap-[6px]}

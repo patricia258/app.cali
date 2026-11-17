@@ -1,3 +1,4 @@
+import { Input } from '../ds/Input';
 import { useState } from 'react';
 import { Button } from '../ds/Button';
 import { DialogForm } from '../ds/DialogForm';
@@ -28,7 +29,7 @@ export function ConversationLinkDialog({ onClose, onAdd }: { onClose: () => void
         <h2 className="tw:mt-1 tw:mb-3 tw:pr-8 tw:text-lg!">Inserir um link na mensagem</h2>
         <p className="tw:mt-0 tw:text-sm tw:text-cali-muted">Cole o endereço de uma página, pasta do Drive ou formulário.</p>
         <label className="tw:grid tw:gap-2 tw:text-xs tw:font-bold">Endereço do link
-          <input type="text" inputMode="url" autoComplete="off" autoFocus placeholder="https://…" value={value} onChange={(event) => { setValue(event.target.value); setError(''); }} className="tw:min-h-cali-control tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:px-3 tw:font-normal" />
+          <Input type="text" inputMode="url" autoComplete="off" autoFocus placeholder="https://…" value={value} onChange={(event) => { setValue(event.target.value); setError(''); }} className="tw:min-h-cali-control tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:px-3 tw:font-normal" />
         </label>
         {error && <p role="alert" className="tw:mt-2 tw:text-xs tw:text-cali-danger">{error}</p>}
         <footer className="tw:mt-5 tw:flex tw:justify-end tw:gap-2">

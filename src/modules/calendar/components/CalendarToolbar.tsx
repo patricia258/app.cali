@@ -1,3 +1,5 @@
+import { Input } from '../../../components/ds/Input';
+import { Select } from '../../../components/ds/Select';
 import { ChevronLeft, ChevronRight, Filter, Search, X } from 'lucide-react';
 import { useId, useState } from 'react';
 import { calendarTypeMeta, type CalendarEventType, type CalendarView, type WorkspaceCalendarEvent } from '../../../domain/calendar';
@@ -49,8 +51,8 @@ export function CalendarToolbar(props: Props) {
       <div className="tw:ml-auto tw:inline-flex tw:min-w-0 tw:flex-[1_1_33.75rem] tw:items-center tw:justify-end tw:gap-2.5 tw:max-[56.25rem]:ml-0 tw:max-[56.25rem]:w-full tw:max-[56.25rem]:flex-wrap tw:max-[56.25rem]:justify-start tw:max-[41.25rem]:grid tw:max-[41.25rem]:grid-cols-1">
         <label className="tw:m-0! tw:flex tw:min-h-[2.4375rem] tw:min-w-50 tw:flex-[0_1_16.25rem] tw:items-center tw:gap-2 tw:rounded-md tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-2.5 tw:text-cali-muted tw:focus-within:border-cali-brand tw:max-[43.75rem]:min-w-0 tw:max-[41.25rem]:w-full">
           <Search size={16} aria-hidden="true" />
-          <input aria-label="Buscar evento ou protocolo" value={query} onChange={event => onQueryChange(event.target.value)} placeholder="Buscar evento ou protocolo"
-            className="tw:h-9! tw:min-h-0! tw:w-full tw:min-w-0 tw:flex-1 tw:border-0! tw:bg-transparent! tw:p-0! tw:text-cali-label! tw:text-cali-text! tw:shadow-none! tw:outline-none" />
+          <Input variant="bare" aria-label="Buscar evento ou protocolo" value={query} onChange={event => onQueryChange(event.target.value)} placeholder="Buscar evento ou protocolo"
+            className="tw:h-9! tw:min-h-0! tw:w-full tw:flex-1 tw:border-0! tw:bg-transparent! tw:p-0! tw:text-cali-label! tw:text-cali-text! tw:shadow-none! tw:outline-none" />
         </label>
         <div className="tw:relative tw:z-20 tw:flex-none tw:max-[43.75rem]:justify-self-start">
           <button type="button" aria-expanded={filtersOpen} aria-controls={filtersId} onClick={() => setFiltersOpen(value => !value)}
@@ -67,11 +69,11 @@ export function CalendarToolbar(props: Props) {
               </div>
               <label className="tw:grid tw:gap-1.5 tw:text-cali-label tw:font-bold tw:text-cali-muted">
                 Cliente
-                <select value={companyId} onChange={event => onCompanyChange(event.target.value)}
-                  className="tw:min-h-[2.4375rem] tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:px-2.5 tw:text-cali-text">
+                <Select variant="filter" value={companyId} onChange={event => onCompanyChange(event.target.value)}
+                  className="tw:min-h-[2.4375rem] tw:w-full">
                   <option value="all">Todos os clientes</option>
                   {companies.map(company => <option key={company.id} value={company.id}>{company.name}</option>)}
-                </select>
+                </Select>
               </label>
               <strong className="tw:mt-4 tw:mb-2 tw:block tw:text-cali-label">Tipos de evento</strong>
               <div className="tw:grid tw:grid-cols-2 tw:gap-1">

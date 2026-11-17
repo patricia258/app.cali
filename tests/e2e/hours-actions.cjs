@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const { browserSuite } = require('./browser-suite.cjs');
+const { assertSelectInsets } = require('./select-geometry.cjs');
 const { companyId, projectId, tables, user } = require('./fixtures.cjs');
 
 const host = 'https://cali-local-qa.supabase.co';
@@ -25,7 +26,8 @@ browserSuite([
   {
     id: '07-admin-manual-hours-validation-retry-and-visibility-confirmation',
     role: 'admin',
-    async run({ page, context, origin }) {
+    width: 1203,
+    async run({ page, context, origin, snapshot }) {
       const manualWrites = [];
       const visibilityWrites = [];
       const companyWrites = [];
@@ -78,29 +80,67 @@ browserSuite([
 
       await page.clock.setFixedTime(new Date('2026-11-12T16:00:00Z'));
       await page.goto(origin + '/admin/horas');
+      const companyFilter = page.getByRole('combobox', { name: 'Filtrar por cliente' });
+      const sourceFilter = page.getByRole('combobox', { name: 'Filtrar por tipo de atuação' });
+      await assertSelectInsets(companyFilter);
+      await assertSelectInsets(sourceFilter);
+      await companyFilter.selectOption(companyId);
+      assert.equal(await companyFilter.inputValue(), companyId);
+      await page.getByRole('button', { name: 'Limpar', exact: true }).click();
+      assert.equal(await companyFilter.inputValue(), 'all');
       await page.getByRole('button', { name: 'Lançamento manual', exact: true }).click();
       const dialog = page.getByRole('dialog', { name: 'Lançamento manual' });
       const save = dialog.getByRole('button', { name: 'Salvar lançamento' });
-      await dialog.getByLabel(/^Projeto/).selectOption(projectId);
-      await dialog.getByLabel(/^Entregável/).selectOption(deliverableId);
-      await dialog.getByLabel(/^Hora início/).fill('10:00');
-      await dialog.getByLabel(/^Hora fim/).fill('09:50');
-      await dialog.getByRole('textbox', { name: /Descrição do trabalho/ }).fill('  Atuação manual QA  ');
+      const date = dialog.getByLabel(/^Data/);
+      const project = dialog.getByRole('combobox', { name: /^Projeto/ });
+      const deliverable = dialog.getByRole('combobox', { name: /^Entregável/ });
+      const description = dialog.getByRole('textbox', { name: /Descrição do trabalho/ });
+      const startTime = dialog.getByLabel(/^Hora início/);
+      const endTime = dialog.getByLabel(/^Hora fim/);
+      const clientVisible = dialog.getByRole('checkbox', { name: 'Compartilhável no extrato do cliente' });
+      await assertSelectInsets(project);
+      await assertSelectInsets(deliverable);
+      const controls = await dialog.locator('input, select, textarea').evaluateAll((fields) => fields.map((field) => ({
+        name: field.labels[0]?.textContent.trim(),
+        usesDesignSystem: field.hasAttribute('data-ds-control'),
+      })));
+      assert.equal(controls.length, 11);
+      for (const control of controls) assert.ok(control.usesDesignSystem && control.name, JSON.stringify(control));
+      const dateBox = await date.boundingBox();
+      const timeBox = await startTime.boundingBox();
+      const projectBox = await project.boundingBox();
+      const textBox = await description.boundingBox();
+      assert.ok(dateBox && timeBox && projectBox && textBox);
+      assert.ok(Math.abs(dateBox.height - timeBox.height) <= 1);
+      assert.ok(Math.abs(dateBox.height - projectBox.height) <= 1);
+      assert.ok(textBox.height > dateBox.height);
+      assert.ok(Math.abs(textBox.x - dateBox.x) <= 1);
+      assert.equal(await date.inputValue(), '2026-11-12');
+      assert(await deliverable.isDisabled());
+      await project.selectOption(projectId);
+      await deliverable.selectOption(deliverableId);
+      await startTime.fill('10:00');
+      await endTime.fill('09:50');
+      await description.fill('  Atuação manual QA  ');
       const justification = dialog.getByRole('textbox', { name: /Justificativa do lançamento/ });
       await justification.fill('  Justificativa interna QA.  ');
-      await dialog.getByRole('checkbox', { name: 'Compartilhável no extrato do cliente' }).uncheck();
+      await clientVisible.uncheck();
       await dialog.getByText('Fim deve ser maior que início.').waitFor();
       await save.click();
       await page.getByRole('alert').filter({ hasText: 'Preencha cliente, projeto, entregável' }).waitFor();
       assert.equal(manualWrites.length, 0);
-      await dialog.getByLabel(/^Hora fim/).fill('10:35');
+      await endTime.fill('10:35');
       await save.click();
       await page.getByRole('alert').filter({ hasText: 'Não foi possível salvar o lançamento manual.' }).waitFor();
       assert.equal(await justification.inputValue(), '  Justificativa interna QA.  ');
+      await snapshot('formulario-manual', dialog);
       await save.click();
       await dialog.waitFor({ state: 'hidden' });
       await page.getByRole('status').filter({ hasText: 'Lançamento manual salvo: 35min.' }).waitFor();
       const entry = page.getByRole('row').filter({ hasText: tables.deliverables[0].title });
+      await sourceFilter.selectOption('timer');
+      await page.getByText('Nenhum lançamento no período').waitFor();
+      await sourceFilter.selectOption('manual');
       await entry.click();
       const detail = page.getByRole('row').filter({ hasText: 'Atuação manual QA' });
       await detail.waitFor();
@@ -144,7 +184,7 @@ browserSuite([
       assert.deepEqual(companyWrites, [{ show_hours_to_client: false }]);
       await page.reload();
       await hidden.waitFor();
-      return { manualInputRetained: true, visibilityRequiresConfirmation: true, monthlyOverridePersisted: true };
+      return { manualInputRetained: true, designSystemFields: controls.length, symmetricSelectInsets: true, visibilityRequiresConfirmation: true, monthlyOverridePersisted: true };
     },
   },
   {

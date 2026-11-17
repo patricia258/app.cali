@@ -1,3 +1,7 @@
+import { Checkbox } from '../../../components/ds/Checkbox';
+import { Input } from '../../../components/ds/Input';
+import { Select } from '../../../components/ds/Select';
+import { Textarea } from '../../../components/ds/Textarea';
 import { WorkspaceDialogOverlay } from '../../../components/workspace/components/WorkspaceDialogOverlay';
 import type { FormEvent } from 'react';
 import { format, addDays } from 'date-fns';
@@ -34,22 +38,22 @@ export function DeliverableEditorDialog({ project, fronts, deliverable, editing,
       </WorkspaceFormDialogHeader>
       <WorkspaceFormDialogBody>
         <WorkspaceFormDialogFields>
-          <WorkspaceFormDialogField><span>Título</span><input value={deliverable.title} onChange={(event) => onChange({ title: event.target.value })}/></WorkspaceFormDialogField>
+          <WorkspaceFormDialogField><span>Título</span><Input value={deliverable.title} onChange={(event) => onChange({ title: event.target.value })}/></WorkspaceFormDialogField>
           <WorkspaceFormDialogField>
             <span>Frente</span>
-            <select value={deliverable.frontId} onChange={(event) => onChange({ frontId: event.target.value })}>
+            <Select value={deliverable.frontId} onChange={(event) => onChange({ frontId: event.target.value })}>
               <option value="">Selecionar frente</option>
               {fronts.map((front) => <option key={front.id} value={front.id}>{front.name}</option>)}
-            </select>
+            </Select>
           </WorkspaceFormDialogField>
           <WorkspaceFormDialogField>
             <span>Complexidade</span>
-            <select value={deliverable.complexity} onChange={(event) => onChange({ complexity: event.target.value as MaterialComplexity })}>
+            <Select value={deliverable.complexity} onChange={(event) => onChange({ complexity: event.target.value as MaterialComplexity })}>
               {complexities.map((code) => <option key={code} value={code}>{complexityMeta[code].label}</option>)}
-            </select>
+            </Select>
           </WorkspaceFormDialogField>
           <WorkspaceFormDialogField>
-            <span>Prazo</span><input type="date" value={deliverable.dueDate} onChange={(event) => onChange({ dueDate: event.target.value })}/>
+            <span>Prazo</span><Input type="date" value={deliverable.dueDate} onChange={(event) => onChange({ dueDate: event.target.value })}/>
             <small className={`tw:mt-2 tw:flex tw:flex-wrap tw:items-center tw:gap-2.5 tw:text-sm ${outside ? 'tw:font-bold tw:text-cali-warning' : 'tw:font-medium tw:text-cali-neutral-accent'}`}>
               {outside
                 ? `Fora da faixa estimada para ${deliverable.complexity} (${formatProjectDate(first)} a ${formatProjectDate(last)}). Ajuste manual permitido.`
@@ -57,9 +61,9 @@ export function DeliverableEditorDialog({ project, fronts, deliverable, editing,
               {!deliverable.dueDate && <button type="button" className="tw:h-8 tw:cursor-pointer tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3 tw:text-sm tw:font-bold tw:text-cali-brand" onClick={() => onChange({ dueDate: last })}>Usar {formatProjectDate(last)}</button>}
             </small>
           </WorkspaceFormDialogField>
-          <WorkspaceFormDialogField wide><span>Descrição / resultado esperado</span><textarea rows={3} value={deliverable.description} onChange={(event) => onChange({ description: event.target.value })}/></WorkspaceFormDialogField>
-          <WorkspaceFormDialogCheck><input type="checkbox" checked={deliverable.clientVisible} disabled={reviewed} onChange={(event) => onChange({ clientVisible: event.target.checked })}/> {reviewed ? 'Visibilidade definida ao liberar a revisão' : 'Visível para o cliente'}</WorkspaceFormDialogCheck>
-          <WorkspaceFormDialogCheck><input type="checkbox" checked={deliverable.isDocument} onChange={(event) => onChange({ isDocument: event.target.checked })}/> Entrega documental</WorkspaceFormDialogCheck>
+          <WorkspaceFormDialogField wide><span>Descrição / resultado esperado</span><Textarea rows={3} value={deliverable.description} onChange={(event) => onChange({ description: event.target.value })}/></WorkspaceFormDialogField>
+          <WorkspaceFormDialogCheck><Checkbox checked={deliverable.clientVisible} disabled={reviewed} onChange={(event) => onChange({ clientVisible: event.target.checked })}/> {reviewed ? 'Visibilidade definida ao liberar a revisão' : 'Visível para o cliente'}</WorkspaceFormDialogCheck>
+          <WorkspaceFormDialogCheck><Checkbox checked={deliverable.isDocument} onChange={(event) => onChange({ isDocument: event.target.checked })}/> Entrega documental</WorkspaceFormDialogCheck>
         </WorkspaceFormDialogFields>
         <div className="tw:mt-5 tw:mb-5.5"><ComplexityLegend current={deliverable.complexity}/></div>
       </WorkspaceFormDialogBody>

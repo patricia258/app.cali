@@ -1,3 +1,5 @@
+import { Input } from '../../../components/ds/Input';
+import { Textarea } from '../../../components/ds/Textarea';
 import { WorkspaceDialogOverlay } from '../../../components/workspace/components/WorkspaceDialogOverlay';
 import type { FormEvent } from 'react';
 import { WorkspaceFormDialog, WorkspaceFormDialogBody, WorkspaceFormDialogField, WorkspaceFormDialogFields, WorkspaceFormDialogFooter, WorkspaceFormDialogHeader, WorkspaceFormDialogContext } from '../../../components/workspace/components/WorkspaceFormDialog';
@@ -27,17 +29,17 @@ export function CreateProjectFrontDialog({ project, front, taken, duplicate, sta
           <WorkspaceFormDialogField wide>
             <span>Nome da frente</span>
             {staff
-              ? <input value={front.name} onChange={(event) => onChange({ name: event.target.value })} placeholder="Ex.: Cultura & Clima"/>
+              ? <Input value={front.name} onChange={(event) => onChange({ name: event.target.value })} placeholder="Ex.: Cultura & Clima"/>
               : <><FrontCatalogField name={front.name} taken={taken} onChange={(name) => onChange({ name })}/>
                 <small className="tw:mt-1.5 tw:block tw:text-xs tw:leading-[1.4] tw:font-medium tw:text-cali-muted">Frentes já usadas neste projeto ficam indisponíveis para evitar duplicidade.</small>
               </>}
           </WorkspaceFormDialogField>
           <WorkspaceFormDialogField wide>
-            <span>Objetivo / contexto</span><textarea rows={3} value={front.objective} onChange={(event) => onChange({ objective: event.target.value })}/>
+            <span>Objetivo / contexto</span><Textarea rows={3} value={front.objective} onChange={(event) => onChange({ objective: event.target.value })}/>
           </WorkspaceFormDialogField>
           {staff && <>
-            <WorkspaceFormDialogField><span>Mês inicial</span><input type="number" min={1} value={front.monthStart} onChange={(event) => onChange({ monthStart: Number(event.target.value) })}/></WorkspaceFormDialogField>
-            <WorkspaceFormDialogField><span>Mês final</span><input type="number" min={front.monthStart} value={front.monthEnd} onChange={(event) => onChange({ monthEnd: Number(event.target.value) })}/></WorkspaceFormDialogField>
+            <WorkspaceFormDialogField><span>Mês inicial</span><Input type="number" min={1} value={front.monthStart} onChange={(event) => onChange({ monthStart: Number(event.target.value) })}/></WorkspaceFormDialogField>
+            <WorkspaceFormDialogField><span>Mês final</span><Input type="number" min={front.monthStart} value={front.monthEnd} onChange={(event) => onChange({ monthEnd: Number(event.target.value) })}/></WorkspaceFormDialogField>
           </>}
         </WorkspaceFormDialogFields>
       </WorkspaceFormDialogBody>

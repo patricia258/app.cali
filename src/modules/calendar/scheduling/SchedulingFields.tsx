@@ -1,11 +1,6 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
-
-function SlotInput(props: ComponentPropsWithoutRef<'input'>) {
-  return <input {...props} className="
-    tw:box-border tw:min-w-0 tw:w-full tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-input
-    tw:px-3.5 tw:py-3 tw:text-cali-text
-  " />;
-}
+import { Input } from '../../../components/ds/Input';
+import { Textarea } from '../../../components/ds/Textarea';
+import type { ReactNode } from 'react';
 
 export function SchedulingFields({ children }: { children: ReactNode }) {
   return (
@@ -27,8 +22,8 @@ export function SlotFields({ position, minDate, required, visit }: {
         Opção {position}{position === 2 && (required ? ' (obrigatória)' : ' (opcional)')}
       </legend>
       <div className="tw:grid tw:grid-cols-[1fr_.7fr] tw:gap-3">
-        <SlotInput type="date" name={`date${position}`} min={minDate} required={required} aria-label={`Data da opção ${position}`} />
-        <SlotInput type="time" name={`time${position}`} min={visit ? '09:00' : undefined} max={visit ? '12:00' : undefined} required={required} aria-label={`Hora da opção ${position}`} />
+        <Input className="tw:w-full" type="date" name={`date${position}`} min={minDate} required={required} aria-label={`Data da opção ${position}`} />
+        <Input className="tw:w-full" type="time" name={`time${position}`} min={visit ? '09:00' : undefined} max={visit ? '12:00' : undefined} required={required} aria-label={`Hora da opção ${position}`} />
       </div>
     </fieldset>
   );
@@ -44,16 +39,13 @@ export function SchedulingNoteField({ label, placeholder, initialValue, minLengt
   return (
     <label className="tw:col-span-full tw:flex tw:flex-col tw:gap-2">
       <span className="tw:text-cali-label tw:font-black tw:tracking-[.06em] tw:text-cali-muted tw:uppercase">{label}</span>
-      <textarea
+      <Textarea
         name="note"
         defaultValue={initialValue}
         required={required}
         minLength={minLength}
         placeholder={placeholder}
-        className="
-          tw:min-h-25 tw:w-full tw:resize-y tw:rounded-xl tw:border tw:border-solid tw:border-cali-line
-          tw:bg-cali-input tw:px-3.5 tw:py-3 tw:text-cali-text
-        "
+        className="tw:min-h-25! tw:w-full"
       />
     </label>
   );

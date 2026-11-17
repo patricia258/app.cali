@@ -1,3 +1,4 @@
+import { Checkbox } from '../components/ds/Checkbox';
 import { Button } from '../components/ds/Button';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { FileCheck2 } from 'lucide-react';
@@ -111,7 +112,7 @@ function ActorTermsGate({ id, role, children }: {
         <p className="tw:m-0 tw:text-base tw:leading-[1.55] tw:text-cali-muted">Antes de continuar, leia como o CALI Workspace funciona e como tratamos os seus dados.</p>
         <div className="tw:max-h-[46vh] tw:overflow-y-auto tw:rounded-xl tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-sand-surface tw:px-5 tw:py-4.5 tw:text-base tw:leading-[1.55] tw:text-cali-neutral-text tw:[scrollbar-width:none] tw:[&_h2]:mt-3.5 tw:[&_h2]:mb-1 tw:[&_h2]:text-base tw:[&_h2]:text-cali-text tw:[&_h2:first-child]:mt-0 tw:[&_p]:mt-0 tw:[&_p]:mb-2.5" tabIndex={0}><LegalDocument source={termsOfUse()} idPrefix="gate-terms" embedded /><LegalDocument source={privacyPolicy()} idPrefix="gate-privacy" embedded /></div>
         <p className="tw:m-0 tw:text-cali-body tw:text-cali-muted tw:[&_a]:font-semibold tw:[&_a]:text-cali-brand">Também disponíveis em <a href="/termos" target="_blank" rel="noopener">Termos de Uso</a> e <a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a>.</p>
-        <label className="tw:flex tw:cursor-pointer tw:items-start tw:gap-3 tw:text-base tw:text-cali-text"><input className="tw:mt-0.5 tw:accent-cali-accent" type="checkbox" disabled={busy} checked={agreed} onChange={(event) => setAgreed(event.target.checked)} /><span>Li e aceito os termos de uso e a política de privacidade.</span></label>
+        <label className="tw:flex tw:cursor-pointer tw:items-start tw:gap-3 tw:text-base tw:text-cali-text"><Checkbox className="tw:mt-0.5 tw:accent-cali-accent" disabled={busy} checked={agreed} onChange={(event) => setAgreed(event.target.checked)} /><span>Li e aceito os termos de uso e a política de privacidade.</span></label>
         <Button type="button" variant="gatePrimary" disabled={busy || !agreed} onClick={() => void accept()}>{busy ? 'Registrando…' : 'Continuar'}</Button>
       </>}
       <Button type="button" variant="gateExit" onClick={() => void leave()}>Sair</Button>

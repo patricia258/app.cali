@@ -1,3 +1,5 @@
+import { Select } from '../../../components/ds/Select';
+import { Textarea } from '../../../components/ds/Textarea';
 import { CompactPageHeading } from '../../../components/workspace/components/CompactPageHeading';
 import { WorkflowDialogOverlay, WorkflowDialog } from '../../../components/ds/WorkflowDialog';
 import { DeliveryDetailDialog } from '../../../components/projects/DeliveryDetailDialog';
@@ -335,11 +337,11 @@ export function ClientDeliverablesPage() {
         {reality && project && <div className="tw:mt-5 tw:mb-4.5 tw:flex tw:min-w-0 tw:flex-wrap tw:items-center tw:justify-between tw:gap-3.5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-4.5 tw:py-3 tw:text-sm tw:text-cali-muted">
           <label className="tw:inline-flex tw:min-w-0 tw:max-w-full tw:items-center tw:gap-2.5 tw:text-cali-text">
             <strong className="tw:shrink-0">Projeto · </strong>
-            <select aria-label="Projeto" value={project.id}
-              className="tw:min-w-0 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-cali-ink"
+            <Select variant="embedded" aria-label="Projeto" value={project.id}
+              className="tw:min-w-0 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:py-2 tw:text-sm tw:font-semibold tw:text-cali-ink"
               onChange={(event) => { setProjectId(event.target.value); closeDeliverable(); }}>
               {reality.projects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-            </select>
+            </Select>
           </label>
           <span className="tw:text-xs tw:text-cali-sand-text">{project.protocol || reality.company.displayName}</span>
         </div>}
@@ -517,7 +519,7 @@ export function ClientDeliverablesPage() {
           <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-xs/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-cali-muted">SOLICITAR AJUSTE</span>
           <h2 id="client-deliverable-adjustment-title">O que precisa ser revisto?</h2>
           <p>Descreva o ponto que precisa mudar. O pedido fica vinculado a <strong>{selected.protocol || selected.title}</strong>.</p>
-          <textarea className="tw:box-border tw:w-full tw:resize-y tw:rounded-xl tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-input tw:px-4 tw:py-3 tw:font-[inherit]" aria-label="Descreva o ajuste" value={adjustmentText} onChange={(event) => setAdjustmentText(event.target.value)} placeholder="Ex.: precisamos separar este indicador por unidade antes da validação final." rows={5} maxLength={2000} autoFocus />
+          <Textarea variant="embedded" className="tw:box-border tw:w-full tw:resize-y tw:rounded-xl tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-input tw:px-4 tw:py-3 tw:font-[inherit]" aria-label="Descreva o ajuste" value={adjustmentText} onChange={(event) => setAdjustmentText(event.target.value)} placeholder="Ex.: precisamos separar este indicador por unidade antes da validação final." rows={5} maxLength={2000} autoFocus />
           {reviewErrorNotice}
           <div className="tw:mt-5.5 tw:flex tw:flex-wrap tw:justify-end tw:gap-3">
             <Button type="button" variant="secondary" onClick={() => setAdjustmentOpen(false)}>Cancelar</Button>
@@ -538,7 +540,7 @@ export function ClientDeliverablesPage() {
           {reaction && <div className="tw:my-5 tw:flex tw:gap-3.5 tw:text-cali-body/[1.5]"><span className="tw:text-4xl" aria-hidden="true">{reaction.emoji}</span><div><strong>{reaction.title}</strong><p>{reaction.copy}</p></div></div>}
           {score > 0 && <FieldLabel>
             {npsCommentRequired ? 'O que podemos melhorar?' : 'Quer contar mais alguma coisa?'}
-            <textarea value={npsComment} onChange={(event) => setNpsComment(event.target.value)} rows={4} maxLength={2000} placeholder={npsCommentRequired ? 'Sua justificativa ajuda a CALI a entender exatamente o que precisa melhorar.' : 'Opcional — deixe um comentário se quiser.'} />
+            <Textarea variant="embedded" value={npsComment} onChange={(event) => setNpsComment(event.target.value)} rows={4} maxLength={2000} placeholder={npsCommentRequired ? 'Sua justificativa ajuda a CALI a entender exatamente o que precisa melhorar.' : 'Opcional — deixe um comentário se quiser.'} />
           </FieldLabel>}
           {reviewErrorNotice}
           <Button type="button" variant="primary" className="tw:mt-6 tw:w-full" disabled={saving || reviewError?.stale || !feedbackValid} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</Button>

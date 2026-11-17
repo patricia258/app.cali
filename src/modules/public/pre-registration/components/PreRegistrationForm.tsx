@@ -1,3 +1,4 @@
+import { Input } from '../../../../components/ds/Input';
 import type { ComponentProps } from 'react';
 import type { PreRegistrationFields } from '../../../../api/public/pre-registration';
 import { usePreRegistrationForm } from '../hooks/usePreRegistrationForm';
@@ -10,7 +11,7 @@ export function PreRegistrationForm({ token }: { token: string }) {
 
   function field(name: keyof PreRegistrationFields, label: string, props: ComponentProps<'input'> = {}) {
     return <form.Field name={name}>
-      {(input) => <label className="tw:grid tw:gap-2">{label}<input {...props} name={input.name} required
+      {(input) => <label className="tw:grid tw:gap-2">{label}<Input variant="embedded" {...props} name={input.name} required
         className={`tw:w-full tw:min-h-10.5 tw:rounded-lg tw:border tw:border-solid tw:border-cali-sand-accent tw:bg-cali-neutral-surface tw:px-3 tw:py-2 tw:[font:inherit] tw:text-inherit ${focus}`}
         value={input.state.value} onBlur={input.handleBlur}
         onChange={(event) => input.handleChange(event.target.value)} /></label>}

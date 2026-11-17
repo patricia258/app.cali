@@ -1,3 +1,4 @@
+import { Input } from '../../../components/ds/Input';
 /* Aba "Arquivos" do entregável: a pasta. Reúne o que foi anexado na conversa do entregável e na conversa de cada subtarefa.
    Cada arquivo abre com a sessão do Workspace. Serve à administradora e à Equipe CALI. */
 import { Button } from '../../../components/ds/Button';
@@ -275,8 +276,8 @@ export function DeliverableFiles({
                     <span className="tw:flex tw:gap-2.5 tw:max-[45rem]:flex-wrap tw:[&_button]:h-10! tw:[&_button]:cursor-pointer tw:[&_button]:rounded-cali-compact-control! tw:[&_button]:border! tw:[&_button]:border-solid tw:[&_button]:border-cali-input-line tw:[&_button]:bg-cali-neutral-surface tw:[&_button]:px-3.5! tw:[&_button]:py-0! tw:[&_button]:text-sm! tw:[&_button]:font-bold! tw:[&_button]:whitespace-nowrap tw:[&_button]:text-cali-brand tw:[&_button.primary]:border-cali-brand! tw:[&_button.primary]:bg-cali-brand! tw:[&_button.primary]:text-cali-neutral-surface! tw:[&_button.danger]:border-cali-danger tw:[&_button.danger]:bg-cali-danger tw:[&_button.danger]:text-cali-neutral-surface tw:[&_button:disabled]:cursor-default tw:[&_button:disabled]:opacity-50 tw:[&_em]:self-center tw:[&_em]:text-sm tw:[&_em]:font-bold tw:[&_em]:text-cali-red-text tw:[&_em]:not-italic">
                       {final && renaming?.id === final.id ? (
                         <>
-                          <input
-                            className="tw:box-border tw:h-10 tw:min-w-[16.923rem] tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3 tw:text-cali-body tw:max-[45rem]:min-w-0 tw:max-[45rem]:w-full"
+                          <Input
+                            className="tw:min-w-68 tw:max-[45rem]:min-w-0 tw:max-[45rem]:w-full"
                             value={renaming.title}
                             maxLength={200}
                             disabled={savingName}

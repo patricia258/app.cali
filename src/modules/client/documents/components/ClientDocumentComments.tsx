@@ -1,3 +1,4 @@
+import { Textarea } from '../../../../components/ds/Textarea';
 import { Send, X } from 'lucide-react';
 import { Button } from '../../../../components/ds/Button';
 import { DialogFrame } from '../../../../components/ds/DialogFrame';
@@ -34,7 +35,7 @@ export function ClientDocumentComments({ title, protocol, comments, draft, loadi
           ))}
         </div>
         <div className="tw:border-0 tw:border-t tw:border-solid tw:border-cali-neutral-soft tw:px-7.5 tw:pt-5.5 tw:pb-6">
-          <textarea className="tw:h-21 tw:w-full tw:resize-y tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-input-line tw:px-3 tw:py-2 tw:text-cali-body/[inherit]" rows={3} value={draft} onChange={(event) => onDraft(event.target.value)} placeholder="Escreva um comentário sobre este documento…" aria-label="Comentário" />
+          <Textarea variant="embedded" className="tw:h-21 tw:w-full tw:resize-y tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-input-line tw:px-3 tw:py-2 tw:text-cali-body/[inherit]" rows={3} value={draft} onChange={(event) => onDraft(event.target.value)} placeholder="Escreva um comentário sobre este documento…" aria-label="Comentário" />
           <div className="tw:mt-2.5 tw:flex tw:items-center tw:justify-between">
             <Button type="button" variant="workflowPrimary" disabled={sending || !draft.trim()} onClick={onSend}><Send size={16} />Enviar comentário</Button>
           </div>

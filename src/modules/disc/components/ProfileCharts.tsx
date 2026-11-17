@@ -1,3 +1,4 @@
+import { Select } from '../../../components/ds/Select';
 /* Perfil Comportamental CALI — gráficos em SVG (servem na tela, na impressão e na captura do PDF). */
 import { BANDS, bandOf, bandText, rangeOf, STYLES, type Band, type Style } from '../profileMethod';
 import { STYLE_CONTENT } from '../profileContent';
@@ -71,7 +72,7 @@ export function RoleMatrix({ values, margin, role, editable, onChange }: { value
       const reading = !asked ? '—' : gap === 0 ? 'Alinhado' : Math.abs(gap) === 1 ? (gap > 0 ? 'Um pouco acima' : 'Um pouco abaixo') : gap > 0 ? 'Bem acima: atenção a excesso' : 'Bem abaixo: exige apoio';
       return <tr key={style} className={Math.abs(gap) >= 2 ? 'gap' : ''}>
         <td className="cpr-style-cell" style={{ color: STYLE_CONTENT[style].ink }}><b>{style}</b> {STYLE_CONTENT[style].name}</td>
-        <td>{editable ? <select value={asked} onChange={(event) => onChange?.({ ...role, [style]: event.target.value as Band | '' })}><option value="">Não definido</option>{ORDER.map((band) => <option key={band}>{band}</option>)}</select> : asked || 'Não definido'}</td>
+        <td>{editable ? <Select variant="embedded" value={asked} onChange={(event) => onChange?.({ ...role, [style]: event.target.value as Band | '' })}><option value="">Não definido</option>{ORDER.map((band) => <option key={band}>{band}</option>)}</Select> : asked || 'Não definido'}</td>
         <td>{gives} <small>({rangeOf(values[style], margin).lo}–{rangeOf(values[style], margin).hi})</small></td>
         <td>{reading}</td>
       </tr>;

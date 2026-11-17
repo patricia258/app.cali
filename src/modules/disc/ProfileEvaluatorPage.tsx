@@ -1,3 +1,4 @@
+import { Select } from '../../components/ds/Select';
 /* Relatório individual e recuperação de PDF disponíveis à CALI. */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from '../../components/navigation/Link';
@@ -102,7 +103,7 @@ function DiscEvaluator({ id, back, admin }: { id: string; back: string; admin: b
       </>}
     </header>
     {admin && <div className={`${discReport.toolbar} tw:flex tw:flex-wrap tw:items-center tw:gap-2.5`}>
-      {row.company_id ? <label className="tw:inline-flex tw:items-center tw:gap-2">Ficha do colaborador <select className="tw:max-w-70 tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-2 tw:py-2 tw:font-[Inter,sans-serif] tw:text-cali-detail tw:leading-[normal] tw:font-medium" disabled={saving} value={row.team_member_id || ''} onChange={(event) => void update({ team_member_id: event.target.value || null }, event.target.value ? 'Vinculado à ficha do colaborador.' : 'Vínculo com a ficha removido.')}><option value="">Não vinculado</option>{members.map((member) => <option key={member.id} value={member.id}>{member.full_name}{member.work_email ? ` · ${member.work_email}` : ''}</option>)}</select></label> : <span className={`${discReport.note} tw:basis-full`}>Link livre: sem empresa vinculada, não aparece em ficha de colaborador.</span>}
+      {row.company_id ? <label className="tw:inline-flex tw:items-center tw:gap-2">Ficha do colaborador <Select variant="embedded" className="tw:max-w-70 tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:py-2 tw:font-[Inter,sans-serif] tw:text-cali-detail tw:leading-[normal] tw:font-medium" disabled={saving} value={row.team_member_id || ''} onChange={(event) => void update({ team_member_id: event.target.value || null }, event.target.value ? 'Vinculado à ficha do colaborador.' : 'Vínculo com a ficha removido.')}><option value="">Não vinculado</option>{members.map((member) => <option key={member.id} value={member.id}>{member.full_name}{member.work_email ? ` · ${member.work_email}` : ''}</option>)}</Select></label> : <span className={`${discReport.note} tw:basis-full`}>Link livre: sem empresa vinculada, não aparece em ficha de colaborador.</span>}
       <span className={`${discReport.note} tw:basis-full`}>A matriz de papel (página 5) pode ser preenchida aqui mesmo: escolha o que a função pede em cada estilo. {row.email}</span>
       <button type="button" className={discReport.secondary} disabled={respondentBusy} onClick={() => void downloadRespondent()}><Download size={15} /> {respondentBusy ? 'Preparando…' : 'PDF do respondente'}</button>
     </div>}

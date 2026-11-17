@@ -98,7 +98,7 @@
     }
 
     :is(input, select, textarea) {
-      background: var(--theme-input) !important;
+      background-color: var(--theme-input) !important;
       border-color: var(--theme-input-border) !important;
       color: var(--theme-text) !important;
       caret-color: var(--theme-accent);

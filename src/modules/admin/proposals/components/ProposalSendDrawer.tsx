@@ -1,3 +1,4 @@
+import { Textarea } from '../../../../components/ds/Textarea';
 import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { DialogFrame } from '../../../../components/ds/DialogFrame';
@@ -26,7 +27,7 @@ type ProposalSendDrawerProps = {
 const sectionStyle = 'tw:mb-3 tw:rounded-xl tw:border tw:border-solid tw:border-[var(--line)] tw:p-4.5';
 const headingStyle = 'tw:mt-0 tw:mb-2.5 tw:text-[var(--v2-text,var(--graphite))]';
 const copyStyle = 'tw:text-cali-small/[1.55]!';
-const fieldStyle = 'tw:mt-1.5 tw:block tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-[var(--line)] tw:bg-cali-input tw:p-2.5 tw:text-inherit';
+const pdfPickerStyle = 'tw:mt-1.5 tw:block tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-[var(--line)] tw:bg-cali-input tw:p-2.5 tw:text-inherit';
 
 export function ProposalSendDrawer({
   service, protocol, recipient, email, fileName, archivedVersion, sendingAgain, sending,
@@ -81,12 +82,12 @@ export function ProposalSendDrawer({
             {!archivedVersion && (
               <label className="tw:my-3 tw:block tw:text-cali-small tw:font-bold">
                 Proposta final em PDF
-                <input className={fieldStyle} type="file" accept="application/pdf,.pdf" onChange={(event) => onFile(event.target.files?.[0] ?? null)} />
+                <input className={pdfPickerStyle} type="file" accept="application/pdf,.pdf" onChange={(event) => onFile(event.target.files?.[0] ?? null)} />
               </label>
             )}
             <label className="tw:my-3 tw:block tw:text-cali-small tw:font-bold">
               Mensagem pessoal adicional
-              <textarea className={fieldStyle} rows={5} value={note} onChange={(event) => onNote(event.target.value)} />
+              <Textarea variant="compact" className="tw:mt-1.5 tw:block tw:w-full" rows={5} value={note} onChange={(event) => onNote(event.target.value)} />
             </label>
             {sentMessage && <InlineNotice>{sentMessage}</InlineNotice>}
             {error && <InlineNotice tone="danger">{error}</InlineNotice>}

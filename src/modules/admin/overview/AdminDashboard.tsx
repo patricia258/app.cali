@@ -1,3 +1,4 @@
+import { Select } from '../../../components/ds/Select';
 import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
 import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
 import { WorkspaceMetricGrid } from '../../../components/workspace/components/WorkspaceMetricGrid';
@@ -266,9 +267,9 @@ export function AdminDashboard() {
             <Link className="tw:inline-flex tw:items-center tw:gap-2.5 tw:rounded-lg tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-4 tw:py-3 tw:font-semibold tw:whitespace-nowrap tw:text-cali-neutral-surface" to="/admin/clientes"><Plus size={15} /> Cadastrar cliente</Link>
           </WorkspacePageHeader>
 
-          <div className="tw:mb-5 tw:flex tw:flex-wrap tw:items-center tw:gap-3 tw:[&_label]:flex tw:[&_label]:items-center tw:[&_label]:gap-2 tw:[&_label]:rounded-lg tw:[&_label]:border tw:[&_label]:border-solid tw:[&_label]:border-cali-line tw:[&_label]:bg-cali-neutral-surface tw:[&_label]:px-3 tw:[&_select]:max-w-[14.62rem] tw:[&_select]:border-0 tw:[&_select]:bg-transparent tw:[&_select]:px-1.5 tw:[&_select]:py-3 tw:[&_select]:text-sm/[inherit] tw:[&_select]:text-cali-muted">
-            <label><Building2 size={14} /><select aria-label="Conta" value={account} onChange={(event) => selectFilter("company", event.target.value === "all" ? "" : event.target.value)}><option value="all">Todas as contas</option>{loaded.companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-            <label><CalendarDays size={14} /><select aria-label="Mês das horas" value={monthOptions[monthOffset].key} onChange={(event) => selectFilter("month", event.target.value)}>{monthOptions.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label>
+          <div className="tw:mb-5 tw:flex tw:flex-wrap tw:items-center tw:gap-3 tw:[&_label]:flex tw:[&_label]:items-center tw:[&_label]:gap-2 tw:[&_label]:rounded-lg tw:[&_label]:border tw:[&_label]:border-solid tw:[&_label]:border-cali-line tw:[&_label]:bg-cali-neutral-surface tw:[&_label]:px-3 tw:[&_select]:max-w-[14.62rem] tw:[&_select]:border-0 tw:[&_select]:bg-transparent tw:[&_select]:py-3 tw:[&_select]:text-sm/[inherit] tw:[&_select]:text-cali-muted">
+            <label><Building2 size={14} /><Select variant="bare" aria-label="Conta" value={account} onChange={(event) => selectFilter("company", event.target.value === "all" ? "" : event.target.value)}><option value="all">Todas as contas</option>{loaded.companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></label>
+            <label><CalendarDays size={14} /><Select variant="bare" aria-label="Mês das horas" value={monthOptions[monthOffset].key} onChange={(event) => selectFilter("month", event.target.value)}>{monthOptions.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</Select></label>
             <span className="tw:ml-auto tw:text-xs/[inherit] tw:text-cali-sand-accent tw:max-[40rem]:ml-0">O mês muda as horas; agenda e prazos mostram sempre o que vem pela frente.</span>
           </div>
           {failedSources.length > 0 && <InlineNotice tone="danger">

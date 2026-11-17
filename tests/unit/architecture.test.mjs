@@ -32,6 +32,31 @@ test('o texto de tamanho fixo usa a escala nas páginas, módulos e componentes'
   assert.deepEqual(violations, []);
 });
 
+test('controles comuns de formulário usam as primitivas do design system', () => {
+  const specializedTypes = new Set(['color', 'file', 'hidden', 'radio', 'range']);
+  const violations = [];
+  for (const file of sourceFiles(src).filter((path) => path.endsWith('.tsx') && !path.startsWith(join(src, 'components/ds') + '/'))) {
+    const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    function visit(node) {
+      if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+        const tag = node.tagName.getText(source);
+        if (tag === 'select' || tag === 'textarea') {
+          violations.push(file.slice(src.length) + ': ' + tag);
+        }
+        if (tag === 'input') {
+          const type = node.attributes.properties.find((attr) => ts.isJsxAttribute(attr) && attr.name.getText(source) === 'type')?.initializer;
+          if (!type || !ts.isStringLiteral(type) || !specializedTypes.has(type.text)) {
+            violations.push(file.slice(src.length) + ': input');
+          }
+        }
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(source);
+  }
+  assert.deepEqual(violations, []);
+});
+
 test('application navigation and cross-role flows retain their documented owners', () => {
   assert.equal(existsSync(join(src, 'app/navigation')), false);
   assert.equal(existsSync(join(src, 'modules/shared')), false);

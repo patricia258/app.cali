@@ -1,3 +1,4 @@
+import { Textarea } from '../../../components/ds/Textarea';
 import './calendar-dialog-motion.css';
 import { useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
@@ -82,7 +83,7 @@ export function AgendaChangeInbox() {
                 <label className={optionClass}><input type="radio" name="decision" checked={!approve} onChange={() => setApprove(false)} />Recusar pedido</label>
               </div>
               <label className="tw:grid tw:gap-1.5">Resposta ao cliente
-                <textarea className="tw:box-border tw:min-h-22.5 tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:p-2.5 tw:text-cali-text" minLength={5} required value={note}
+                <Textarea className="tw:min-h-22.5! tw:w-full tw:p-2.5!" minLength={5} required value={note}
                   onChange={event => setNote(event.target.value)} placeholder="Explique sua decisão e eventual condição de cobrança." />
               </label>
               {error && <p role="alert">{error}</p>}

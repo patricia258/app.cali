@@ -1,3 +1,6 @@
+import { Checkbox } from '../../../components/ds/Checkbox';
+import { Input } from '../../../components/ds/Input';
+import { Textarea } from '../../../components/ds/Textarea';
 import { WorkflowPage } from '../../../components/ds/WorkflowPage';
 import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
 import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
@@ -241,15 +244,15 @@ export function ProfileCampaignPage() {
           <h2><CalendarClock size={16} /> Prazo e ponto focal</h2>
           <p className="cpc-muted tw:m-0 tw:text-cali-body tw:leading-normal tw:text-cali-muted">{nextDeadline ? <>Convites em aberto fecham <b>{dateTime(nextDeadline)}</b>.</> : 'O prazo começa a contar quando os convites são enviados.'}</p>
           <div className="cpc-fields tw:grid tw:grid-cols-[11.54rem_1fr_1fr] tw:gap-3 tw:max-[640px]:grid-cols-1">
-            <label>Prazo padrão (dias)<input type="number" min={1} max={60} value={settings.deadline_days} onChange={(event) => setSettings({ ...settings, deadline_days: Number(event.target.value) })} /></label>
-            <label>Ponto focal da empresa<input value={settings.focal_name} placeholder="Nome" maxLength={120} onChange={(event) => setSettings({ ...settings, focal_name: event.target.value })} /></label>
-            <label>E-mail do ponto focal<input type="email" value={settings.focal_email} placeholder="nome@empresa.com" onChange={(event) => setSettings({ ...settings, focal_email: event.target.value })} /></label>
+            <label>Prazo padrão (dias)<Input variant="embedded" type="number" min={1} max={60} value={settings.deadline_days} onChange={(event) => setSettings({ ...settings, deadline_days: Number(event.target.value) })} /></label>
+            <label>Ponto focal da empresa<Input variant="embedded" value={settings.focal_name} placeholder="Nome" maxLength={120} onChange={(event) => setSettings({ ...settings, focal_name: event.target.value })} /></label>
+            <label>E-mail do ponto focal<Input variant="embedded" type="email" value={settings.focal_email} placeholder="nome@empresa.com" onChange={(event) => setSettings({ ...settings, focal_email: event.target.value })} /></label>
           </div>
           <div className="cpc-row tw:flex tw:flex-wrap tw:items-center tw:justify-end tw:gap-2.5"><Button type="button" variant="formSecondary" disabled={busy === 'settings'} onClick={() => void saveSettings()}>{busy === 'settings' ? 'Salvando…' : 'Salvar'}</Button>
             {metrics.sent > 0 && !extend.open && <Button type="button" variant="formSecondary" onClick={() => setExtend({ ...extend, open: true })}>Prorrogar prazo</Button>}</div>
           {extend.open && <div className="cpc-extend tw:flex tw:flex-col tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface-soft tw:p-4.5">
-            <label>Nova data final<input type="date" value={extend.date} min={new Date().toISOString().slice(0, 10)} onChange={(event) => setExtend({ ...extend, date: event.target.value })} /></label>
-            <label>Motivo (fica registrado)<input value={extend.reason} maxLength={240} placeholder="Ex.: pedido da diretoria por causa do fechamento do mês" onChange={(event) => setExtend({ ...extend, reason: event.target.value })} /></label>
+            <label>Nova data final<Input variant="embedded" type="date" value={extend.date} min={new Date().toISOString().slice(0, 10)} onChange={(event) => setExtend({ ...extend, date: event.target.value })} /></label>
+            <label>Motivo (fica registrado)<Input variant="embedded" value={extend.reason} maxLength={240} placeholder="Ex.: pedido da diretoria por causa do fechamento do mês" onChange={(event) => setExtend({ ...extend, reason: event.target.value })} /></label>
             <div className="cpc-row tw:flex tw:flex-wrap tw:items-center tw:justify-end tw:gap-2.5"><Button type="button" variant="formSecondary" onClick={() => setExtend({ open: false, date: '', reason: '' })}>Cancelar</Button><Button type="button" variant="workflowPrimary" disabled={busy === 'extend'} onClick={() => void saveExtension()}>{busy === 'extend' ? 'Salvando…' : 'Prorrogar'}</Button></div>
           </div>}
           {!!link.deadline_log?.length && <ul className="cpc-log tw:m-0 tw:pl-5.5 tw:text-cali-body tw:leading-[1.6] tw:text-cali-muted">{link.deadline_log.map((item) => <li key={item.at}><b>{dateOnly(item.at)}</b> · prorrogado até {dateOnly(item.to)} ({item.invites} {item.invites === 1 ? 'convite' : 'convites'}): {item.reason}</li>)}</ul>}
@@ -267,7 +270,7 @@ export function ProfileCampaignPage() {
           tw:[&_:is(input:not([type=checkbox]),textarea)]:font-normal tw:[&_textarea]:resize-y tw:[&_textarea]:leading-normal">
           <h2><UserPlus size={16} /> Adicionar pessoas</h2>
           <label className="cpc-paste tw:[&_span]:font-medium tw:[&_span]:text-cali-muted tw:[&_b]:font-bold tw:[&_b]:text-cali-text"><span>Uma pessoa por linha, no formato <b>Nome; e-mail</b>. Pode colar direto do Excel.</span>
-            <textarea rows={4} value={pasted} placeholder={'Maria Souza; maria@empresa.com\nJoão Lima; joao@empresa.com'} onChange={(event) => setPasted(event.target.value)} /></label>
+            <Textarea variant="embedded" rows={4} value={pasted} placeholder={'Maria Souza; maria@empresa.com\nJoão Lima; joao@empresa.com'} onChange={(event) => setPasted(event.target.value)} /></label>
           <div className="cpc-row tw:flex tw:flex-wrap tw:items-center tw:justify-end tw:gap-2.5"><Button type="button" variant="formSecondary" disabled={!pasted.trim() || busy === 'add'} onClick={() => void addPasted()}>Adicionar à fila</Button></div>
           {!!available.length && <div className="cpc-team tw:flex tw:flex-col tw:gap-2.5 tw:border-t tw:border-solid tw:border-cali-line tw:pt-3.5">
             <p className="cpc-muted tw:m-0 tw:text-cali-body tw:leading-normal tw:text-cali-muted">Equipe cadastrada de {company} ({available.length} sem convite)</p>
@@ -275,7 +278,7 @@ export function ProfileCampaignPage() {
               tw:[&_label]:cursor-pointer tw:[&_label]:flex-row! tw:[&_label]:items-center tw:[&_label]:gap-3!
               tw:[&_label]:rounded-cali-compact-control tw:[&_label]:px-2.5 tw:[&_label]:py-2 tw:[&_label]:font-medium!
               tw:[&_label:hover]:bg-cali-surface-soft tw:[&_input]:size-5 tw:[&_input]:accent-cali-brand tw:[&_span]:flex
-              tw:[&_span]:flex-col tw:[&_span]:text-base tw:[&_small]:text-sm tw:[&_small]:text-cali-muted">{available.map((member) => <label key={member.id}><input type="checkbox" checked={picked.includes(member.id)} onChange={(event) => setPicked((current) => event.target.checked ? [...current, member.id] : current.filter((id) => id !== member.id))} /><span>{member.full_name}<small>{member.work_email}</small></span></label>)}</div>
+              tw:[&_span]:flex-col tw:[&_span]:text-base tw:[&_small]:text-sm tw:[&_small]:text-cali-muted">{available.map((member) => <label key={member.id}><Checkbox checked={picked.includes(member.id)} onChange={(event) => setPicked((current) => event.target.checked ? [...current, member.id] : current.filter((id) => id !== member.id))} /><span>{member.full_name}<small>{member.work_email}</small></span></label>)}</div>
             <div className="cpc-row tw:flex tw:flex-wrap tw:items-center tw:justify-end tw:gap-2.5"><button type="button" className="cpc-link tw:mr-auto tw:cursor-pointer tw:border-0 tw:bg-transparent tw:p-0 tw:text-cali-body tw:font-semibold tw:text-cali-brand" onClick={() => setPicked(picked.length === available.length ? [] : available.map((member) => member.id))}>{picked.length === available.length ? 'Desmarcar todos' : 'Marcar todos'}</button><Button type="button" variant="formSecondary" disabled={!picked.length || busy === 'add'} onClick={() => void addPicked()}>Adicionar selecionados ({picked.length})</Button></div>
           </div>}
         </section>

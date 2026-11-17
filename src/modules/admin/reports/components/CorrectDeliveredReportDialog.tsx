@@ -1,3 +1,5 @@
+import { Checkbox } from '../../../../components/ds/Checkbox';
+import { Textarea } from '../../../../components/ds/Textarea';
 import { useState } from 'react';
 import { Button } from '../../../../components/ds/Button';
 import { CompactDialog, CompactDialogOverlay, CompactDialogActions } from '../../../../components/ds/CompactDialog';
@@ -42,7 +44,7 @@ export function CorrectDeliveredReportDialog({ report, onClose, onCorrected }: {
         {(validation || error) && <InlineNotice>{validation || error?.message}</InlineNotice>}
         <label className="tw:grid tw:gap-2 tw:font-bold">
           Motivo
-          <textarea
+          <Textarea
             rows={3}
             maxLength={500}
             value={reason}
@@ -52,7 +54,7 @@ export function CorrectDeliveredReportDialog({ report, onClose, onCorrected }: {
           />
         </label>
         <label className="tw:mt-3 tw:flex tw:items-center tw:gap-2">
-          <input type="checkbox" checked={acknowledgement} disabled={isPending} onChange={(event) => setAcknowledgement(event.target.checked)} />
+          <Checkbox checked={acknowledgement} disabled={isPending} onChange={(event) => setAcknowledgement(event.target.checked)} />
           Solicitar nova ciência ao cliente
         </label>
         <CompactDialogActions>

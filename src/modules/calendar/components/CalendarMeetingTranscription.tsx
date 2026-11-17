@@ -1,5 +1,7 @@
+import { Input } from '../../../components/ds/Input';
+import { Textarea } from '../../../components/ds/Textarea';
 import { MeetingRecordAction } from './MeetingRecordAction';
-import { recordForm, recordInput } from './meetingRecordStyles';
+import { recordForm } from './meetingRecordStyles';
 
 export function CalendarMeetingTranscription({ url, note, busy, onSave, onUpload }: {
   url: string;
@@ -16,9 +18,9 @@ export function CalendarMeetingTranscription({ url, note, busy, onSave, onUpload
         onSave(String(fields.get('url') || ''), String(fields.get('note') || ''));
       }}>
         <label className="tw:grid tw:gap-1">Transcrição / registro da reunião
-          <input name="url" type="url" defaultValue={url} placeholder="https://..." className={recordInput} />
+          <Input variant="compact" name="url" type="url" defaultValue={url} placeholder="https://..." className="tw:w-full" />
         </label>
-        <textarea name="note" aria-label="Observação da transcrição" defaultValue={note} placeholder="Observação opcional" className={`${recordInput} tw:min-h-23`} />
+        <Textarea variant="compact" name="note" aria-label="Observação da transcrição" defaultValue={note} placeholder="Observação opcional" className="tw:min-h-23 tw:w-full" />
         <MeetingRecordAction type="submit" disabled={busy}>Salvar transcrição</MeetingRecordAction>
       </form>
       <form className="tw:grid tw:gap-2.5 tw:text-sm/[inherit] tw:font-semibold" onSubmit={(event) => {

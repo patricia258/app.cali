@@ -1,3 +1,4 @@
+import { Textarea } from '../../../components/ds/Textarea';
 import { useState } from 'react';
 import type { AdminProjectLifecycle, ProjectLifecycleScope } from '../../../api/projects/lifecycle';
 import { formatProjectDate } from '../../../domain/projects';
@@ -41,9 +42,9 @@ export function ProjectLifecycleResumeDialog({ projectId, hold, onClose, onSaved
       <p className="tw:m-0">Ao retomar, o Workspace contabiliza o período efetivamente interrompido em dias úteis, desloca os prazos ainda afetados por este escopo e recalcula a <strong>Previsão CALI</strong>. A Meta desejada continua como referência.</p>
     </div>
     <label className="tw:grid tw:gap-2 tw:text-sm tw:font-bold">Mensagem de retomada ao cliente
-      <textarea value={message} onChange={(event) => setMessage(event.target.value)} disabled={change.isPending}
+      <Textarea value={message} onChange={(event) => setMessage(event.target.value)} disabled={change.isPending}
         placeholder="Ex.: A pendência foi regularizada e retomaremos a execução a partir de hoje."
-        className="tw:min-h-[6.46rem] tw:w-full tw:resize-y tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body tw:font-normal" />
+        className="tw:w-full" />
     </label>
   </ProjectActionDialog>;
 }

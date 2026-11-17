@@ -1,3 +1,4 @@
+import { Textarea } from '../../../../components/ds/Textarea';
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { DialogFrame } from '../../../../components/ds/DialogFrame';
 import { errorMessage } from '../../../../lib/errorMessage';
@@ -11,7 +12,6 @@ const outlined = `${action} tw:border-cali-line-strong tw:bg-cali-neutral-surfac
 const secondary = `${outlined} tw:text-cali-brand`;
 const actions = 'tw:flex tw:justify-end tw:gap-2.5 tw:max-[721px]:flex-col tw:max-[721px]:items-stretch';
 const kickerStyle = 'tw:text-cali-label tw:font-extrabold tw:tracking-[.14em] tw:text-cali-gold';
-const inputStyle = 'tw:w-full tw:resize-y tw:rounded-[.9231rem] tw:border tw:border-solid tw:border-cali-line tw:bg-[color:var(--theme-surface-soft)] tw:px-3.5 tw:py-3.5 tw:text-sm tw:leading-[1.5] tw:text-cali-text tw:focus:border-cali-gold tw:focus:outline-none tw:focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--cali-color-gold-accent)_12%,transparent)]';
 const captionStyle = 'tw:mt-4.5 tw:grid tw:gap-2 tw:text-cali-detail tw:font-[780] tw:text-cali-text';
 const errorStyle = 'tw:mt-2.5 tw:block tw:text-xs tw:text-cali-red-accent';
 
@@ -80,7 +80,7 @@ function FeedbackDialog({ experience }: Props) {
       </div>
       <label className="tw:flex tw:flex-col tw:gap-2 tw:text-xs tw:font-bold tw:text-cali-muted">
         {score <= 3 ? 'O que podemos melhorar?' : 'Quer contar mais alguma coisa?'}
-        <textarea ref={noteRef} className="tw:box-border tw:min-h-[6.4615rem] tw:w-full tw:resize-y tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body tw:font-normal tw:text-cali-text tw:outline-none tw:focus:border-cali-brand" rows={4} maxLength={2000} value={comment}
+        <Textarea ref={noteRef} className="tw:min-h-26 tw:w-full" rows={4} maxLength={2000} value={comment}
           onChange={(event) => setComment(event.target.value)} placeholder={score <= 3 ? 'Sua justificativa é importante para entendermos o que pode melhorar.' : 'Opcional — escreva se quiser deixar um comentário.'} />
       </label>
       {error && <p className={errorStyle} role="alert">{error}</p>}
@@ -108,7 +108,7 @@ function ReopenRequestDialog({ experience }: Props) {
       <span className="tw:text-cali-detail tw:leading-[1.45] tw:text-cali-muted">O tempo já consumido continua contabilizado e não retorna ao saldo de horas.</span>
     </div>
     <label className={captionStyle}>Justificativa da reabertura
-      <textarea autoFocus className={inputStyle} rows={5} value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Ex.: surgiu uma nova informação e preciso retomar este assunto porque…" />
+      <Textarea autoFocus className="tw:w-full" rows={5} value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Ex.: surgiu uma nova informação e preciso retomar este assunto porque…" />
     </label>
     {error && <p className={errorStyle} role="alert">{error}</p>}
     <div className={`tw:mt-5 ${actions}`}>
@@ -167,7 +167,7 @@ function ReviewDialog({ experience }: Props) {
       </div>
     </div>}
     <label className={captionStyle}>Mensagem ao cliente
-      <textarea ref={noteRef} className={`${inputStyle} tw:max-h-[8.4615rem] tw:min-h-[5.6923rem]`} rows={4} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Opcional ao reabrir. Obrigatória se você recusar o pedido." />
+      <Textarea ref={noteRef} className="tw:max-h-34 tw:w-full" rows={4} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Opcional ao reabrir. Obrigatória se você recusar o pedido." />
     </label>
     {error && <p className={errorStyle} role="alert">{error}</p>}
     <div className="tw:mt-4 tw:grid tw:grid-cols-[minmax(0,1.45fr)_auto_auto] tw:items-center tw:gap-2.5 tw:max-[721px]:flex tw:max-[721px]:flex-col tw:max-[721px]:items-stretch">

@@ -1,3 +1,4 @@
+import { Select } from '../../../components/ds/Select';
 import type { PointsRange } from '../hooks/usePoints';
 
 type Props = {
@@ -8,8 +9,8 @@ type Props = {
 
 export function PointsRangeSelect({ pageRange, range, onChange }: Props) {
   return (
-    <select
-      className="tw:rounded-md tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-2.25 tw:py-1.5 tw:text-cali-label tw:font-semibold tw:text-cali-brand"
+    <Select variant="filter"
+      className="tw:py-1.5! tw:text-cali-label! tw:font-semibold! tw:text-cali-brand!"
       aria-label="Período deste gráfico"
       value={range}
       onChange={(event) => onChange(event.target.value as PointsRange)}
@@ -20,6 +21,6 @@ export function PointsRangeSelect({ pageRange, range, onChange }: Props) {
       <option value="12">Últimos 12 meses</option>
       <option value="24">Últimos 24 meses</option>
       <option value="all">Todo o histórico</option>
-    </select>
+    </Select>
   );
 }

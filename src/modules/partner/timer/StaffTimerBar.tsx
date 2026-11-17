@@ -1,3 +1,6 @@
+import { FieldLabel } from '../../../components/ds/FieldLabel';
+import { Input } from '../../../components/ds/Input';
+import { Textarea } from '../../../components/ds/Textarea';
 import { WorkflowDialogOverlay } from '../../../components/ds/WorkflowDialog';
 import { StaffDialogBody, StaffDialogFields, StaffDialogFooter, StaffDialogForm, StaffDialogHeader } from '../../../components/workspace/StaffDialog';
 import { Button } from '../../../components/ds/Button';
@@ -121,10 +124,10 @@ export function StaffTimerBar({ me }: { me: PartnerWorkspace }) {
       <StaffDialogHeader onClose={() => setEditing(null)} disabled={busy}><h2>Justificar pausa do cronômetro</h2></StaffDialogHeader>
       <StaffDialogBody>
         <p>{editing.description || label(editing.companyId)} · trecho preservado de {formatClock(editing.seconds)}</p>
-        <StaffDialogFields columns={1}><label>Minutos para aprovação<input type="number" value={minutes} min={1} max={1440} required
-          onChange={(event) => setMinutes(event.target.value)} /></label>
-        <label>Justificativa<textarea value={reason} minLength={10} maxLength={1500} required
-          onChange={(event) => setReason(event.target.value)} /></label></StaffDialogFields>
+        <StaffDialogFields columns={1}><FieldLabel>Minutos para aprovação<Input type="number" value={minutes} min={1} max={1440} required
+          onChange={(event) => setMinutes(event.target.value)} /></FieldLabel>
+        <FieldLabel>Justificativa<Textarea value={reason} minLength={10} maxLength={1500} required
+          onChange={(event) => setReason(event.target.value)} /></FieldLabel></StaffDialogFields>
         {error && <InlineNotice as="p" role="alert">{error}</InlineNotice>}
       </StaffDialogBody>
       <StaffDialogFooter><Button variant="workflowSecondary" type="button" disabled={busy} onClick={() => setEditing(null)}>Cancelar</Button>

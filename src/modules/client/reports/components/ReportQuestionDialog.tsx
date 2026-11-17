@@ -1,3 +1,4 @@
+import { Textarea } from '../../../../components/ds/Textarea';
 import { WorkflowDialogOverlay, WorkflowDialog, WorkflowDialogHeader, WorkflowDialogActions } from '../../../../components/ds/WorkflowDialog';
 import { X } from 'lucide-react';
 import { useReportQuestionForm } from '../hooks/useReportQuestionForm';
@@ -32,7 +33,7 @@ export function ReportQuestionDialog({ reportId, deadline, onClose, onSent }: Pr
         <form onSubmit={(event) => { event.preventDefault(); void form.handleSubmit(); }}>
           <form.Field name="message">
             {(field) => <label className="tw:mt-4.5 tw:grid tw:gap-2"><span className="tw:text-cali-body tw:font-semibold tw:text-cali-sand-strong">Mensagem</span>
-              <textarea className="tw:box-border tw:min-h-40 tw:w-full tw:resize-y tw:rounded-xl tw:border tw:border-solid tw:border-cali-neutral-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3.5 tw:font-cali-body tw:text-base/[1.55] tw:font-normal tw:text-cali-ink" name={field.name} value={field.state.value} onBlur={field.handleBlur}
+              <Textarea className="tw:box-border tw:min-h-40 tw:w-full tw:resize-y tw:rounded-xl tw:border tw:border-solid tw:border-cali-neutral-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3.5 tw:font-cali-body tw:text-base/[1.55] tw:font-normal tw:text-cali-ink" name={field.name} value={field.state.value} onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)} autoFocus required minLength={4}
                 maxLength={4000} aria-describedby="report-question-deadline"
                 placeholder="Escreva sua dúvida ou observação..." />

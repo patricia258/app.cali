@@ -1,3 +1,4 @@
+import { Input } from '../../../../components/ds/Input';
 import { useState } from 'react';
 import { CheckCircle2, KeyRound, LifeBuoy, Mail, MessageCircle, Send } from 'lucide-react';
 import { accessSupportLink } from '../../../../domain/caliContacts';
@@ -49,7 +50,7 @@ export function SignInForm() {
               <span className={caption}>E-mail</span>
               <div className={control}>
                 <Mail size={18} aria-hidden="true" />
-                <input className={input} value={email} onChange={(event) => setEmail(event.target.value)} placeholder="voce@empresa.com.br" type="email" autoComplete="email" />
+                <Input variant="embedded" className={input} value={email} onChange={(event) => setEmail(event.target.value)} placeholder="voce@empresa.com.br" type="email" autoComplete="email" />
               </div>
             </label>
           ) : (
@@ -57,7 +58,7 @@ export function SignInForm() {
               <span className={caption}>Código de acesso</span>
               <div className={control}>
                 <KeyRound size={18} aria-hidden="true" />
-                <input
+                <Input variant="embedded"
                   value={code}
                   onChange={(event) => changeCode(event.target.value)}
                   placeholder="000000"

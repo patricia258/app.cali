@@ -1,3 +1,4 @@
+import { Select } from '../../../../components/ds/Select';
 import { format } from 'date-fns';
 import { Download, X } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -145,8 +146,8 @@ export function ExportOverview({ data }: { data: DashboardData }) {
             <div className="tw:flex tw:gap-3.5 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:bg-cali-surface-soft tw:px-8 tw:py-5 tw:workspace-night:bg-cali-burgundy-strong tw:max-[42.5rem]:grid tw:max-[42.5rem]:px-5">
               <label className="tw:grid tw:min-w-[14.615rem] tw:gap-2 tw:max-[42.5rem]:w-full">
                 <span className="tw:text-xs/[inherit] tw:font-extrabold tw:tracking-[0.08em] tw:text-cali-muted tw:uppercase">Período</span>
-                <select
-                  className="tw:h-13 tw:min-w-[14.615rem] tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body/[inherit] tw:text-cali-text tw:workspace-night:bg-cali-burgundy-inverse tw:workspace-night:text-cali-day-canvas"
+                <Select variant="filter"
+                  className="tw:h-13 tw:min-w-[14.615rem] tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:py-3 tw:text-cali-body/[inherit] tw:text-cali-text tw:workspace-night:bg-cali-burgundy-inverse tw:workspace-night:text-cali-day-canvas"
                   value={range}
                   onChange={(event) =>
                     setRange(event.target.value as ExportRange)
@@ -155,12 +156,12 @@ export function ExportOverview({ data }: { data: DashboardData }) {
                   <option value="month">Mês atual</option>
                   <option value="quarter">Trimestre atual</option>
                   <option value="year">Ano atual</option>
-                </select>
+                </Select>
               </label>
               <label className="tw:grid tw:min-w-[14.615rem] tw:gap-2 tw:max-[42.5rem]:w-full">
                 <span className="tw:text-xs/[inherit] tw:font-extrabold tw:tracking-[0.08em] tw:text-cali-muted tw:uppercase">Cliente</span>
-                <select
-                  className="tw:h-13 tw:min-w-[14.615rem] tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body/[inherit] tw:text-cali-text tw:workspace-night:bg-cali-burgundy-inverse tw:workspace-night:text-cali-day-canvas"
+                <Select variant="filter"
+                  className="tw:h-13 tw:min-w-[14.615rem] tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:py-3 tw:text-cali-body/[inherit] tw:text-cali-text tw:workspace-night:bg-cali-burgundy-inverse tw:workspace-night:text-cali-day-canvas"
                   value={companyId}
                   onChange={(event) => setCompanyId(event.target.value)}
                 >
@@ -170,7 +171,7 @@ export function ExportOverview({ data }: { data: DashboardData }) {
                       {company.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             </div>
             <div className="tw:overflow-auto tw:bg-cali-line/32 tw:p-8.5 tw:workspace-night:bg-cali-canvas tw:max-[42.5rem]:p-3.5">

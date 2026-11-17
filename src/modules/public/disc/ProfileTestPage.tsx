@@ -1,3 +1,4 @@
+import { Checkbox } from '../../../components/ds/Checkbox';
 /* Perfil Comportamental CALI — teste público (/perfil/:slug), no formato do CALI Forms (uma tela por vez).
    Abertura + consentimento → identificação → 18 blocos (dia comum) → 6 blocos (semana difícil) → revisão sem prévia
    do perfil → envio. Depois do envio, a pessoa só vê o agradecimento; o relatório chega por e-mail.
@@ -207,7 +208,7 @@ function ProfileTest({ slug, preview, inviteToken }: { slug: string; preview: bo
           </ul>
           <div className="tw:mt-5.5 tw:flex tw:max-w-180 tw:items-start tw:gap-3.5 tw:max-[641px]:flex-col">
             <span className="tw:grid tw:size-13 tw:flex-none tw:place-items-center tw:rounded-full tw:bg-cali-burgundy-surface tw:text-cali-brand tw:max-[641px]:size-11" aria-hidden="true"><Handshake size={26} /></span>
-            <label className="tw:flex tw:max-w-170 tw:flex-1 tw:items-start tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-cali-brand/20 tw:bg-cali-neutral-surface/70 tw:px-4 tw:py-3.5 tw:cursor-pointer"><input className="tw:mt-1 tw:size-4.5 tw:flex-none tw:accent-cali-brand" type="checkbox" checked={consent} onChange={(event) => { setConsent(event.target.checked); setError(''); }} /><span className="tw:text-cali-detail! tw:leading-[1.55] tw:text-cali-muted tw:[&_b]:font-bold tw:[&_b]:text-cali-text! tw:[&_em]:italic"><span><RichText value={CONSENT_TEXT} /></span><b className="tw:mt-2 tw:block tw:text-cali-brand!">Li e concordo em participar.</b></span></label>
+            <label className="tw:flex tw:max-w-170 tw:flex-1 tw:items-start tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-cali-brand/20 tw:bg-cali-neutral-surface/70 tw:px-4 tw:py-3.5 tw:cursor-pointer"><Checkbox className="tw:mt-1 tw:size-4.5 tw:flex-none tw:accent-cali-brand" checked={consent} onChange={(event) => { setConsent(event.target.checked); setError(''); }} /><span className="tw:text-cali-detail! tw:leading-[1.55] tw:text-cali-muted tw:[&_b]:font-bold tw:[&_b]:text-cali-text! tw:[&_em]:italic"><span><RichText value={CONSENT_TEXT} /></span><b className="tw:mt-2 tw:block tw:text-cali-brand!">Li e concordo em participar.</b></span></label>
           </div>
           {error && <p className={ui.error} role="alert">{error}</p>}
           <div className={ui.actions}><button type="button" className={ui.primary} onClick={next}>Vamos começar? <ArrowRight size={18} /></button></div>

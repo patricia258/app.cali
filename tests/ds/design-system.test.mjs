@@ -8,6 +8,7 @@ import { build } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import loopback from '../e2e/loopback.cjs';
 import browserResources from '../e2e/browser-resources.cjs';
+import selectGeometry from '../e2e/select-geometry.cjs';
 import { registerCalendarNavigation, supabaseOrigin } from './calendar-navigation.mjs';
 import { registerDeliveryDependencies } from './delivery-dependencies.mjs';
 
@@ -18,6 +19,8 @@ let server;
 let proxy;
 let browser;
 let casesSinceLaunch = 0;
+const browserBatch = Number(process.env.CALI_QA_BROWSER_BATCH ?? 4);
+assert(Number.isInteger(browserBatch) && browserBatch > 0, 'Lote de navegador inválido');
 
 before(async () => {
   outDir = await mkdtemp(join(tmpdir(), 'cali-ds-'));
@@ -63,7 +66,7 @@ after(async () => {
 function component(name, fixture, check, expectedError, setup) {
   test(name, async (t) => {
     browserResources.checkBrowserResources();
-    if (!browser || casesSinceLaunch === 4) {
+    if (!browser || casesSinceLaunch === browserBatch) {
       await closeBrowser(browser);
       browser = await launchBrowser(process.env.CALI_E2E_CHROME || defaultChrome(), proxy);
       casesSinceLaunch = 0;
@@ -358,6 +361,39 @@ component(
     assert.equal(await textarea.evaluate((field) => getComputedStyle(field).resize), 'none');
   },
 );
+
+component('Campos do DS · layout, validação nativa e alto contraste', 'nativeFields', async (page) => {
+  const date = page.getByLabel('Data', { exact: true });
+  const time = page.getByLabel('Horário', { exact: true });
+  const company = page.getByRole('combobox', { name: 'Conta', exact: true });
+  const multi = page.getByRole('listbox', { name: 'Vários', exact: true });
+  const notes = page.getByRole('textbox', { name: 'Observação', exact: true });
+  const output = page.getByRole('status', { name: 'Dados', exact: true });
+  assert.equal(await page.getByRole('combobox', { name: 'Outro campo' }).isDisabled(), true);
+  assert.equal(await company.evaluate((field) => field.validity.valueMissing), true);
+  assert.equal(await date.evaluate((field) => field.validity.valueMissing), true);
+  assert.equal(await multi.evaluate((field) => getComputedStyle(field).backgroundImage), 'none');
+  assert.equal(await notes.evaluate((field) => getComputedStyle(field).resize), 'vertical');
+  await selectGeometry.assertSelectInsets(company);
+  await page.getByRole('button', { name: 'Focar data' }).click();
+  assert(await focused(date));
+  await date.fill('2026-11-16');
+  await time.fill('14:30');
+  await company.selectOption('qa');
+  await multi.selectOption('x');
+  await notes.pressSequentially('observação');
+  await page.getByRole('checkbox', { name: 'Compartilhar' }).check();
+  await page.getByRole('button', { name: 'Registrar campos' }).click();
+  await page.getByText(/2026-11-16/).waitFor();
+  assert.deepEqual(JSON.parse(await output.textContent()), {
+    date: '2026-11-16', time: '14:30', company: 'qa', many: 'x', notes: 'observaç', visible: 'on',
+  });
+  await page.emulateMedia({ forcedColors: 'active' });
+  assert.deepEqual(await company.evaluate((field) => {
+    const style = getComputedStyle(field);
+    return { appearance: style.appearance, image: style.backgroundImage };
+  }), { appearance: 'auto', image: 'none' });
+});
 
 component('DataTable e StatusBadge · nome, cabeçalhos, células e estados legíveis', 'tables', async (page) => {
   const team = page.getByRole('table', { name: 'Equipe' });
