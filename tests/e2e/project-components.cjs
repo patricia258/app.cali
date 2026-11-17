@@ -61,9 +61,9 @@ async function projectFilters({ page, context, origin, snapshot }) {
     await assertSelectInsets(filter);
     const contained = await filter.evaluate((select) => {
       const bounds = select.getBoundingClientRect();
-      return bounds.left >= 0 && bounds.right <= innerWidth + 1;
+      return bounds.left >= 0 && bounds.right <= innerWidth + 1 && bounds.height >= 35;
     });
-    assert.ok(contained, 'O seletor precisa caber no viewport.');
+    assert.ok(contained, 'O seletor precisa caber no viewport e preservar a altura do filtro.');
   }
   assert.equal(navigations, 1);
   await snapshot('filtros');

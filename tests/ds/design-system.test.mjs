@@ -374,6 +374,9 @@ component('Campos do DS · layout, validação nativa e alto contraste', 'native
   assert.equal(await date.evaluate((field) => field.validity.valueMissing), true);
   assert.equal(await multi.evaluate((field) => getComputedStyle(field).backgroundImage), 'none');
   assert.equal(await notes.evaluate((field) => getComputedStyle(field).resize), 'vertical');
+  const fontFamily = (field) => getComputedStyle(field).fontFamily;
+  assert.equal(await notes.evaluate(fontFamily), await date.evaluate(fontFamily));
+  assert.doesNotMatch(await notes.evaluate(fontFamily), /monospace/);
   await selectGeometry.assertSelectInsets(company);
   await page.getByRole('button', { name: 'Focar data' }).click();
   assert(await focused(date));

@@ -202,6 +202,13 @@ const cases = [
       assert.ok(title && copy && button);
       assert.ok(button.y - (copy.y + copy.height) <= 28, 'Ação separada do texto por espaço vazio');
       assert.ok(Math.abs(button.x - title.x) <= 2, 'Ação desalinhada do título');
+      const filters = await Promise.all([
+        page.getByRole('combobox', { name: 'Conta', exact: true }).boundingBox(),
+        page.getByRole('combobox', { name: 'Mês das horas', exact: true }).boundingBox(),
+      ]);
+      assert.ok(filters.every(Boolean));
+      assert.ok(Math.abs(filters[0].y - filters[1].y) < 1, 'Os filtros cabem na mesma linha a 390 px.');
+      assert.ok(filters[0].x + filters[0].width <= filters[1].x);
       await snapshot('cabecalho-mobile', page.locator('.ap-title'));
       await action.click();
       await page.waitForURL((url) => url.pathname === '/admin/clientes');

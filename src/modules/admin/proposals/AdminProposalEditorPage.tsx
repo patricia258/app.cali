@@ -59,7 +59,7 @@ function Section({ n, title, description, children }: {
     </DocumentPanel>
   );
 }
-function TextArea({label,value,onChange,rows=4,help}:{label:string;value:string;onChange:(v:string)=>void;rows?:number;help?:string}){return <label>{label}<Textarea variant="compact" rows={rows} value={value} onChange={e=>onChange(e.target.value)}/>{help&&<small>{help}</small>}</label>}
+function TextArea({label,value,onChange,rows=4,help}:{label:string;value:string;onChange:(v:string)=>void;rows?:number;help?:string}){return <label>{label}<Textarea variant="compact" className="tw:leading-normal" rows={rows} value={value} onChange={e=>onChange(e.target.value)}/>{help&&<small>{help}</small>}</label>}
 function mapSnapshot(row: PortalMapaResponse | null) {
  if (!row) return null;
  const diagnosis = row.diagnostico_v2;
