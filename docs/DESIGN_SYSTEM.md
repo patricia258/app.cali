@@ -4,11 +4,21 @@ A interface publicada fornece a referência de composição, tipografia, cores e
 
 ## Tokens e Tailwind
 
-[Tokens base](../src/styles/tokens.css) concentram a paleta CALI, tipografia, dimensões dos controles e carregamento. [Tokens de tema](../src/styles/theme-tokens.css) definem a superfície, o texto, o destaque, as bordas e os estados em Dia e Noite. A folha do shell mantém os valores próprios de sua composição.
+[Paleta CALI](../public/brand/color-palette.css) define os canais sRGB. Cada família usa até sete tons, na ordem `lightest`, `lighter`, `light`, `base`, `dark`, `darker` e `darkest`. Inclua os tons que têm uso. A marca usa `burgundy-base`. [Tokens base](../src/styles/tokens.css) ligam os tons aos papéis de pintura e concentram as dimensões dos controles e do carregamento. [Tokens de tema](../src/styles/theme-tokens.css) selecionam os tons de superfície, texto, destaque, borda e estado em Dia e Noite.
 
 [Configuração Tailwind](../src/styles/tailwind.css) expõe esses valores com `@theme inline`. Escreva layout, aparência, responsividade e estados com utilitários `tw:` no JSX do componente que possui a marcação. Use tokens semânticos para os temas e variantes de estado para foco, seleção, espera e erro. Agrupe classes repetidas por variante em um componente que represente a mesma interação.
 
-Durante a migração, compare valores computados. O shell compacto usa raiz de 13 px. Prefira tokens e a escala de espaçamento e tipografia do Tailwind. Use `rem` quando a escala não representar a medida. Pequenas diferenças são aceitáveis quando preservam a identidade visual, a legibilidade e a interação. Mantenha as classes junto da marcação e reutilize componentes para padrões de interface recorrentes. O mesmo vale para a altura de linha acoplada às utilidades de fonte e para limites inclusivos de media queries.
+Quando o padrão inclui marcação e comportamento, extraia o componente e exponha suas variantes por props. Mantenha as classes de layout no JSX que as usa. Primitivas compartilhadas podem agrupar apenas as classes que formam suas variantes. [Exemplo de título de grupo](../src/components/ds/WorkflowGroupHeading.tsx)
+
+Use tokens pelo papel da cor. `cali-text`, `cali-muted`, `cali-surface` e `cali-line` seguem o tema. `cali-brand` representa a cor fixa da marca. Estados usam as famílias `cali-success`, `cali-warning`, `cali-danger`, `cali-info` e `cali-scheduled`, com variantes `-surface` e `-line`. A mesma família atende avisos, badges e controles de estado.
+
+Elementos que mantêm fundo claro nos dois temas, como o formulário de acesso, usam os papéis próprios de superfície clara também no texto. O teste de superfície mede contraste de pelo menos 4,5:1 em título, instrução, placeholder e link do rodapé do login com a preferência Noite ativa.
+
+Use o token do papel na marcação e a família de pintura para composições que precisam de cor fixa, como uma série de gráfico, uma capa ou um degradê. Use `rgb(var(--cali-rgb-…) / alfa)` em superfícies rasterizadas pelo exportador do DISC. Depois de editar a paleta, rode `node scripts/sync-cali-palette.mjs`. O comando atualiza os valores resolvidos usados por e-mail, PDF, QR Code e Canvas e sincroniza a cor inicial do navegador. O [contrato da paleta](../tests/unit/color-palette.test.mjs) verifica a sincronização, a ordem dos tons, o limite por família e o uso da paleta nas fontes da interface e das Edge Functions.
+
+Use `text-xs`, `text-sm` e `text-base` para a escala comum. `text-cali-micro`, `text-cali-label`, `text-cali-detail` e `text-cali-body` cobrem os passos intermediários do Workspace. Títulos seguem `text-lg`, `text-xl` e os degraus `text-cali-title-*` ou `text-cali-display-*` quando a composição pede a escala CALI. Use as variantes de peso, tracking e altura de linha junto do tamanho escolhido.
+
+O shell compacto usa raiz de 13 px. Compare valores computados e prefira o passo mais próximo da escala de espaçamento do Tailwind. Classes como `gap-1.5`, `px-3` e `py-2` substituem medidas quebradas quando a diferença é pequena. Controles e painéis usam os raios de escala ou os tokens CALI. Reserve medidas próprias para cálculos de layout, limites responsivos, documentos com dimensão física e ativos com geometria definida.
 
 ### CSS colocalizado
 
@@ -36,9 +46,9 @@ As listas de Propostas, Mapa de People e Auditoria compartilham [indicadores](..
 | Componente | Contrato |
 | --- | --- |
 | [Button](../src/components/ds/Button.tsx) | Variantes tipadas, submissão nativa, ação em andamento e foco de teclado. Botões de fechamento têm nome acessível. |
-| [FieldLabel](../src/components/ds/FieldLabel.tsx), [FilterSelect](../src/components/ds/FilterSelect.tsx), [GuidedField](../src/components/ds/GuidedField.tsx) | Mantêm rótulo, autocomplete, seleção, referência DOM e validação nativa. |
+| [FieldLabel](../src/components/ds/FieldLabel.tsx), [FilterSelect](../src/components/ds/FilterSelect.tsx), [GuidedField](../src/components/ds/GuidedField.tsx) | Mantêm rótulo, autocomplete, seleção, referência DOM e validação nativa. O recuo da seta em `FilterSelect` usa a mesma medida do recuo inicial do texto. A seta nativa volta em alto contraste. |
 | [DialogFrame](../src/components/ds/DialogFrame.tsx), [DialogForm](../src/components/ds/DialogForm.tsx) | Nome acessível, entrada e retorno de foco, Tab circular e Escape quando há ação de fechar. Formulário continua sendo um formulário nativo. |
-| [InlineNotice](../src/components/ds/InlineNotice.tsx), [EmptyState](../src/components/ds/EmptyState.tsx), [LoadingState](../src/components/ds/LoadingState.tsx), [WorkspaceRouteLoader](../src/components/ds/WorkspaceRouteLoader.tsx) | Feedback de erro, confirmação, vazio e carregamento. A cor complementa texto e estado semântico. |
+| [InlineNotice](../src/components/ds/InlineNotice.tsx), [EmptyState](../src/components/ds/EmptyState.tsx), [LoadingState](../src/components/ds/LoadingState.tsx), [WorkspaceRouteLoader](../src/components/ds/WorkspaceRouteLoader.tsx) | Feedback de erro, confirmação, vazio e carregamento. A cor complementa texto e estado semântico. Avisos `warning` usam `px-4` e `py-3` e mantêm o texto corrido em um bloco. |
 | [WorkflowList](../src/components/ds/WorkflowList.tsx), [WorkflowControls](../src/components/ds/WorkflowControls.tsx), [WorkflowHeading](../src/components/ds/WorkflowHeading.tsx) | Reutilizam grade, linha e filtros responsivos. Mantêm controles nativos e permitem que o módulo configure colunas e ações. |
 | [WorkflowDialog](../src/components/ds/WorkflowDialog.tsx), [CompactDialog](../src/components/ds/CompactDialog.tsx), [AdminNotice](../src/components/ds/AdminNotice.tsx) | Utilitários dos diálogos e avisos operacionais no componente. Animações acompanham o [shell](../src/components/workspace/workspace-motion.css) e respeitam movimento reduzido. |
 | [StatusBadge](../src/components/ds/StatusBadge.tsx), [DataTable](../src/components/ds/DataTable.tsx) | Preservam o elemento semântico e as variantes usadas pelos fluxos. Rótulos e estados persistidos pertencem ao domínio. |

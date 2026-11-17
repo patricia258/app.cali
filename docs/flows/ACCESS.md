@@ -8,6 +8,10 @@
 
 **Dados e integrações.** Edge `workspace-access` resolve convite/perfil elegível, chama RPCs de reserva e consumo serializado do hash do código, entrega por Resend e solicita a troca Auth. A sessão vincula o código ao ator. O estado de aceite vincula identidade, publicação e versão. A guarda privada exige sessão vigente e, para Admin e Partner, AAL2 vinculado a TOTP verificado. [Edge de acesso](../../supabase/functions/workspace-access/index.ts) · [Vínculo do código](../../supabase/migrations/20261112121000_bind_workspace_codes_to_actors.sql) · [Guarda SQL](../../supabase/migrations/20261112120400_bind_workspace_mfa_to_auth_session.sql)
 
+Após solicitar o código, a tela mostra a contagem de dois minutos para reenviar. O código recebido pode ser usado durante a espera. Voltar ao mesmo e-mail no formulário preserva a contagem. O banco aplica a janela por e-mail, e a resposta genérica da Edge evita indicar se o endereço está cadastrado. [Prova de reenvio local](../../tests/contracts/browser-local.cjs)
+
+O código vale por dez minutos e pode ser usado uma vez. Se a Edge aceitar o código e o navegador falhar ao abrir a sessão, a tela informa a falha de sessão e orienta pedir outro código.
+
 **Alvo.** Convite válido → login → segundo fator Admin e Partner → aceite pessoal vigente → rota autorizada. Revogação corta também JWTs antigos em RPC, Edge, Data API e Storage conforme o escopo da operação. Reativação exige nova sessão. Exigir as mesmas guardas para entrada direta, inclusive impressão Partner. [Contrato de acesso](../contracts/ACCESS.md) · [Equipe CALI e Partner](PARTNER.md#flow-15)
 
 **Aceite.** Testar emissão concorrente, código errado ou expirado, consumo único, callback e retorno seguro. Validar falha e retry de MFA/termos, login de cada papel, troca de sessão, refresh e logout. Tentar o mesmo JWT antes e depois de revogar e reativar. Cliente A e B devem permanecer isolados em UI e nas superfícies diretas.

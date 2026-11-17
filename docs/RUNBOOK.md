@@ -27,7 +27,7 @@ O snapshot de 12/11/2026 contém a estrutura do CALI MAPA. A partir da raiz, rod
 
 O app abre em `http://127.0.0.1:56430`, com API local em `http://127.0.0.1:56431` e captura de e-mail em `http://127.0.0.1:56432`. O diretório local ignorado `.cali-db-schema.local/qa` contém os comandos de retomada, o ambiente de teste e as provas. A Edge de acesso usa Mailpit no laboratório. O Admin sintético entra por uma adaptação local da lista de e-mails permitidos, com MFA e termos ativos. Auth e Storage usam histórico de inicialização dos serviços Docker locais. O Realtime inicializa seu schema gerenciado na cópia de QA e usa a publicação de tabelas do app restaurada. As contas, arquivos e senhas de teste são gerados localmente.
 
-O smoke de partida cobriu login por código, MFA, aceite e isolamento por empresa na API, no Storage e no Realtime. O aceite de todas as jornadas segue a [matriz local](CONSOLIDATION_ACCEPTANCE.md).
+O smoke de partida cobriu login por código, MFA, aceite e isolamento por empresa na API, no Storage e no Realtime. O preflight do Auth no proxy local deve autorizar `x-supabase-api-version` para `http://127.0.0.1:56430`. O teste de navegador verifica esse cabeçalho e usa a rede real do laboratório para autenticar. O aceite de todas as jornadas segue a [matriz local](CONSOLIDATION_ACCEPTANCE.md).
 
 ## Preview e corte
 

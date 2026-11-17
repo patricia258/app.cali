@@ -15,6 +15,8 @@
 - Aplique a regra de JSX em toda a aplicação. Texto formatado vira elementos React. Integrações com foco, impressão, iframes ou geometria usam refs dos componentes donos. Efeitos liberam listeners, timers, assinaturas e observadores ao desmontar. O teste de arquitetura detecta montagem imperativa de HTML e observação global da marcação.
 - Encapsule `useQuery`, `useMutation` e lógica de navegação em hooks próprios, um por arquivo, com nome pela operação. O componente consome o hook e renderiza o estado. [Arquitetura](docs/ARCHITECTURE.md#hooks-estado-e-dependências)
 - Escreva layout, aparência e estados próprios com utilitários Tailwind no componente que renderiza a marcação. Use CSS colocalizado para integrações de biblioteca e recursos que precisam de folha própria. Escopo, ordem da cascata e justificativa ficam no [design system](docs/DESIGN_SYSTEM.md#tokens-e-tailwind).
+- Use tokens semânticos da paleta CALI e a escala de texto, espaçamento e raios tanto nas primitivas quanto em componentes, páginas e módulos. Prefira o passo mais próximo da escala quando a diferença visual for pequena. Registre medidas específicas de documento, cálculo, geometria e responsividade no fluxo dono quando precisarem de valor próprio.
+- Mantenha a paleta em `public/brand/color-palette.css`, com até sete tons nomeados por família. Use tokens de papel na interface. Ao editar a paleta, execute `node scripts/sync-cali-palette.mjs` e valide também e-mails e exportações que usam os valores resolvidos.
 - Importe o CSS indispensável pelo componente ou módulo dono. Confira acesso direto, navegação interna e recarga. A aparência de uma tela deve independer das rotas visitadas antes.
 
 ## Comunicação

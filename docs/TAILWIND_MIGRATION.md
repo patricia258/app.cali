@@ -4,6 +4,8 @@ As regras valem para toda a árvore de código. A fila de solicitações da Agen
 
 Listas, controles, cabeçalhos e diálogos operacionais usam primitivas do design system. Ocorrências mantém a gaveta e a conversa no módulo. Equipe mantém o overlay e os formulários no módulo. O carregamento compacto usa máscaras e keyframes na folha do design system.
 
+A revisão da escala normalizou os tamanhos fixos de texto e os espaçamentos equivalentes em `src`. A paleta usa famílias com até sete tons nomeados e alimenta os papéis de cor da interface, a página legada, os e-mails e as exportações. As referências aprovadas em `docs`, as fixtures de teste e os arquivos de arte versionados funcionam como evidência visual. A cor do `<meta>` inicial é estática por contrato do navegador e tem paridade verificada com a marca. [Regras e escala](DESIGN_SYSTEM.md#tokens-e-tailwind) · [Contrato da paleta](../tests/unit/color-palette.test.mjs)
+
 ## Inventário por fluxo
 
 | Recorte | Implementação em revisão | Dependências a verificar |

@@ -48,6 +48,8 @@ O [mapa de arquitetura](ARCHITECTURE.md) se aplica a todo o repositório. A fila
 
 Arquivos e diretórios usam nomes pela função em todo o repositório. Cada lote atualiza o documento dono das regras de produto, contratos ou convenções que introduz ou altera, com o teste correspondente quando houver.
 
+Componentes, páginas e módulos seguem o [design system](DESIGN_SYSTEM.md#tokens-e-tailwind). Usem utilitários Tailwind, cores por papel, até sete tons nomeados por família e o passo mais próximo da escala de texto e espaçamento. Quando uma integração, impressão ou animação exigir CSS próprio, coloquem a folha junto do dono e registrem o escopo e a ordem da cascata. O aceite local verifica tanto a interface quanto as saídas que dependem de cores resolvidas.
+
 ## Fontes de aceite
 
 - [Regras de produto](PRODUCT_RULES.md) define o comportamento e os públicos.

@@ -17,7 +17,19 @@ O runner verifica o espaço do volume temporário antes de abrir o Chromium e en
 
 A matriz parte de todas as rotas registradas, cruza perfis e inclui deep links, menu, histórico, tema e interações selecionadas. Cada cenário guarda a página inteira, estado de navegação, títulos, diálogos e geometria. A diferença de pixels aponta a região a revisar. Uma diferença intencional precisa corresponder à regra de produto ou a uma correção reproduzida.
 
+Os ajustes da revisão manual do Admin têm provas dirigidas. Em 390 e 1651 px, a barra continua no topo ao rolar e ao navegar de Visão geral para Horas. A prova de espaçamento mede a seta dos filtros, a inicial de empresa sem logo e o aviso da Equipe CALI. Os cards de identificação e indicadores usam `px-4` na prévia e no fechamento do relatório. [Navegação e espaçamento](../tests/e2e/workspace-components.cjs) · [Prévia e fechamento](../tests/e2e/report-draft.cjs)
+
 A comparação visual e as jornadas funcionais usam Chrome local em loopback e interceptam requisições. O relatório aponta limitações da referência e falhas no candidato. Os efeitos persistidos são verificados pelos [contratos do stack local](../tests/contracts/README.md).
+
+### Revisão da paleta nomeada
+
+A rodada cobre Login, DISC público, Home Cliente, indicadores de Equipe, Visão geral Admin, Forms, Home Partner, relatório Partner A4, proposta editorial, conversa de ocorrência e preferência Noite. Cada cenário roda em 1440 e 390 px, com `--browser-batch 1 --jobs 1`. A primeira referência é a própria branch antes da tokenização final. A segunda é a `main` em `773c9d4`.
+
+Contra o build anterior da branch, 2 de 22 comparações ficaram equivalentes e 20 sinalizaram diferenças. Nenhuma mudou o texto, a geometria do quadro medido ou a largura de rolagem. A maior diferença de pixels acima do limiar foi 1,31% no login mobile em Noite, onde instruções, placeholder e rodapé ganharam contraste. As demais mudanças do lote correspondem aos tons compartilhados da [paleta](DESIGN_SYSTEM.md#tokens-e-tailwind).
+
+Contra a `main`, as 22 comparações abriram e indicaram diferenças. As mudanças de composição já aparecem no build anterior da branch, incluindo os controles do cabeçalho Admin no mobile, o histórico por empresa, o agrupamento de Forms e a paginação do relatório Partner. A fixture longa do Partner usa três páginas no candidato e duas na referência. A comparação com o build anterior da branch confirma que a tokenização preservou essa paginação.
+
+O [teste de superfície](../tests/e2e/surface-styles.cjs) verifica contraste computado e seis páginas físicas na proposta A4. O [teste de Pessoas](../tests/e2e/people-behaviors.cjs) baixa um PDF DISC real, valida o nome e lê a assinatura do arquivo. A impressão da [Visão geral](../tests/e2e/account-and-overview.cjs) confere a cor da marca na janela independente.
 
 ### Memória do navegador
 

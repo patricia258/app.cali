@@ -2,6 +2,8 @@
 
 O bootstrap em [main.tsx](../src/main.tsx) monta os providers de Query, Auth e Router. A [árvore de rotas](../src/app/router.tsx) mantém as URLs publicadas e carrega os módulos de página sob demanda. Admin e Cliente usam o shell persistente. Partner tem composição própria. As guardas de autenticação, MFA e termos protegem a montagem de rotas privadas e seus efeitos.
 
+O shell persistente monta uma barra superior e um menu lateral por rota. No Admin, a barra acompanha o topo do viewport durante a rolagem e a troca entre páginas do shell compacto. O menu lateral conserva a largura durante a abertura e o fechamento no mobile. O contexto que sinaliza a presença do shell fica em módulo próprio para conservar a mesma identidade durante o Fast Refresh e no carregamento sob demanda das páginas. [Contexto do shell](../src/components/workspace/workspaceFrameContext.ts) · [Teste da navegação](../tests/e2e/workspace-components.cjs)
+
 ## Mapa de pastas
 
 ```text
@@ -67,7 +69,7 @@ Importe uma folha local pelo consumidor. Valide acesso direto e navegação entr
 
 ## Renderização e efeitos
 
-Renderize interfaces React em JSX. Props, estado e eventos governam conteúdo, montagem e interação. Use refs para foco, rolagem e integração no elemento dono. Substitua interfaces montadas com strings HTML, inserção imperativa e buscas no DOM por composição React. Preserve a ordem de foco, as transições e a limpeza ao sair da rota.
+Renderize interfaces React em JSX. Props, estado e eventos governam conteúdo, montagem e interação. Use refs do componente dono para foco, rolagem, impressão e integrações. Evite `querySelector`, `innerHTML` e listeners globais para montar ou controlar a interface. Saídas que exigem HTML serializado, como e-mail e exportação, ficam no gerador da saída. Preserve a ordem de foco, as transições e a limpeza de listeners, timers, assinaturas e observadores ao sair da rota.
 
 As confirmações compartilhadas usam [WorkspaceActionDialog](../src/components/feedback/WorkspaceActionDialog.tsx). O chamador aguarda a decisão. O diálogo nativo é renderizado em JSX, abre por ref, bloqueia confirmações concorrentes e devolve foco ao sair. Forms e DISC renderizam a marcação de texto em [RichText](../src/components/public/RichText.tsx).
 
