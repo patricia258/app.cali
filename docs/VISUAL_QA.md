@@ -106,6 +106,18 @@ A recaptura concluiu os 126 estados sem falha em nenhuma versão. O login Noite 
 
 Lint sem avisos, TypeScript, build e 117 testes passaram. Playwright passou 79 cenários funcionais distintos, incluindo carrossel, envio, contraste, indicadores e PDF. A execução visual retomou os lotes salvos após pressão de memória do macOS e passou a usar um Chromium por estado.
 
+## Campos de formulário do design system
+
+A primeira captura percorreu 56 estados em notebook de 1024 px e celular de 390 px para cada referência. Contra o build de `973ff6a9`, 13 ficaram equivalentes e 43 diferiram. Contra a `main` em `773c9d4`, os 56 diferiram. As duas capturas completaram sem falha de candidato ou limitação de referência. Os estados incluem Admin, Cliente, Partner, guardas e o formulário aberto de lançamento manual.
+
+A inspeção identificou a perda de altura dos filtros de Projetos, a quebra de linha dos filtros da Visão geral no celular e fonte monoespaçada nas áreas de texto. O lote restabeleceu a altura dos filtros, o espaço para o mês e a fonte CALI. O editor de Propostas manteve a altura de linha do texto longo. A seta com recuo simétrico, o foco comum e as diferenças de densidade entre campos e filtros são intencionais.
+
+A recaptura de `f01f21fb` reuniu 16 estados por referência, com alterações visuais em todos e zero falhas. Exercitou Visão geral, Projetos, Horas, lançamento manual e editor de Propostas em Admin, além de Equipe no Cliente e prazos de Projetos no Partner. Manifesto do build sintético `05f22ad9d8687b2cbb332f8378a947ff5e708c4e103a15526173179112779bb4`. As comparações usaram um caso por navegador. O reteste da busca mede linhas e largura a 1203 × 906 e 960 × 906 e exercita Ctrl+K, filtro, Escape e navegação por Enter.
+
+O ajuste `012901b4` foi recapturado na Visão geral a 390 px contra as duas referências. O teste mede a posição dos filtros e a largura disponível para o texto selecionado. A conta e o mês cabem completos na mesma linha.
+
+A suíte de navegador do build `f01f21fb` completou 106 rotas, 32 guardas de sessão e 147 cenários de fluxo. O Chromium Headless Shell rodou os cenários de fluxo e os testes de componentes com um caso por navegador. A guarda de memória do macOS pausou a primeira passagem dos guardas de sessão. Os casos restantes foram retomados individualmente. Passaram 39 testes de componentes. Lint, tipos, build e os 133 testes da suíte base passaram após o ajuste final da Visão geral.
+
 ## Correções verificadas
 
 | Superfície | Comportamento corrigido | Prova |

@@ -50,9 +50,9 @@ Arquivos e diretórios usam nomes pela função em todo o repositório. Cada lot
 
 Componentes, páginas e módulos seguem o [design system](DESIGN_SYSTEM.md#tokens-e-tailwind). Usem utilitários Tailwind, cores por papel, até sete tons nomeados por família e o passo mais próximo da escala de texto e espaçamento. Quando uma integração, impressão ou animação exigir CSS próprio, coloquem a folha junto do dono e registrem o escopo e a ordem da cascata. O aceite local verifica tanto a interface quanto as saídas que dependem de cores resolvidas.
 
-## Próximo lote de design system
+## Revisão do design system
 
-Na fila após as rodadas da padronização atual, incluindo a repetição do Playwright no build final de TanStack Query. Os apontamentos abaixo são os primeiros casos da revisão de componentes reutilizáveis em todas as páginas, módulos, formulários e diálogos.
+A revisão de campos reutilizáveis começou após a rodada do TanStack Query. Inclui páginas, módulos, formulários e diálogos. A lista abaixo registra os critérios, e a [comparação visual](VISUAL_QA.md#campos-de-formulário-do-design-system) identifica os estados conferidos.
 
 | Superfície | Revisão e aceite |
 | --- | --- |
