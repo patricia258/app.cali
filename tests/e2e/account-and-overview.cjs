@@ -202,13 +202,22 @@ const cases = [
       assert.ok(title && copy && button);
       assert.ok(button.y - (copy.y + copy.height) <= 28, 'Ação separada do texto por espaço vazio');
       assert.ok(Math.abs(button.x - title.x) <= 2, 'Ação desalinhada do título');
-      const filters = await Promise.all([
-        page.getByRole('combobox', { name: 'Conta', exact: true }).boundingBox(),
-        page.getByRole('combobox', { name: 'Mês das horas', exact: true }).boundingBox(),
-      ]);
-      assert.ok(filters.every(Boolean));
-      assert.ok(Math.abs(filters[0].y - filters[1].y) < 1, 'Os filtros cabem na mesma linha a 390 px.');
-      assert.ok(filters[0].x + filters[0].width <= filters[1].x);
+      const filters = ['Conta', 'Mês das horas'].map((name) => page.getByRole('combobox', { name, exact: true }));
+      const [company, period] = await Promise.all(filters.map((select) => select.boundingBox()));
+      assert.ok(company && period);
+      assert.ok(Math.abs(company.y - period.y) < 1, 'Os filtros cabem na mesma linha a 390 px.');
+      assert.ok(company.x + company.width <= period.x);
+      for (const select of filters) {
+        const fits = await select.evaluate((element) => {
+          const style = getComputedStyle(element);
+          const context = document.createElement('canvas').getContext('2d');
+          context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+          const width = context.measureText(element.selectedOptions[0].text).width;
+          const innerWidth = element.clientWidth - parseFloat(style.paddingInlineStart) - parseFloat(style.paddingInlineEnd);
+          return width <= innerWidth + 1;
+        });
+        assert.ok(fits, 'O nome da conta e o mês precisam aparecer completos.');
+      }
       await snapshot('cabecalho-mobile', page.locator('.ap-title'));
       await action.click();
       await page.waitForURL((url) => url.pathname === '/admin/clientes');
