@@ -148,53 +148,53 @@ export function ReportPrintPage({ role }: Props) {
 
   if (loading) return (
     <main className="report-print-v16-state tw:grid tw:min-h-screen tw:content-center tw:gap-2.5 tw:bg-cali-day-canvas
-      tw:text-center tw:text-[#4c433e] tw:workspace-compact:flex tw:workspace-compact:flex-col tw:workspace-compact:items-center
-      tw:workspace-compact:rounded-[0.625rem] tw:workspace-compact:border tw:workspace-compact:border-solid
-      tw:workspace-compact:border-[#e9e0d8] tw:workspace-compact:bg-white tw:workspace-compact:px-[1.5625rem]
-      tw:workspace-compact:py-[2.875rem] tw:workspace-compact:text-[0.6875rem] tw:workspace-compact:text-[#82786f]">
+      tw:text-center tw:text-cali-neutral-text tw:workspace-compact:flex tw:workspace-compact:flex-col tw:workspace-compact:items-center
+      tw:workspace-compact:rounded-cali-panel tw:workspace-compact:border tw:workspace-compact:border-solid
+      tw:workspace-compact:border-cali-line tw:workspace-compact:bg-cali-neutral-surface tw:workspace-compact:px-6
+      tw:workspace-compact:py-11.5 tw:workspace-compact:text-cali-label tw:workspace-compact:text-cali-muted">
       <Loader2 className="tw:animate-spin" size={22} />Preparando versão para impressão…
     </main>
   );
   const goBack = () => role === 'client' ? navigate('/cliente/relatorios') : role === 'staff' ? navigate('/equipe/relatorios') : navigate(-1);
   if (error || !data) return (
     <main className="report-print-v16-state error tw:grid tw:min-h-screen tw:content-center tw:gap-2.5 tw:bg-cali-day-canvas
-      tw:text-center tw:text-[#4c433e] tw:workspace-compact:flex tw:workspace-compact:flex-col tw:workspace-compact:items-center
-      tw:workspace-compact:rounded-[0.625rem] tw:workspace-compact:border tw:workspace-compact:border-solid
-      tw:workspace-compact:border-[#e9e0d8] tw:workspace-compact:bg-white tw:workspace-compact:px-[1.5625rem]
-      tw:workspace-compact:py-[2.875rem] tw:workspace-compact:text-[0.6875rem] tw:workspace-compact:text-[#82786f]">
+      tw:text-center tw:text-cali-neutral-text tw:workspace-compact:flex tw:workspace-compact:flex-col tw:workspace-compact:items-center
+      tw:workspace-compact:rounded-cali-panel tw:workspace-compact:border tw:workspace-compact:border-solid
+      tw:workspace-compact:border-cali-line tw:workspace-compact:bg-cali-neutral-surface tw:workspace-compact:px-6
+      tw:workspace-compact:py-11.5 tw:workspace-compact:text-cali-label tw:workspace-compact:text-cali-muted">
       <strong>Não foi possível abrir o relatório.</strong>
-      <p className="tw:m-0 tw:text-[#7c706a]">{error}</p>
-      <button type="button" className="tw:min-h-[2.375rem] tw:justify-self-center tw:rounded-[0.5625rem] tw:border-0 tw:bg-cali-brand tw:px-3.5 tw:font-extrabold tw:text-white" onClick={goBack}>Voltar</button>
+      <p className="tw:m-0 tw:text-cali-neutral-accent">{error}</p>
+      <button type="button" className="tw:min-h-9.5 tw:justify-self-center tw:rounded-lg tw:border-0 tw:bg-cali-brand tw:px-3.5 tw:font-extrabold tw:text-cali-neutral-surface" onClick={goBack}>Voltar</button>
     </main>
   );
   return (
-    <main className="report-print-v16-page tw:min-h-screen tw:bg-[#d9d3cf] tw:text-cali-ink tw:workspace-compact:block
+    <main className="report-print-v16-page tw:min-h-screen tw:bg-cali-neutral-line tw:text-cali-ink tw:workspace-compact:block
       tw:workspace-compact:min-h-0 tw:workspace-compact:bg-transparent tw:workspace-compact:p-0">
       <div className="report-print-v16-toolbar tw:sticky tw:top-0 tw:z-5 tw:flex tw:items-center tw:justify-between
-        tw:gap-4 tw:border-0 tw:border-b tw:border-solid tw:border-[#e3dbd5] tw:bg-[#fffdfa] tw:px-[1.125rem] tw:py-3
-        tw:shadow-[0_0.375rem_1.125rem_#0000000f] tw:max-[680px]:flex-col tw:max-[680px]:items-start tw:workspace-compact:static
-        tw:workspace-compact:mb-3.5 tw:workspace-compact:gap-3.5 tw:workspace-compact:rounded-[0.5625rem]
-        tw:workspace-compact:border tw:workspace-compact:border-[#ebe4de] tw:workspace-compact:bg-white
-        tw:workspace-compact:px-3.5 tw:workspace-compact:py-[0.6875rem] tw:workspace-compact:shadow-none
+        tw:gap-4 tw:border-0 tw:border-b tw:border-solid tw:border-cali-sand-line tw:bg-cali-paper tw:px-4.5 tw:py-3
+        tw:shadow-[0_0.375rem_1.125rem_rgb(var(--cali-rgb-shadow)/0.05882)] tw:max-[680px]:flex-col tw:max-[680px]:items-start tw:workspace-compact:static
+        tw:workspace-compact:mb-3.5 tw:workspace-compact:gap-3.5 tw:workspace-compact:rounded-lg
+        tw:workspace-compact:border tw:workspace-compact:border-cali-line tw:workspace-compact:bg-cali-neutral-surface
+        tw:workspace-compact:px-3.5 tw:workspace-compact:py-3 tw:workspace-compact:shadow-none
         tw:workspace-compact:max-[42.5rem]:flex-wrap tw:workspace-compact:max-[42.5rem]:items-start">
         <div className="tw:grid tw:gap-0.5 tw:workspace-compact:flex tw:workspace-compact:flex-col tw:workspace-compact:gap-1">
-          <strong className="tw:text-xs tw:workspace-compact:text-[#3e3533]">Relatório executivo · v{data.version}</strong>
-          <span className="tw:text-[0.59375rem] tw:text-[#7f736d] tw:workspace-compact:text-[0.625rem] tw:workspace-compact:text-[#8c8079]">{data.company.name} · {data.periodName}</span>
+          <strong className="tw:text-xs tw:workspace-compact:text-cali-text">Relatório executivo · v{data.version}</strong>
+          <span className="tw:text-cali-micro tw:text-cali-neutral-accent tw:workspace-compact:text-cali-micro tw:workspace-compact:text-cali-muted">{data.company.name} · {data.periodName}</span>
         </div>
-        <div className="tw:flex tw:max-w-full tw:flex-wrap tw:gap-2 tw:workspace-compact:gap-[0.5625rem]">
-          <Button type="button" variant="unstyled" className="tw:inline-flex tw:min-h-[2.375rem] tw:cursor-pointer tw:items-center tw:gap-[0.4375rem] tw:rounded-[0.625rem]
-            tw:border tw:border-solid tw:border-[#ded4cd] tw:bg-white tw:px-[0.8125rem] tw:py-0 tw:[font-family:inherit] tw:[line-height:inherit] tw:text-[0.6875rem]
-            tw:font-extrabold tw:text-cali-brand tw:workspace-compact:h-auto tw:workspace-compact:rounded-[0.4375rem]
-            tw:workspace-compact:border-[#e7ddd5] tw:workspace-compact:py-2.5 tw:workspace-compact:font-semibold
+        <div className="tw:flex tw:max-w-full tw:flex-wrap tw:gap-2 tw:workspace-compact:gap-2">
+          <Button type="button" variant="unstyled" className="tw:inline-flex tw:min-h-9.5 tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-cali-panel
+            tw:border tw:border-solid tw:border-cali-neutral-line tw:bg-cali-neutral-surface tw:px-3 tw:py-0 tw:[font-family:inherit] tw:[line-height:inherit] tw:text-cali-label
+            tw:font-extrabold tw:text-cali-brand tw:workspace-compact:h-auto tw:workspace-compact:rounded-md
+            tw:workspace-compact:border-cali-line tw:workspace-compact:py-2.5 tw:workspace-compact:font-semibold
             tw:workspace-compact:shadow-none" onClick={goBack}><ArrowLeft size={16} />Voltar</Button>
-          <Button className="tw:inline-flex tw:min-h-[2.375rem] tw:cursor-pointer tw:items-center tw:gap-[0.4375rem] tw:rounded-[0.625rem]
-            tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-[0.8125rem] tw:py-0 tw:[font-family:inherit] tw:[line-height:inherit] tw:text-[0.6875rem]
-            tw:font-extrabold tw:text-white tw:workspace-compact:h-auto tw:workspace-compact:rounded-[0.4375rem]
+          <Button className="tw:inline-flex tw:min-h-9.5 tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-cali-panel
+            tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-3 tw:py-0 tw:[font-family:inherit] tw:[line-height:inherit] tw:text-cali-label
+            tw:font-extrabold tw:text-cali-neutral-surface tw:workspace-compact:h-auto tw:workspace-compact:rounded-md
             tw:workspace-compact:py-2.5 tw:workspace-compact:font-semibold tw:workspace-compact:shadow-none" variant="unstyled" type="button" onClick={() => void prepareAndPrint()}><Printer size={16} />Imprimir / salvar PDF</Button>
         </div>
       </div>
       <div ref={printStage} role="region" aria-label="Prévia do relatório" tabIndex={0}
-        className="report-print-v16-stage tw:max-w-full tw:overflow-x-auto tw:pt-6 tw:pb-[3.125rem]">
+        className="report-print-v16-stage tw:max-w-full tw:overflow-x-auto tw:pt-6 tw:pb-12.5">
         <WorkspaceExecutiveReportPaper
           pinnedCompanyLogo
           company={data.company}

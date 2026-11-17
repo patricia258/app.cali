@@ -95,7 +95,7 @@ export function AdminAuditPage() {
   const people = new Set(filtered.map((row) => row.actor || 'system')).size; const sensitive = filtered.filter((row) => /Excluiu|restrito|descartada|Recolheu|Cancelou/.test(row.action)).length;
 
   return <Shell role="admin"><WorkspaceAdminPage className="v2-client-module"><WorkspaceAdminContent><WorkflowPage>
-    <WorkflowHeading><div><small>BACKOFFICE / CALI RH</small><h1>Auditoria</h1><p>Quem fez o quê, quando e em qual empresa. O histórico não pode ser editado nem apagado; aqui você só responde os pedidos de privacidade.</p></div><div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]"><Button variant="workflowSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</Button></div></WorkflowHeading>
+    <WorkflowHeading><div><small>BACKOFFICE / CALI RH</small><h1>Auditoria</h1><p>Quem fez o quê, quando e em qual empresa. O histórico não pode ser editado nem apagado; aqui você só responde os pedidos de privacidade.</p></div><div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-3"><Button variant="workflowSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</Button></div></WorkflowHeading>
     {error && <InlineNotice>{error}</InlineNotice>}
     <PrivacyRequestsPanel />
     <AdminMetricsStrip metrics={[
@@ -109,10 +109,10 @@ export function AdminAuditPage() {
       <AdminListFilter aria-label="Área" value={area} onChange={(event) => setArea(event.target.value)}><option value="">Todas as áreas</option>{AREAS.map((item) => <option key={item}>{item}</option>)}</AdminListFilter>
       <AdminListFilter aria-label="Quem" value={actor} onChange={(event) => setActor(event.target.value)}><option value="">Todas as pessoas</option>{actors.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</AdminListFilter>
       <AdminListFilter aria-label="Agrupar por" value={grouping} onChange={(event) => setGrouping(event.target.value as 'day' | 'protocol')}><option value="day">Agrupar por dia</option><option value="protocol">Agrupar por protocolo</option></AdminListFilter>
-      <label className="tw:flex tw:h-[2.769rem] tw:min-w-0 tw:flex-[1_1_16.923rem] tw:items-center tw:gap-[0.615rem] tw:rounded-[0.538rem] tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:px-[0.846rem] tw:text-[#96867c] tw:focus-within:border-cali-gold">
+      <label className="tw:flex tw:h-11 tw:min-w-0 tw:flex-[1_1_16.923rem] tw:items-center tw:gap-2.5 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:text-cali-muted tw:focus-within:border-cali-gold">
         <Search size={14} className="tw:shrink-0" />
         <input
-          className="tw:min-w-0 tw:flex-1 tw:border-0 tw:bg-transparent tw:p-0 tw:text-[0.846rem]/[inherit] tw:text-[#322f2c] tw:outline-none"
+          className="tw:min-w-0 tw:flex-1 tw:border-0 tw:bg-transparent tw:p-0 tw:text-sm/[inherit] tw:text-cali-text tw:outline-none"
           aria-label="Buscar na auditoria"
           placeholder="Buscar ação, pessoa, protocolo ou detalhe"
           value={search}
@@ -132,7 +132,7 @@ export function AdminAuditPage() {
       onBack={() => setTrail('')}
     />}
     {loading && <LoadingState>Carregando auditoria…</LoadingState>}
-    {!loading && !groups.length && <div className="tw:mt-[1.231rem] tw:rounded-[0.692rem] tw:border tw:border-dashed tw:border-[#e0d3c9] tw:bg-white tw:p-[2.154rem] tw:text-center tw:text-[0.923rem]/[inherit] tw:text-[#8c7e74]">
+    {!loading && !groups.length && <div className="tw:mt-5 tw:rounded-cali-panel tw:border tw:border-dashed tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:p-8.5 tw:text-center tw:text-cali-body/[inherit] tw:text-cali-muted">
       Nenhum registro neste recorte. Amplie o período ou limpe os filtros.
     </div>}
     {!loading && groups.length > 0 && <AuditTimeline
@@ -151,7 +151,7 @@ export function AdminAuditPage() {
       onOpen={openTrail}
       onMore={() => setShown((count) => count + 60)}
     />}
-    {partial.length > 0 && <InlineNotice className="tw:mt-[1.385rem] tw:border tw:border-solid tw:border-[#ecd9b0]! tw:bg-[#fffaf1]! tw:text-[#7a5a2c]!"><strong>Auditoria incompleta:</strong> não foi possível ler {partial.join(', ')}. O restante aparece normalmente. Clique em “Atualizar”; se continuar, avise o suporte técnico.</InlineNotice>}
-    <p className="tw:mt-[1.385rem] tw:mb-[1.31rem] tw:flex tw:items-center tw:gap-[.62rem] tw:text-[.85rem]/[inherit] tw:text-[#96887e]">A lista mostra os {auditSourceLimit} registros mais recentes de cada fonte (acessos, horas, relatórios, agenda, documentos, ocorrências, equipe e projetos). Diagnósticos técnicos do sistema não aparecem.</p>
+    {partial.length > 0 && <InlineNotice className="tw:mt-5.5 tw:border tw:border-solid tw:border-cali-warning-line! tw:bg-cali-warning-surface! tw:text-cali-warning!"><strong>Auditoria incompleta:</strong> não foi possível ler {partial.join(', ')}. O restante aparece normalmente. Clique em “Atualizar”; se continuar, avise o suporte técnico.</InlineNotice>}
+    <p className="tw:mt-5.5 tw:mb-5 tw:flex tw:items-center tw:gap-2.5 tw:text-sm/[inherit] tw:text-cali-sand-text">A lista mostra os {auditSourceLimit} registros mais recentes de cada fonte (acessos, horas, relatórios, agenda, documentos, ocorrências, equipe e projetos). Diagnósticos técnicos do sistema não aparecem.</p>
   </WorkflowPage></WorkspaceAdminContent></WorkspaceAdminPage></Shell>;
 }

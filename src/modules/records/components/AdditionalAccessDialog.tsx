@@ -55,10 +55,10 @@ export function AdditionalAccessDialog({ available, error, onClose, onRequest }:
         </WorkflowDialogHeader>
         <h2>Incluir mais uma pessoa no Workspace</h2>
         <p>Indique quem deve receber acesso. A CALI confirma as condições nesta ocorrência e libera o convite.</p>
-        <div className="tw:flex tw:flex-col tw:gap-[1.15rem]">
-          <div className="tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#f0dfc0] tw:bg-[#fffaf1] tw:px-[1.23rem] tw:py-[1.08rem] tw:text-[.85rem] tw:leading-[1.6] tw:text-[#665751]">
-            <strong className="tw:mb-[.46rem] tw:block tw:text-[.92rem] tw:text-cali-brand">Antes de solicitar</strong>
-            <ul className="tw:m-0 tw:flex tw:flex-col tw:gap-[.31rem] tw:pl-[1.23rem]">
+        <div className="tw:flex tw:flex-col tw:gap-4.5">
+          <div className="tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-warning-line tw:bg-cali-warning-surface tw:px-5 tw:py-4.5 tw:text-sm tw:leading-[1.6] tw:text-cali-muted">
+            <strong className="tw:mb-2 tw:block tw:text-cali-body tw:text-cali-brand">Antes de solicitar</strong>
+            <ul className="tw:m-0 tw:flex tw:flex-col tw:gap-1 tw:pl-5">
                 <li>Cada empresa pode ter até 4 acessos ao CALI Workspace.</li>
                 <li>Todos os acessos veem as mesmas informações da empresa: projetos, entregáveis, horas, documentos, relatórios, ocorrências e equipe. Não há níveis de permissão diferentes.</li>
                 <li>O acesso adicional é contratado à parte: R$ 59,90 por mês, por acesso. Inclui login individual, histórico de registros, acompanhamento das entregas e das informações da agenda de People, suporte ao uso da plataforma e manutenção contínua.</li>
@@ -75,7 +75,7 @@ export function AdditionalAccessDialog({ available, error, onClose, onRequest }:
           </WorkspaceFormDialogFields>
           <WorkspaceFormDialogField>Observações<form.Field name="notes">{(field) => <textarea value={field.state.value} onChange={(event) => field.handleChange(event.target.value)} placeholder="Algo que a CALI precise saber sobre este acesso" />}</form.Field></WorkspaceFormDialogField>
           <WorkspaceFormDialogCheck><form.Field name="ack">{(field) => <input className="tw:m-0 tw:shrink-0 tw:accent-cali-brand" type="checkbox" checked={field.state.value} onChange={(event) => field.handleChange(event.target.checked)} />}</form.Field><span>Li e estou ciente das condições acima.</span></WorkspaceFormDialogCheck>
-          {error && <p role="alert" className="tw:m-0 tw:text-[.85rem] tw:text-[#b7495d]">{error}</p>}
+          {error && <p role="alert" className="tw:m-0 tw:text-sm tw:text-cali-danger">{error}</p>}
         </div>
         <WorkflowDialogActions>
           <button type="button" onClick={onClose}>Cancelar</button>

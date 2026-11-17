@@ -13,15 +13,15 @@ export function CompanyDataAction({ icon: Icon, tone, children, action }: Compan
   return (
     <div
       role={due ? 'alert' : undefined}
-      className={`tw:mt-[1.077rem] tw:flex tw:min-w-0 tw:flex-wrap tw:items-center tw:gap-[1.077rem] tw:rounded-[.692rem] tw:border tw:border-solid tw:px-[1.154rem] tw:py-4 tw:text-[.846rem] ${due
-        ? 'tw:border-[#f1c4bd] tw:border-l-[.308rem] tw:border-l-[#b42318] tw:bg-[#fff6f4]'
-        : 'tw:border-[#eadfd6] tw:bg-white'}`}
+      className={`tw:mt-4.5 tw:flex tw:min-w-0 tw:flex-wrap tw:items-center tw:gap-4.5 tw:rounded-cali-panel tw:border tw:border-solid tw:px-4.5 tw:py-4 tw:text-sm ${due
+        ? 'tw:border-cali-red-soft tw:border-l-[.308rem] tw:border-l-cali-danger tw:bg-cali-danger-surface'
+        : 'tw:border-cali-line tw:bg-cali-neutral-surface'}`}
     >
       <Icon
         aria-hidden="true"
-        className={`tw:size-[1.308rem] tw:shrink-0 ${due ? 'tw:text-[#b42318]' : tone === 'done' ? 'tw:text-[#1f7a4d]' : tone === 'neutral' ? 'tw:text-[#8a7a80]' : 'tw:text-[#7a1f3d]'}`}
+        className={`tw:size-5 tw:shrink-0 ${due ? 'tw:text-cali-danger' : tone === 'done' ? 'tw:text-cali-green-accent' : tone === 'neutral' ? 'tw:text-cali-neutral-accent' : 'tw:text-cali-accent'}`}
       />
-      <div className={`tw:flex tw:min-w-0 tw:flex-1 tw:basis-44 tw:flex-col tw:gap-[.308rem] tw:leading-[1.45] ${due ? 'tw:[&>strong]:text-[#8f1d14]' : ''}`}>
+      <div className={`tw:flex tw:min-w-0 tw:flex-1 tw:basis-44 tw:flex-col tw:gap-1 tw:leading-[1.45] ${due ? 'tw:[&>strong]:text-cali-red-text' : ''}`}>
         {children}
       </div>
       {action}
@@ -35,9 +35,9 @@ export function CompanyDataButton({ onClick, children, busy, danger }: { onClick
       type="button"
       disabled={busy}
       onClick={onClick}
-      className={`tw:shrink-0 tw:rounded-[.615rem] tw:border tw:border-solid tw:px-[1.231rem] tw:py-[.615rem] tw:text-[.923rem] tw:font-semibold tw:text-white tw:disabled:cursor-wait tw:disabled:opacity-60 ${danger
-        ? 'tw:border-[#b42318] tw:bg-[#b42318]'
-        : 'tw:border-[#7a1f3d] tw:bg-[#7a1f3d]'}`}
+      className={`tw:shrink-0 tw:rounded-cali-compact-control tw:border tw:border-solid tw:px-5 tw:py-2.5 tw:text-cali-body tw:font-semibold tw:text-cali-neutral-surface tw:disabled:cursor-wait tw:disabled:opacity-60 ${danger
+        ? 'tw:border-cali-danger tw:bg-cali-danger'
+        : 'tw:border-cali-accent tw:bg-cali-accent'}`}
     >
       {children}
     </button>
@@ -45,5 +45,5 @@ export function CompanyDataButton({ onClick, children, busy, danger }: { onClick
 }
 
 export function CompanyDataStatus({ failed, children }: { failed?: boolean; children: ReactNode }) {
-  return <p role={failed ? 'alert' : 'status'} className={`tw:m-0 tw:font-semibold ${failed ? 'tw:text-[#b42318]' : 'tw:text-[#1f7a4d]'}`}>{children}</p>;
+  return <p role={failed ? 'alert' : 'status'} className={`tw:m-0 tw:font-semibold ${failed ? 'tw:text-cali-danger' : 'tw:text-cali-green-accent'}`}>{children}</p>;
 }

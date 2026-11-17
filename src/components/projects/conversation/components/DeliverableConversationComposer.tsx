@@ -114,7 +114,7 @@ export function DeliverableConversationComposer({ role, visible, actorId, compan
 
   const placeholder = role === 'client' ? 'Escreva sua mensagem sobre esta entrega...'
     : visible ? 'Escreva uma mensagem para o cliente…' : 'Registre uma nota interna…';
-  return <div className={`tw:relative tw:z-[2] tw:grid tw:shrink-0 tw:grid-cols-[minmax(0,1fr)] tw:items-center tw:justify-items-center tw:gap-[.92rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#e9ddd6] tw:bg-white tw:px-[2.08rem] tw:py-[1.31rem] tw:workspace-night:border-cali-line tw:workspace-night:bg-cali-surface tw:sm:justify-items-stretch ${role === 'admin' ? 'tw:sm:grid-cols-[auto_auto_minmax(0,1fr)_auto]' : 'tw:sm:grid-cols-[auto_minmax(0,1fr)_auto]'}`}>
+  return <div className={`tw:relative tw:z-[2] tw:grid tw:shrink-0 tw:grid-cols-[minmax(0,1fr)] tw:items-center tw:justify-items-center tw:gap-3.5 tw:border-0 tw:border-t tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:px-8.5 tw:py-5 tw:workspace-night:border-cali-line tw:workspace-night:bg-cali-surface tw:sm:justify-items-stretch ${role === 'admin' ? 'tw:sm:grid-cols-[auto_auto_minmax(0,1fr)_auto]' : 'tw:sm:grid-cols-[auto_minmax(0,1fr)_auto]'}`}>
     {role === 'admin' && <DeliverableConversationChannel visible={visible} disabled={busy} onChange={changeChannel} />}
     {attachments.length > 0 && <div className="tw:order-first tw:col-span-full tw:flex tw:max-w-full tw:flex-wrap tw:gap-1.5">
       {attachments.map(({ id, file }) => <span key={id} className="tw:inline-flex tw:items-center tw:gap-2 tw:rounded-full tw:border tw:border-solid tw:border-cali-line tw:bg-(--theme-surface-soft) tw:px-2 tw:py-1 tw:text-xs">
@@ -129,8 +129,8 @@ export function DeliverableConversationComposer({ role, visible, actorId, compan
     <MentionTextarea ref={input} aria-label="Mensagem" value={draft} placeholder={placeholder} disabled={busy}
       onValueChange={(body) => updateDraft((current) => ({ ...current, body }))} rows={2} onKeyDown={(event) => {
         if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && !event.defaultPrevented) { event.preventDefault(); void send(); }
-      }} className="tw:h-[4.77rem] tw:w-full tw:resize-none tw:rounded-lg tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-[.92rem] tw:py-[.92rem] tw:[font-family:inherit] tw:text-[.923rem] tw:text-cali-text tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-accent tw:workspace-night:border-cali-input-line tw:workspace-night:bg-cali-input" />
-    <Button type="button" variant="primary" className="tw:mt-[.77rem] tw:min-h-[2.77rem] tw:disabled:cursor-not-allowed tw:disabled:opacity-40" pending={busy} disabled={!actorId || (!draft.trim() && !attachments.length)} onClick={() => void send()}>
+      }} className="tw:h-19 tw:w-full tw:resize-none tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3.5 tw:[font-family:inherit] tw:text-cali-body tw:text-cali-text tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-accent tw:workspace-night:border-cali-input-line tw:workspace-night:bg-cali-input" />
+    <Button type="button" variant="primary" className="tw:mt-3 tw:min-h-[2.77rem] tw:disabled:cursor-not-allowed tw:disabled:opacity-40" pending={busy} disabled={!actorId || (!draft.trim() && !attachments.length)} onClick={() => void send()}>
       {busy ? 'Enviando…' : 'Enviar'} <ArrowRight size={14} aria-hidden="true" />
     </Button>
     {error && <div className="tw:order-last tw:col-span-full"><InlineNotice role="alert" tone="danger">{error}</InlineNotice></div>}

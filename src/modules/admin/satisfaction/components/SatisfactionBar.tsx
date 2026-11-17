@@ -1,9 +1,9 @@
 const barTones = {
-  red: 'tw:bg-[#b7495d]',
-  yellow: 'tw:bg-[#d2a851]',
-  blue: 'tw:bg-[#6f93b8]',
-  green: 'tw:bg-[#4c9a76]',
-  gold: 'tw:bg-[#b58c52]',
+  red: 'tw:bg-cali-danger',
+  yellow: 'tw:bg-cali-orange-line',
+  blue: 'tw:bg-cali-blue-accent',
+  green: 'tw:bg-cali-teal-accent',
+  gold: 'tw:bg-cali-gold',
   brand: 'tw:bg-cali-brand',
 } as const;
 
@@ -11,7 +11,7 @@ export type SatisfactionTone = keyof typeof barTones;
 
 export function SatisfactionBar({ percent, tone = 'brand', className }: { percent: number; tone?: SatisfactionTone; className?: string }) {
   return (
-    <div aria-hidden="true" className={`tw:h-2.5 tw:overflow-hidden tw:rounded-md tw:bg-[#f3ece6] ${className ?? ''}`}>
+    <div aria-hidden="true" className={`tw:h-2.5 tw:overflow-hidden tw:rounded-md tw:bg-cali-surface-muted ${className ?? ''}`}>
       <span className={`tw:block tw:h-full tw:rounded-md ${barTones[tone]}`} style={{ width: `${percent}%` }} />
     </div>
   );

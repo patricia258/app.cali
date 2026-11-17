@@ -1,13 +1,13 @@
 import type { HourSource } from '../../../api/hours/workspace';
 
 const sourcePresentation = {
-  timer: { label: 'Timer', tone: 'tw:bg-[#f1eaff] tw:text-[#8055a5]' },
-  manual: { label: 'Manual', tone: 'tw:bg-[#fff2dc] tw:text-[#97672f]' },
-  interaction: { label: 'Interação', tone: 'tw:bg-[#e8f2fa] tw:text-[#3e83aa]' },
-  calendar: { label: 'Calendário', tone: 'tw:bg-[#e6f6ec] tw:text-[#31805a]' },
+  timer: { label: 'Timer', tone: 'tw:bg-cali-scheduled-surface tw:text-cali-scheduled' },
+  manual: { label: 'Manual', tone: 'tw:bg-cali-warning-surface tw:text-cali-warning' },
+  interaction: { label: 'Interação', tone: 'tw:bg-cali-info-surface tw:text-cali-info' },
+  calendar: { label: 'Calendário', tone: 'tw:bg-cali-success-surface tw:text-cali-success' },
 } satisfies Record<HourSource, { label: string; tone: string }>;
 
 export function HourSourceBadge({ source }: { source: HourSource }) {
   const { label, tone } = sourcePresentation[source] ?? sourcePresentation.calendar;
-  return <span className={`tw:inline-block tw:rounded-md tw:px-2.5 tw:py-1.5 tw:text-[.77rem] tw:leading-[inherit] tw:font-semibold ${tone}`}>{label}</span>;
+  return <span className={`tw:inline-block tw:rounded-md tw:px-2.5 tw:py-1.5 tw:text-xs tw:leading-[inherit] tw:font-semibold ${tone}`}>{label}</span>;
 }

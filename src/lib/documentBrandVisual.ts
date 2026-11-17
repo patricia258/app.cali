@@ -35,7 +35,7 @@ export async function resolveDocumentBrandVisual(company: { id: string; display_
   const cacheKey = JSON.stringify([company.id, originalUrl]);
   const cached = brandVisuals.get(cacheKey);
   if (cached) return cached;
-  const fallback: BrandVisual = { color: '#F7F3EE', dark: false };
+  const fallback: BrandVisual = { color: 'var(--cali-color-sand-soft)', dark: false };
   if (!originalUrl) {
     brandVisuals.set(cacheKey, fallback);
     return fallback;

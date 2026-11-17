@@ -1,3 +1,4 @@
+import { emailColors } from '../_shared/email-colors.ts';
 import type { JsonObject, JsonValue } from '../_shared/json.ts';
 import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 // CALI Forms: e-mail "Recebemos sua resposta" para quem respondeu um formulário. Chamado só pelo banco
@@ -39,24 +40,24 @@ function answerText(question: Question, value: JsonValue | undefined) {
 }
 
 function html(title: string, name: string, thankYou: string, rows: string) {
-  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#F7F3EE;font-family:Arial,Helvetica,sans-serif;color:#2B2B2B">
+  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:${emailColors.page};font-family:Arial,Helvetica,sans-serif;color:${emailColors.text}">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 14px">
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#fff;border:1px solid #E8DDD4;border-radius:18px;overflow:hidden">
-      <tr><td style="padding:20px 26px;border-bottom:1px solid #6A2838;background:#5A1E2D">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:${emailColors.surface};border:1px solid ${emailColors.line};border-radius:18px;overflow:hidden">
+      <tr><td style="padding:20px 26px;border-bottom:1px solid ${emailColors.brandLine};background:${emailColors.brand}">
         <table width="100%" cellpadding="0" cellspacing="0"><tr>
           <td align="left" valign="middle"><img src="${LOGO_URL}" alt="CALI RH" width="122" style="display:block;width:122px;max-width:122px;height:auto"></td>
           <td align="right" valign="middle"><img src="${MARK_URL}" alt="" width="48" height="48" style="display:block;width:48px;height:48px;object-fit:contain"></td>
         </tr></table>
       </td></tr>
       <tr><td style="padding:30px">
-        <div style="font-size:10px;letter-spacing:.12em;color:#B58C52;font-weight:700;margin-bottom:8px">CALI FORMS</div>
-        <h1 style="font-family:Georgia,serif;font-size:25px;line-height:1.25;font-weight:400;color:#5A1E2D;margin:0 0 14px">Recebemos sua resposta</h1>
+        <div style="font-size:10px;letter-spacing:.12em;color:${emailColors.accentText};font-weight:700;margin-bottom:8px">CALI FORMS</div>
+        <h1 style="font-family:Georgia,serif;font-size:25px;line-height:1.25;font-weight:400;color:${emailColors.brand};margin:0 0 14px">Recebemos sua resposta</h1>
         <p style="font-size:15px;line-height:1.65;margin:0 0 10px">${name ? `Olá, ${esc(name)}. ` : ""}Obrigada por responder <strong>${esc(title)}</strong>.</p>
         ${thankYou ? `<p style="font-size:15px;line-height:1.65;margin:0 0 10px">${esc(thankYou)}</p>` : ""}
-        <p style="font-size:13px;line-height:1.6;color:#6B5D63;margin:18px 0 10px">Para sua referência, uma cópia do que você enviou:</p>
-        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #E8DDD4;border-radius:12px;border-collapse:separate;overflow:hidden">${rows}</table>
+        <p style="font-size:13px;line-height:1.6;color:${emailColors.textMuted};margin:18px 0 10px">Para sua referência, uma cópia do que você enviou:</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${emailColors.line};border-radius:12px;border-collapse:separate;overflow:hidden">${rows}</table>
       </td></tr>
-      <tr><td style="padding:18px 30px;border-top:1px solid #EFE6DF;font-size:11px;line-height:1.6;color:#8C807A">
+      <tr><td style="padding:18px 30px;border-top:1px solid ${emailColors.lineSoft};font-size:11px;line-height:1.6;color:${emailColors.textMuted}">
         Este é um e-mail automático da CALI RH e não recebe respostas. Dúvidas sobre privacidade: privacidade@calirh.com.
       </td></tr>
     </table>
@@ -88,7 +89,7 @@ Deno.serve(async (req: Request) => {
     activeDelivery = { responseId: response.id, lease };
 
     const answers: JsonObject = response.answers ?? {};
-    const rows = (form.questions ?? []).filter((question) => question.kind !== "statement" && answers[question.id] !== undefined).map((question, index) => `<tr><td style="padding:11px 14px;${index ? "border-top:1px solid #EFE6DF;" : ""}font-size:12px;color:#8C807A;width:42%;vertical-align:top">${esc(question.label.replace(/\*\*|__|\*/g, ""))}</td><td style="padding:11px 14px;${index ? "border-top:1px solid #EFE6DF;" : ""}font-size:14px;color:#2B2B2B;vertical-align:top;white-space:pre-wrap">${esc(answerText(question, answers[question.id]))}</td></tr>`).join("");
+    const rows = (form.questions ?? []).filter((question) => question.kind !== "statement" && answers[question.id] !== undefined).map((question, index) => `<tr><td style="padding:11px 14px;${index ? `border-top:1px solid ${emailColors.lineSoft};` : ""}font-size:12px;color:${emailColors.textMuted};width:42%;vertical-align:top">${esc(question.label.replace(/\*\*|__|\*/g, ""))}</td><td style="padding:11px 14px;${index ? `border-top:1px solid ${emailColors.lineSoft};` : ""}font-size:14px;color:${emailColors.text};vertical-align:top;white-space:pre-wrap">${esc(answerText(question, answers[question.id]))}</td></tr>`).join("");
 
     const sent = await fetch("https://api.resend.com/emails", {
       method: "POST",

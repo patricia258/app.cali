@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 
 const statusColor = {
-  open: 'tw:bg-[#e6f6ec] tw:text-[#31805a]',
-  draft: 'tw:bg-[#fff4de] tw:text-[#9b6c21]',
-  closed: 'tw:bg-[#f1ece8] tw:text-[#8c7e74]',
+  open: 'tw:bg-cali-success-surface tw:text-cali-success',
+  draft: 'tw:bg-cali-warning-surface tw:text-cali-warning',
+  closed: 'tw:bg-cali-surface-muted tw:text-cali-muted',
 };
 
 export type FormStatus = keyof typeof statusColor;
@@ -23,10 +23,10 @@ export function FormStatusBadge({ status, children, onClick, title }: FormStatus
       type={onClick ? 'button' : undefined}
       onClick={onClick}
       title={title}
-      className={`tw:inline-flex tw:items-center tw:gap-[0.462rem] tw:whitespace-nowrap
-        tw:rounded-full tw:px-[0.769rem] tw:py-[0.308rem] tw:font-cali-body
-        tw:text-[0.846rem] tw:leading-normal tw:font-semibold tw:tracking-normal tw:normal-case
-        tw:before:size-[0.538rem] tw:before:rounded-full tw:before:bg-current tw:before:content-['']
+      className={`tw:inline-flex tw:items-center tw:gap-2 tw:whitespace-nowrap
+        tw:rounded-full tw:px-3 tw:py-1 tw:font-cali-body
+        tw:text-sm tw:leading-normal tw:font-semibold tw:tracking-normal tw:normal-case
+        tw:before:size-2 tw:before:rounded-full tw:before:bg-current tw:before:content-['']
         ${onClick ? 'tw:cursor-pointer tw:border-0' : ''} ${statusColor[status]}`}
     >
       {children}

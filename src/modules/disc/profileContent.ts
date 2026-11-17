@@ -53,7 +53,7 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
   D: {
     name: 'Executor', verb: 'resolve', verbLine: 'Resolve: decide, assume a frente e puxa o resultado.',
     oneLiner: 'Resolve. Decide com pouca informação e gosta de desafio.', firstMove: 'Agir, mesmo sem plano completo.',
-    color: '#E03A3E', ink: '#B3261E', soft: '#FCE6E6', character: '/brand/disc-d.png',
+    color: 'var(--cali-color-red-accent)', ink: 'var(--cali-color-red-accent)', soft: 'var(--cali-color-red-surface)', character: '/brand/disc-d.png',
     temperament: 'Colérico', temperamentWords: 'direto, intenso, competitivo, impaciente com demora',
     respondent: {
       summary: 'No dia a dia, você tende a ir direto ao ponto e a puxar a decisão para si quando as coisas param. Gosta de ver resultado acontecendo e se sente bem quando tem autonomia para resolver do seu jeito.',
@@ -118,7 +118,7 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
   I: {
     name: 'Comunicador', verb: 'conecta', verbLine: 'Conecta: aproxima pessoas, engaja e convence pela relação.',
     oneLiner: 'Conecta. Convence pela energia e pela relação.', firstMove: 'Falar com as pessoas.',
-    color: '#F2B705', ink: '#8A6500', soft: '#FDF3D3', character: '/brand/disc-i.png',
+    color: 'var(--cali-color-orange-accent)', ink: 'var(--cali-color-gold-text)', soft: 'var(--cali-color-gold-soft)', character: '/brand/disc-i.png',
     temperament: 'Sanguíneo', temperamentWords: 'entusiasmado, espontâneo, comunicativo, disperso sob rotina',
     respondent: {
       summary: 'No dia a dia, você aproxima pessoas e coloca energia no ambiente. Gosta de conversar, trocar ideias e trabalhar com gente, e costuma convencer mais pela relação do que pelo argumento técnico.',
@@ -183,7 +183,7 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
   S: {
     name: 'Planejador', verb: 'sustenta', verbLine: 'Sustenta: mantém o ritmo, cumpre o combinado e dá estabilidade ao time.',
     oneLiner: 'Sustenta. Mantém o time de pé e cumpre o combinado.', firstMove: 'Cuidar da estabilidade do grupo.',
-    color: '#3FA060', ink: '#2E7A47', soft: '#E2F2E7', character: '/brand/disc-s.png',
+    color: 'var(--cali-color-green-accent)', ink: 'var(--cali-color-green-accent)', soft: 'var(--cali-color-green-surface)', character: '/brand/disc-s.png',
     temperament: 'Fleumático', temperamentWords: 'calmo, constante, conciliador, evita atrito',
     respondent: {
       summary: 'No dia a dia, você é a pessoa com quem o time pode contar. Cumpre o que combina, mantém a calma e prefere um ritmo constante e previsível, em que todos sabem o que esperar.',
@@ -248,7 +248,7 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
   C: {
     name: 'Analista', verb: 'confere', verbLine: 'Confere: busca critério, dado e qualidade antes de concordar.',
     oneLiner: 'Confere. Quer critério, dado e padrão antes de concordar.', firstMove: 'Entender antes de responder.',
-    color: '#2F78DD', ink: '#1F5BB0', soft: '#E1ECFB', character: '/brand/disc-c.png',
+    color: 'var(--cali-color-violet-accent)', ink: 'var(--cali-color-violet-text)', soft: 'var(--cali-color-blue-surface)', character: '/brand/disc-c.png',
     temperament: 'Melancólico', temperamentWords: 'criterioso, profundo, reservado, exigente consigo',
     respondent: {
       summary: 'No dia a dia, você quer entender o porquê das coisas e fazer certo. Confere, organiza e segue critério, e se sente melhor quando há padrão claro e tempo para pensar.',

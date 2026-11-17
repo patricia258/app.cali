@@ -122,7 +122,7 @@ export function GestaoReport({ data }: { data: GestaoData }) {
         <div className="cpr-callout"><b>O que isso pede da liderança.</b> {highPressure ? 'Sinalizar com antecedência os picos, combinar prioridade por escrito e acompanhar quem segura mais carga.' : 'Manter a cobrança com clareza de prioridade e observar o desgaste de quem não reclama.'}</div>
   </> : null;
 
-  return <div className="cali-profile-report cali-gestao-report tw:flex tw:flex-col tw:items-center tw:gap-[1.375rem] tw:print:gap-0">
+  return <div className="cali-profile-report cali-gestao-report tw:flex tw:flex-col tw:items-center tw:gap-5.5 tw:print:gap-0">
     <Page number={1} total={total} title={title} cover protocol={protocol}>
       <div className="cpr-cover-top"><img className="cpr-cover-logo" src="/brand/cali-logo-light.png" alt="CALI RH" width={126} height={70} /><span>RELATÓRIO DE GESTÃO</span></div>
       <div className="cpr-cover-main">

@@ -12,7 +12,7 @@ function ConversationToolButton({ name, icon, label, disabled, onClick }: {
 }) {
   return (
     <button type="button" aria-label={name} title={name} disabled={disabled} onClick={onClick}
-      className="tw:inline-flex tw:min-h-[2.77rem] tw:items-center tw:gap-1.5 tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e6d9ce] tw:bg-[#fffaf7] tw:px-[.54rem] tw:workspace-night:border-cali-line tw:workspace-night:bg-cali-surface tw:text-[.846rem] tw:font-semibold tw:text-cali-text tw:motion-safe:transition-transform tw:motion-safe:hover:-translate-y-0.5">
+      className="tw:inline-flex tw:min-h-[2.77rem] tw:items-center tw:gap-1.5 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:px-2 tw:workspace-night:border-cali-line tw:workspace-night:bg-cali-surface tw:text-sm tw:font-semibold tw:text-cali-text tw:motion-safe:transition-transform tw:motion-safe:hover:-translate-y-0.5">
       <span aria-hidden="true" className="tw:text-sm">{icon}</span>
       {label && <span aria-hidden="true">{label}</span>}
     </button>
@@ -35,7 +35,7 @@ export function DeliverableConversationTools({ disabled, onFiles, onLink, onEmoj
   }
 
   return (
-    <div className="tw:relative tw:flex tw:gap-[.54rem]">
+    <div className="tw:relative tw:flex tw:gap-2">
       <ConversationToolButton name="Anexar arquivo" icon="📎" label="Anexar" disabled={disabled} onClick={() => input.current?.click()} />
       <input ref={input} type="file" accept={accept} multiple hidden onChange={(event) => {
         onFiles(event.target.files);
@@ -43,7 +43,7 @@ export function DeliverableConversationTools({ disabled, onFiles, onLink, onEmoj
       }} />
       <ConversationToolButton name="Inserir link" icon="🔗" label="Link" disabled={disabled} onClick={onLink} />
       <button ref={toggle} type="button" aria-label="Abrir emojis" title="Emojis" disabled={disabled} aria-expanded={emojiOpen} onClick={() => setEmojiOpen((current) => !current)}
-        className="tw:min-h-[2.77rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e6d9ce] tw:bg-[#fffaf7] tw:px-[.54rem] tw:workspace-night:border-cali-line tw:workspace-night:bg-cali-surface tw:motion-safe:transition-transform tw:motion-safe:hover:-translate-y-0.5">
+        className="tw:min-h-[2.77rem] tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:px-2 tw:workspace-night:border-cali-line tw:workspace-night:bg-cali-surface tw:motion-safe:transition-transform tw:motion-safe:hover:-translate-y-0.5">
         😊
       </button>
       {emojiOpen && !disabled && <div role="group" aria-label="Emojis" onKeyDown={(event) => {

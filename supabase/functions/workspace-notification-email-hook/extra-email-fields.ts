@@ -1,3 +1,4 @@
+import { emailColors } from '../_shared/email-colors.ts';
 import type { NotificationDb } from "./database.ts";
 
 type ExtraRequest = { id:string; title:string; status:string; extra_visit:boolean; online_extra_requested:boolean; request_mode:string; requested_slots:{startsAt:string}[]; admin_proposed_slots:{startsAt:string}[]; extra_visit_change_kind:string|null; extra_visit_change_was_confirmed:boolean; extra_visit_previous_slot:{startsAt:string}|null; extra_visit_change_reason:string|null };
@@ -10,7 +11,7 @@ export async function extraEmailFields(ws:NotificationDb,n:{entity_id:string;use
  if(key==="extra_new_dates"){
   if(r.status!=="client_review"||!(r.extra_visit||r.online_extra_requested)||!Array.isArray(r.admin_proposed_slots)||r.admin_proposed_slots.length<1||r.admin_proposed_slots.length>2)throw Error("No valid extra date proposal");
   fields.data_opcao_1=format(r.admin_proposed_slots[0]);fields.modalidade=r.extra_visit?"Visita presencial extra":"Reunião online extra";
-  blocks.linha_segunda_opcao=r.admin_proposed_slots.length===2?'<tr><td valign="top" width="35%" style="padding:9px 10px 9px 0;color:#8C807A;font:12px/19px Arial,Helvetica,sans-serif;">Segunda opção</td><td valign="top" style="padding:9px 0;color:#2B2B2B;font:600 14px/20px Arial,Helvetica,sans-serif;"><strong style="color:#5A1E2D;">'+escapeHtml(format(r.admin_proposed_slots[1]))+'</strong></td></tr>':"";
+  blocks.linha_segunda_opcao=r.admin_proposed_slots.length===2?`<tr><td valign="top" width="35%" style="padding:9px 10px 9px 0;color:${emailColors.textMuted};font:12px/19px Arial,Helvetica,sans-serif;">Segunda opção</td><td valign="top" style="padding:9px 0;color:${emailColors.text};font:600 14px/20px Arial,Helvetica,sans-serif;"><strong style="color:${emailColors.brand};">`+escapeHtml(format(r.admin_proposed_slots[1]))+'</strong></td></tr>':"";
  }else{
   if(!r.extra_visit||r.status!=="reschedule_review"||r.extra_visit_change_kind!=="reschedule"||!r.extra_visit_change_was_confirmed||!Array.isArray(r.requested_slots)||r.requested_slots.length!==2||!r.extra_visit_change_reason)throw Error("No eligible reschedule");
   fields.data_anterior=format(r.extra_visit_previous_slot);fields.data_opcao_1=format(r.requested_slots[0]);fields.data_opcao_2=format(r.requested_slots[1]);fields.motivo=r.extra_visit_change_reason;

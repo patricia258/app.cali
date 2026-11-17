@@ -5,9 +5,9 @@ import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 import type { WorkspaceCalendarEvent } from '../../../domain/calendar';
 
 const noticeColors: Record<string, string> = {
-  feriado: '#C79A4B',
-  atendimento: '#5E93BF',
-  comunicado: '#8A6FB0',
+  feriado: 'var(--cali-color-gold-accent)',
+  atendimento: 'var(--cali-color-blue-accent)',
+  comunicado: 'var(--cali-color-violet-accent)',
 };
 
 export function useCalendarNoticeEvents() {
@@ -24,7 +24,7 @@ export function useCalendarNoticeEvents() {
         company: 'Quadro de Avisos',
         type: 'other',
         color: noticeColors[row.category] || noticeColors.comunicado,
-        textColor: '#ffffff',
+        textColor: 'var(--cali-color-neutral-surface)',
         startsAt: `${row.notice_date}T12:00:00-03:00`,
         endsAt: `${row.notice_date}T12:00:00-03:00`,
         allDay: true,

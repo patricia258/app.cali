@@ -85,35 +85,35 @@ export function ClientSubtaskModal({ task, deliverableId, deliverableTitle, stat
   const author = (message: Message) => message.author_user_id === me ? 'Você' : (message.author_user_id && identities[message.author_user_id]?.full_name) || (message.author_role === 'client' ? 'Sua equipe' : 'CALI');
 
   return (
-    <div className="tw:fixed tw:inset-0 tw:z-1300 tw:grid tw:place-items-center tw:bg-[#2b181e75] tw:p-[1.54rem]" onMouseDown={onClose}>
-      <DialogFrame className="tw:flex tw:max-h-[min(88vh,58.46rem)] tw:w-[min(69.23rem,100%)] tw:flex-col tw:overflow-hidden tw:rounded-[1.08rem] tw:bg-white tw:font-cali-body tw:text-cali-ink tw:shadow-[0_28px_70px_rgba(43,24,30,.3)]" aria-label={`Subtarefa ${task.title}`} onMouseDown={(event) => event.stopPropagation()}>
-        <header className="tw:flex tw:items-start tw:justify-between tw:gap-[1.38rem] tw:bg-[linear-gradient(120deg,#fdf6ee,#f8ece6)] tw:px-[2.15rem] tw:pt-[1.85rem] tw:pb-[1.69rem] tw:max-[45rem]:flex-col">
+    <div className="tw:fixed tw:inset-0 tw:z-1300 tw:grid tw:place-items-center tw:bg-cali-red-inverse/46 tw:p-6" onMouseDown={onClose}>
+      <DialogFrame className="tw:flex tw:max-h-[min(88vh,58.46rem)] tw:w-[min(69.23rem,100%)] tw:flex-col tw:overflow-hidden tw:rounded-[1.08rem] tw:bg-cali-neutral-surface tw:font-cali-body tw:text-cali-ink tw:shadow-[0_28px_70px_rgb(var(--cali-rgb-red-inverse)/0.3)]" aria-label={`Subtarefa ${task.title}`} onMouseDown={(event) => event.stopPropagation()}>
+        <header className="tw:flex tw:items-start tw:justify-between tw:gap-5.5 tw:bg-[linear-gradient(120deg,var(--cali-color-gold-surface),var(--cali-color-neutral-soft))] tw:px-8.5 tw:pt-7.5 tw:pb-7 tw:max-[45rem]:flex-col">
           <div>
-            <h2 className="tw:mt-0 tw:mb-[.46rem] tw:text-[1.62rem] tw:font-extrabold">{task.title}</h2>
-            <p className="tw:m-0 tw:flex tw:flex-wrap tw:items-center tw:gap-[1.08rem] tw:text-[.96rem] tw:text-[#5f5650]">
+            <h2 className="tw:mt-0 tw:mb-2 tw:text-cali-title tw:font-extrabold">{task.title}</h2>
+            <p className="tw:m-0 tw:flex tw:flex-wrap tw:items-center tw:gap-4.5 tw:text-cali-body tw:text-cali-muted">
               <span>Parte de <strong>{deliverableTitle}</strong></span>
-              {task.protocol && <small className="tw:text-[.81rem] tw:font-bold tw:tracking-[.12em] tw:text-[#a8773f]">{task.protocol}</small>}
+              {task.protocol && <small className="tw:text-cali-detail tw:font-bold tw:tracking-[.12em] tw:text-cali-gold-accent">{task.protocol}</small>}
               {task.complexity && <ProjectComplexityBadge code={task.complexity} explain />}
             </p>
           </div>
-          <div className="tw:flex tw:shrink-0 tw:items-center tw:gap-[.77rem]">
-            <StatusBadge variant="delivery" tone={task.status === 'client_review' ? 'review' : task.status === 'todo' ? 'scheduled' : undefined} className="tw:inline-flex! tw:h-[2.62rem] tw:w-auto! tw:items-center tw:justify-center tw:rounded-[.69rem] tw:px-[1.08rem]! tw:text-[.92rem]! tw:font-bold tw:whitespace-nowrap">{statusLabel}</StatusBadge>
-            <Button type="button" variant="inlineClose" className="tw:grid! tw:size-[3.08rem]! tw:place-items-center tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#eadfd5] tw:bg-white tw:text-cali-ink" onClick={onClose}><X size={18} /></Button>
+          <div className="tw:flex tw:shrink-0 tw:items-center tw:gap-3">
+            <StatusBadge variant="delivery" tone={task.status === 'client_review' ? 'review' : task.status === 'todo' ? 'scheduled' : undefined} className="tw:inline-flex! tw:h-10.5 tw:w-auto! tw:items-center tw:justify-center tw:rounded-cali-panel tw:px-4.5! tw:text-cali-body! tw:font-bold tw:whitespace-nowrap">{statusLabel}</StatusBadge>
+            <Button type="button" variant="inlineClose" className="tw:grid! tw:size-12.5! tw:place-items-center tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:text-cali-ink" onClick={onClose}><X size={18} /></Button>
           </div>
         </header>
-        <div className="tw:overflow-y-auto tw:px-[2.15rem] tw:pt-[1.69rem] tw:pb-[2rem] tw:[scrollbar-width:none]">
-          <dl className="tw:m-0 tw:grid tw:grid-cols-2 tw:overflow-hidden tw:rounded-[.77rem] tw:border tw:border-solid tw:border-[#eadfd5]">
-            <div className="tw:flex tw:flex-col tw:gap-[.46rem] tw:px-[1.23rem] tw:py-[1.08rem] tw:leading-[1.2]">
-              <dt className="tw:text-[.85rem] tw:text-[#8a7c74]">Prazo</dt>
-              <dd className="tw:m-0 tw:text-[1.04rem] tw:font-bold tw:text-cali-brand">{task.dueAt ? formatDate(task.dueAt) : 'A definir'}</dd>
+        <div className="tw:overflow-y-auto tw:px-8.5 tw:pt-7 tw:pb-8 tw:[scrollbar-width:none]">
+          <dl className="tw:m-0 tw:grid tw:grid-cols-2 tw:overflow-hidden tw:rounded-xl tw:border tw:border-solid tw:border-cali-line">
+            <div className="tw:flex tw:flex-col tw:gap-2 tw:px-5 tw:py-4.5 tw:leading-[1.2]">
+              <dt className="tw:text-sm tw:text-cali-muted">Prazo</dt>
+              <dd className="tw:m-0 tw:text-base tw:font-bold tw:text-cali-brand">{task.dueAt ? formatDate(task.dueAt) : 'A definir'}</dd>
             </div>
-            <div className="tw:flex tw:flex-col tw:gap-[.46rem] tw:border-0 tw:border-l tw:border-solid tw:border-[#eadfd5] tw:px-[1.23rem] tw:py-[1.08rem] tw:leading-[1.2]">
-              <dt className="tw:text-[.85rem] tw:text-[#8a7c74]">Documentos entregues</dt>
-              <dd className="tw:m-0 tw:text-[1.04rem] tw:font-bold tw:text-cali-brand">{docs.length || 'Em produção'}</dd>
+            <div className="tw:flex tw:flex-col tw:gap-2 tw:border-0 tw:border-l tw:border-solid tw:border-cali-line tw:px-5 tw:py-4.5 tw:leading-[1.2]">
+              <dt className="tw:text-sm tw:text-cali-muted">Documentos entregues</dt>
+              <dd className="tw:m-0 tw:text-base tw:font-bold tw:text-cali-brand">{docs.length || 'Em produção'}</dd>
             </div>
           </dl>
           {docs.length > 0 && (
-            <div className="tw:mt-[1.08rem] tw:flex tw:flex-wrap tw:gap-[.62rem]">
+            <div className="tw:mt-4.5 tw:flex tw:flex-wrap tw:gap-2.5">
               {docs.map(({ id, storage_path: path, original_filename: filename, title }) => path && (
                 <ConversationAttachmentButton key={id} name={filename || title} detail="Documento entregue" fill onOpen={() => void open(path)} />
               ))}
@@ -131,12 +131,12 @@ export function ClientSubtaskModal({ task, deliverableId, deliverableTitle, stat
               onRequestAdjustment={() => void requestAdjustment()}
             />
           )}
-          <section className="tw:mt-[1.54rem] tw:flex tw:flex-col tw:gap-[.92rem]">
-            <div className="tw:flex tw:min-h-[2.46rem] tw:items-center tw:justify-between tw:gap-[.77rem]">
+          <section className="tw:mt-6 tw:flex tw:flex-col tw:gap-3.5">
+            <div className="tw:flex tw:min-h-[2.46rem] tw:items-center tw:justify-between tw:gap-3">
               <h4>Conversa com a CALI</h4>
               <small>{messages.length} {messages.length === 1 ? 'mensagem' : 'mensagens'}</small>
             </div>
-            <div role="log" aria-label="Mensagens da subtarefa" className="tw:flex tw:max-h-[24.62rem] tw:flex-col tw:gap-[.77rem] tw:overflow-y-auto tw:px-[.15rem] tw:py-[.46rem] tw:[scrollbar-width:none]">
+            <div role="log" aria-label="Mensagens da subtarefa" className="tw:flex tw:max-h-[24.62rem] tw:flex-col tw:gap-3 tw:overflow-y-auto tw:px-0.5 tw:py-2 tw:[scrollbar-width:none]">
               {messages.length ? messages.map((message) => (
                 <ClientSubtaskMessage
                   key={message.id}
@@ -147,19 +147,19 @@ export function ClientSubtaskModal({ task, deliverableId, deliverableTitle, stat
                   identity={message.author_user_id ? identities[message.author_user_id] : undefined}
                   onOpen={(path) => void open(path)}
                 />
-              )) : <p className="tw:m-0 tw:text-[.92rem] tw:text-[#8a7c74]">Ainda não há mensagens nesta parte.</p>}
+              )) : <p className="tw:m-0 tw:text-cali-body tw:text-cali-muted">Ainda não há mensagens nesta parte.</p>}
             </div>
             {closed ? (
-              <p className="tw:m-0 tw:text-[.92rem] tw:text-[#8a7c74]">Esta parte foi concluída. A conversa fica disponível para consulta.</p>
+              <p className="tw:m-0 tw:text-cali-body tw:text-cali-muted">Esta parte foi concluída. A conversa fica disponível para consulta.</p>
             ) : (
-              <div className="tw:flex tw:flex-col tw:gap-[.62rem]">
+              <div className="tw:flex tw:flex-col tw:gap-2.5">
                 <MentionTextarea aria-label="Mensagem para a CALI" rows={2} value={text} onValueChange={setText} placeholder="Escreva para a CALI…" onKeyDown={(event) => {
                   if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
                     event.preventDefault();
                     void send();
                   }
                 }} />
-                <div className="tw:flex tw:flex-wrap tw:items-center tw:justify-end tw:gap-[.62rem]">
+                <div className="tw:flex tw:flex-wrap tw:items-center tw:justify-end tw:gap-2.5">
                   <input ref={fileInput} type="file" hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.docx,.xlsx,.pptx" onChange={(event) => {
                     setFile(event.target.files?.[0] || null);
                     event.target.value = '';
@@ -168,14 +168,14 @@ export function ClientSubtaskModal({ task, deliverableId, deliverableTitle, stat
                     type="button"
                     variant="unstyled"
                     title="PDF, imagem, Word, Excel ou PowerPoint, até 10 MB"
-                    className="tw:inline-flex tw:h-[3.08rem] tw:max-w-[18.46rem] tw:cursor-pointer tw:items-center tw:gap-[.54rem] tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-[1.08rem] tw:text-[.92rem] tw:font-bold tw:text-cali-brand"
+                    className="tw:inline-flex tw:h-12.5 tw:max-w-[18.46rem] tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-4.5 tw:text-cali-body tw:font-bold tw:text-cali-brand"
                     onClick={() => fileInput.current?.click()}
                   ><Paperclip size={14} /><span className="tw:truncate">{file ? file.name : 'Anexar'}</span></Button>
                   <Button
                     type="button"
                     variant="unstyled"
                     disabled={busy || (!text.trim() && !file)}
-                    className="tw:inline-flex tw:h-[3.08rem] tw:cursor-pointer tw:items-center tw:gap-[.46rem] tw:rounded-[.69rem] tw:border-0 tw:bg-cali-brand tw:px-[1.23rem] tw:text-[.92rem] tw:font-bold tw:text-white tw:disabled:cursor-default tw:disabled:opacity-45"
+                    className="tw:inline-flex tw:h-12.5 tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-cali-panel tw:border-0 tw:bg-cali-brand tw:px-5 tw:text-cali-body tw:font-bold tw:text-cali-neutral-surface tw:disabled:cursor-default tw:disabled:opacity-45"
                     onClick={() => void send()}
                   ><Send size={14} />{busy ? 'Enviando…' : 'Enviar'}</Button>
                 </div>
@@ -183,7 +183,7 @@ export function ClientSubtaskModal({ task, deliverableId, deliverableTitle, stat
               </div>
             )}
           </section>
-          {notice && <p className="tw:mt-[1.08rem] tw:rounded-[.69rem] tw:border tw:border-l-[.31rem] tw:border-solid tw:border-[#efc9a0] tw:border-l-[#d98a2b] tw:bg-[#fff7ea] tw:px-[1rem] tw:py-[.77rem] tw:text-[.92rem] tw:font-semibold tw:text-[#6b4310]" role="alert">{notice}</p>}
+          {notice && <p className="tw:mt-4.5 tw:rounded-cali-panel tw:border tw:border-l-[.31rem] tw:border-solid tw:border-cali-orange-soft tw:border-l-cali-orange-accent tw:bg-cali-gold-surface tw:px-4 tw:py-3 tw:text-cali-body tw:font-semibold tw:text-cali-gold-strong" role="alert">{notice}</p>}
         </div>
       </DialogFrame>
     </div>

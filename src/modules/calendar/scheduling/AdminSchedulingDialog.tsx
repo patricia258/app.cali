@@ -31,7 +31,7 @@ export function AdminSchedulingDialog({ selection, onClose, onSaved }: {
         }}
       >
         <label className="tw:mb-4 tw:flex tw:flex-col tw:gap-2">
-          <span className="tw:text-[0.6875rem] tw:font-black tw:text-cali-muted tw:uppercase">Valor em reais (tabela: 1 hora R$ 200 · 1h30 R$ 300)</span>
+          <span className="tw:text-cali-label tw:font-black tw:text-cali-muted tw:uppercase">Valor em reais (tabela: 1 hora R$ 200 · 1h30 R$ 300)</span>
           <input name="amount" type="number" min="1" step="0.01" defaultValue={longMeeting ? 300 : 200} required
             className="tw:w-full tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-input tw:px-3.5 tw:py-3 tw:text-cali-text"
           />
@@ -108,7 +108,7 @@ export function AdminSchedulingDialog({ selection, onClose, onSaved }: {
     >
       <SchedulingFields>
         <label className="tw:col-span-full tw:flex tw:flex-col tw:gap-2">
-          <span className="tw:text-[0.6875rem] tw:font-black tw:text-cali-muted tw:uppercase">Duração</span>
+          <span className="tw:text-cali-label tw:font-black tw:text-cali-muted tw:uppercase">Duração</span>
           <select name="duration" defaultValue={duration} className="tw:w-full tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-input tw:px-3.5 tw:py-3 tw:text-cali-text">
             {request.extra_visit ? <option value={240}>4 horas</option> : (
               <>

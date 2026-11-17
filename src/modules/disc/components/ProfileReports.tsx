@@ -44,9 +44,9 @@ export function Page({ children, number, total, title, cover, protocol }: { chil
     {cover && <img className="cpr-cover-leaf" src="/brand/cali-cover-leaf.png" alt="" aria-hidden="true" width={720} height={720} />}
     {!cover && <header className="cpr-head tw:flex tw:items-center tw:justify-between">
       <img src="/brand/cali-rh-bordo.png" alt="CALI RH" width={64} height={30} />
-      <span className="tw:text-[0.625rem] tw:font-bold tw:tracking-[0.12em] tw:text-[color:var(--gold)] tw:uppercase">{title}</span>
+      <span className="tw:text-cali-micro tw:font-bold tw:tracking-[0.12em] tw:text-[color:var(--gold)] tw:uppercase">{title}</span>
     </header>}
-    <div className={['cpr-body tw:flex tw:flex-1 tw:flex-col tw:[&>*]:shrink-0', cover ? 'tw:justify-between tw:gap-0 tw:overflow-visible tw:p-0' : 'tw:gap-[0.875rem] tw:overflow-hidden'].join(' ')}>{children}</div>
+    <div className={['cpr-body tw:flex tw:flex-1 tw:flex-col tw:[&>*]:shrink-0', cover ? 'tw:justify-between tw:gap-0 tw:overflow-visible tw:p-0' : 'tw:gap-3.5 tw:overflow-hidden'].join(' ')}>{children}</div>
     {!cover && <footer className="cpr-foot tw:flex tw:justify-between"><span>CALI RH · HR for Business · calirh.com{protocol ? (protocol.startsWith('CALI-') ? ` · Protocolo ${protocol}` : ` · ${protocol}`) : ''}</span><span>{String(number).padStart(2, '0')} / {String(total).padStart(2, '0')}</span></footer>}
   </section>;
 }
@@ -109,7 +109,7 @@ export function RespondentReport({ result, signer }: { result: ProfileResultView
   const plan = result.mixed ? [p.respondent.plan[0], p.respondent.plan[1], s.respondent.plan[0]] : p.respondent.plan;
   const total = 7;
   const title = 'Perfil Comportamental · seu relatório';
-  return <div className="cali-profile-report tw:flex tw:flex-col tw:items-center tw:gap-[1.375rem] tw:print:gap-0">
+  return <div className="cali-profile-report tw:flex tw:flex-col tw:items-center tw:gap-5.5 tw:print:gap-0">
     <Page number={1} total={total} title={title} cover protocol={result.protocol}>
       <div className="cpr-cover-top"><img className="cpr-cover-logo" src="/brand/cali-logo-light.png" alt="CALI RH" width={126} height={70} /><span>PERFIL COMPORTAMENTAL</span></div>
       <div className="cpr-cover-main">
@@ -125,7 +125,7 @@ export function RespondentReport({ result, signer }: { result: ProfileResultView
       <small className="cpr-eyebrow">SEU RESULTADO</small>
       <h2>Seus quatro estilos</h2>
       <p>O losango mostra o formato do seu perfil; as barras, a intensidade de cada estilo no seu dia a dia de trabalho.</p>
-      <div className="cpr-chart-row tw:flex tw:items-center tw:gap-[1.375rem]"><ProfileRadar natural={natural} size={320} /><ul className="cpr-styles-line">{STYLES.map((style) => <li key={style}><b style={{ color: STYLE_CONTENT[style].ink }}>{style} · {STYLE_CONTENT[style].name}</b><span>{STYLE_CONTENT[style].verbLine}</span></li>)}</ul></div>
+      <div className="cpr-chart-row tw:flex tw:items-center tw:gap-5.5"><ProfileRadar natural={natural} size={320} /><ul className="cpr-styles-line">{STYLES.map((style) => <li key={style}><b style={{ color: STYLE_CONTENT[style].ink }}>{style} · {STYLE_CONTENT[style].name}</b><span>{STYLE_CONTENT[style].verbLine}</span></li>)}</ul></div>
       <small className="cpr-eyebrow">INTENSIDADE, COM A MARGEM DE LEITURA</small>
       <ProfileBandBars values={natural} margin={MARGIN.natural} plain />
       <p className="cpr-note"><b>Como ler:</b> o ponto mostra onde você está e a faixa colorida em volta, a variação natural da leitura. Quando ela cruza a fronteira entre duas faixas, aparece &quot;no limite com&quot;. {BAND_EXPLAIN} Estilo baixo não é defeito: mostra o que você usa menos, não o que você não sabe fazer.</p>
@@ -239,7 +239,7 @@ export function EvaluatorReport({ result, team, base, signer, editableRole, onRo
   const concentrated = STYLES.filter((style) => teamTotal && teamCount[style] / teamTotal >= 0.5);
   const missing = STYLES.filter((style) => teamTotal && !teamCount[style]);
 
-  return <div className="cali-profile-report tw:flex tw:flex-col tw:items-center tw:gap-[1.375rem] tw:print:gap-0">
+  return <div className="cali-profile-report tw:flex tw:flex-col tw:items-center tw:gap-5.5 tw:print:gap-0">
     <Page number={1} total={total} title={title} cover protocol={result.protocol}>
       <div className="cpr-cover-top"><img className="cpr-cover-logo" src="/brand/cali-logo-light.png" alt="CALI RH" width={126} height={70} /><span>PERFIL COMPORTAMENTAL · AVALIADOR</span></div>
       <div className="cpr-cover-main">

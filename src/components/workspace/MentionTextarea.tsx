@@ -68,7 +68,7 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, Props>(function M
   const estimatedHeight = matches.length * 44 + 12;
   const popup = open && mention && createPortal(
     <div id={listId} role="listbox" aria-label="Mencionar uma pessoa"
-      className="tw:fixed tw:z-[2147483000] tw:max-h-[17.25rem] tw:w-[17.5rem] tw:max-w-[calc(100vw-1.5rem)] tw:overflow-y-auto tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:p-1.5 tw:font-cali-body tw:shadow-[0_.875rem_2.125rem_#2b181e2e] tw:[scrollbar-width:none]"
+      className="tw:fixed tw:z-[2147483000] tw:max-h-69 tw:w-70 tw:max-w-[calc(100vw-1.5rem)] tw:overflow-y-auto tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:p-1.5 tw:font-cali-body tw:shadow-[0_.875rem_2.125rem_rgb(var(--cali-rgb-red-inverse)/0.1804)] tw:[scrollbar-width:none]"
       style={{ left: mention.left, top: mention.top > estimatedHeight + 16 ? mention.top - estimatedHeight - 6 : mention.bottom + 6 }}>
       {matches.map((person, index) => <button key={person.id} id={`${listId}-${person.id}`} type="button" role="option" tabIndex={-1} aria-selected={index === current}
         onPointerDown={(event) => event.preventDefault()} onClick={() => choose(person)}

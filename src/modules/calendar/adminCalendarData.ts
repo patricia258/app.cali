@@ -1,3 +1,4 @@
+import { caliPalette } from '../../../supabase/functions/_shared/cali-palette';
 import { readAdminCalendar, readMeetingOutcomes } from '../../api/calendar/admin';
 import { calendarTypeMeta, type CalendarAttendee, type CalendarEventType, type WorkspaceCalendarEvent } from '../../domain/calendar';
 
@@ -153,7 +154,7 @@ export async function loadAdminCalendarData(staff: boolean) {
       id: `request-preview-${row.id}-${index}`, title: row.title || (row.request_mode === 'in_person' ? 'Visita presencial' : 'Reunião online'),
       companyId: row.company_id, company: companyMap.get(row.company_id ?? '')?.name || null, companyLogo: companyMap.get(row.company_id ?? '')?.logoUrl,
       companyLogoFallback: companyMap.get(row.company_id ?? '')?.logoFallbackUrl,
-      type: 'meeting' as const, color: '#A66A37', startsAt: slot.startsAt, endsAt: slot.endsAt || null, allDay: false,
+      type: 'meeting' as const, color: caliPalette.orange.dark, startsAt: slot.startsAt, endsAt: slot.endsAt || null, allDay: false,
       mode: row.request_mode, location: row.location, description: row.purpose,
       visibility: 'internal' as const, attendees: [], sourceType: 'request_preview' as const,
       sourceEntityId: row.id, previewStatus: row.status, previewOption: index + 1, synthetic: true,

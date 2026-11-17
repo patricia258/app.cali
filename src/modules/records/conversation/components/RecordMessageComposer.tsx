@@ -103,11 +103,11 @@ export function RecordMessageComposer({ role, partner, companyId, recordId, acto
   }
 
   const busy = isPending || uploading;
-  const toolClass = 'tw:inline-flex tw:cursor-pointer tw:items-center tw:justify-center tw:gap-[.46rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e7ddd5] tw:bg-white tw:p-[.62rem] tw:text-[.92rem] tw:leading-none tw:text-cali-brand';
+  const toolClass = 'tw:inline-flex tw:cursor-pointer tw:items-center tw:justify-center tw:gap-2 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-2.5 tw:text-cali-body tw:leading-none tw:text-cali-brand';
   const sendClass = 'tw:col-start-2 tw:justify-self-end tw:disabled:cursor-not-allowed tw:disabled:opacity-40';
   return (
-    <div className="tw:grid tw:shrink-0 tw:grid-cols-[minmax(0,1fr)_auto] tw:items-center tw:gap-x-[.77rem] tw:gap-y-[.62rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#eadfd6] tw:bg-white tw:px-[1.85rem] tw:pt-[.92rem] tw:pb-[1.08rem]" data-v2-operation="conversation-compose">
-      <div className="tw:col-span-full tw:text-[.85rem] tw:font-bold">
+    <div className="tw:grid tw:shrink-0 tw:grid-cols-[minmax(0,1fr)_auto] tw:items-center tw:gap-x-3 tw:gap-y-2.5 tw:border-0 tw:border-t tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-7.5 tw:pt-3.5 tw:pb-4.5" data-v2-operation="conversation-compose">
+      <div className="tw:col-span-full tw:text-sm tw:font-bold">
         <label htmlFor={id}>{partner && internal ? 'Nota interna para a Patricia' : role === 'admin' ? 'Responder ao cliente' : 'Responder nesta ocorrência'}</label>
       </div>
       {!partner && attachments.length > 0 && <div className="tw:col-span-full tw:flex tw:flex-wrap tw:gap-1.5">
@@ -117,7 +117,7 @@ export function RecordMessageComposer({ role, partner, companyId, recordId, acto
       </div>}
       <MentionTextarea
         ref={input}
-        className="tw:col-span-full tw:h-[4rem] tw:min-h-[4rem] tw:w-full tw:resize-y tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-[.92rem] tw:py-[.77rem] tw:[font-family:inherit] tw:text-[.92rem] tw:text-cali-text"
+        className="tw:col-span-full tw:h-16 tw:min-h-16 tw:w-full tw:resize-y tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:[font-family:inherit] tw:text-cali-body tw:text-cali-text"
         id={id}
         rows={3}
         value={draft}
@@ -126,19 +126,19 @@ export function RecordMessageComposer({ role, partner, companyId, recordId, acto
         onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }}
       />
       <input ref={fileInput} type="file" hidden multiple={!partner} accept={accept} onChange={(event) => { chooseFiles(event.target.files); event.target.value = ''; }} />
-      {partner ? <div className="tw:col-span-full tw:flex tw:flex-wrap tw:items-center tw:justify-end tw:gap-[.77rem] tw:[&>*]:my-0!">
-        <span className="tw:inline-flex tw:h-[2.77rem] tw:w-auto tw:items-stretch tw:self-center tw:overflow-hidden tw:rounded-[.538rem] tw:border tw:border-solid tw:border-[#e7ddd5] tw:bg-white" role="tablist" aria-label="Para quem">
-          <button type="button" role="tab" aria-selected={!internal} className="tw:inline-flex tw:h-auto tw:w-auto tw:cursor-pointer tw:items-center tw:rounded-none tw:border-0 tw:bg-white tw:px-[.923rem] tw:py-[.462rem] tw:text-[.846rem] tw:font-semibold tw:text-[#8b7f77] tw:aria-selected:bg-cali-brand tw:aria-selected:text-white" onClick={() => setInternal(false)}>Cliente</button>
-          <button type="button" role="tab" aria-selected={internal} className="tw:inline-flex tw:h-auto tw:w-auto tw:cursor-pointer tw:items-center tw:rounded-none tw:border-0 tw:bg-white tw:px-[.923rem] tw:py-[.462rem] tw:text-[.846rem] tw:font-semibold tw:text-[#8b7f77] tw:aria-selected:bg-cali-brand tw:aria-selected:text-white" onClick={() => setInternal(true)}>Interno</button>
+      {partner ? <div className="tw:col-span-full tw:flex tw:flex-wrap tw:items-center tw:justify-end tw:gap-3 tw:[&>*]:my-0!">
+        <span className="tw:inline-flex tw:h-11 tw:w-auto tw:items-stretch tw:self-center tw:overflow-hidden tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface" role="tablist" aria-label="Para quem">
+          <button type="button" role="tab" aria-selected={!internal} className="tw:inline-flex tw:h-auto tw:w-auto tw:cursor-pointer tw:items-center tw:rounded-none tw:border-0 tw:bg-cali-neutral-surface tw:px-3.5 tw:py-2 tw:text-sm tw:font-semibold tw:text-cali-muted tw:aria-selected:bg-cali-brand tw:aria-selected:text-cali-neutral-surface" onClick={() => setInternal(false)}>Cliente</button>
+          <button type="button" role="tab" aria-selected={internal} className="tw:inline-flex tw:h-auto tw:w-auto tw:cursor-pointer tw:items-center tw:rounded-none tw:border-0 tw:bg-cali-neutral-surface tw:px-3.5 tw:py-2 tw:text-sm tw:font-semibold tw:text-cali-muted tw:aria-selected:bg-cali-brand tw:aria-selected:text-cali-neutral-surface" onClick={() => setInternal(true)}>Interno</button>
         </span>
-        <Button variant="secondary" className="tw:ml-auto tw:inline-flex tw:h-[2.77rem] tw:min-h-[2.77rem] tw:max-w-[16.92rem] tw:items-center tw:gap-[.538rem] tw:px-[1rem]! tw:[&_span]:truncate" type="button" disabled={busy} title={attachments[0] ? 'Clique para trocar o arquivo' : 'PDF, imagem, Word, Excel ou PowerPoint, até 10 MB'} onClick={() => fileInput.current?.click()}><Paperclip size={14} /><span>{attachments[0]?.file.name ?? 'Anexar'}</span></Button>
+        <Button variant="secondary" className="tw:ml-auto tw:inline-flex tw:h-11 tw:min-h-[2.77rem] tw:max-w-[16.92rem] tw:items-center tw:gap-2 tw:px-4! tw:[&_span]:truncate" type="button" disabled={busy} title={attachments[0] ? 'Clique para trocar o arquivo' : 'PDF, imagem, Word, Excel ou PowerPoint, até 10 MB'} onClick={() => fileInput.current?.click()}><Paperclip size={14} /><span>{attachments[0]?.file.name ?? 'Anexar'}</span></Button>
         <Button variant="primary" type="button" pending={busy} disabled={!draft.trim() && !attachments.length} onClick={() => void send()}><Send size={14} />{busy ? 'Enviando…' : 'Enviar'}</Button>
       </div> : <>
-        <div className="tw:relative tw:col-start-1 tw:flex tw:items-center tw:gap-[.62rem]">
-          <button type="button" className={toolClass} aria-label="Anexar arquivo" title="Anexar arquivo" disabled={busy} onClick={() => fileInput.current?.click()}>📎 <span aria-hidden="true" className="tw:text-[.85rem] tw:font-semibold">Anexar</span></button>
-          <button type="button" className={toolClass} aria-label="Inserir link" title="Inserir link" onClick={() => setLinkOpen(true)}>🔗 <span aria-hidden="true" className="tw:text-[.85rem] tw:font-semibold">Link</span></button>
+        <div className="tw:relative tw:col-start-1 tw:flex tw:items-center tw:gap-2.5">
+          <button type="button" className={toolClass} aria-label="Anexar arquivo" title="Anexar arquivo" disabled={busy} onClick={() => fileInput.current?.click()}>📎 <span aria-hidden="true" className="tw:text-sm tw:font-semibold">Anexar</span></button>
+          <button type="button" className={toolClass} aria-label="Inserir link" title="Inserir link" onClick={() => setLinkOpen(true)}>🔗 <span aria-hidden="true" className="tw:text-sm tw:font-semibold">Link</span></button>
           <button type="button" className={toolClass} aria-label="Abrir emojis" title="Emojis" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((open) => !open)}>😊</button>
-          {emojiOpen && <div className="tw:absolute tw:bottom-[calc(100%+.62rem)] tw:left-0 tw:z-5 tw:flex tw:max-w-[18.46rem] tw:flex-wrap tw:gap-[.31rem] tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#ebe0d8] tw:bg-white tw:p-[.62rem] tw:shadow-[0_.92rem_2.31rem_#34202121]" aria-label="Emojis">{emojis.map((emoji) => <button key={emoji} type="button" className="tw:rounded-[.38rem] tw:border-0 tw:bg-transparent tw:p-[.31rem] tw:text-[1.15rem]" onClick={() => { setDraft((current) => current + emoji); setEmojiOpen(false); input.current?.focus(); }}>{emoji}</button>)}</div>}
+          {emojiOpen && <div className="tw:absolute tw:bottom-[calc(100%+.62rem)] tw:left-0 tw:z-5 tw:flex tw:max-w-[18.46rem] tw:flex-wrap tw:gap-1 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:p-2.5 tw:shadow-[0_.92rem_2.31rem_rgb(var(--cali-rgb-red-inverse)/0.1294)]" aria-label="Emojis">{emojis.map((emoji) => <button key={emoji} type="button" className="tw:rounded-md tw:border-0 tw:bg-transparent tw:p-1 tw:text-lg" onClick={() => { setDraft((current) => current + emoji); setEmojiOpen(false); input.current?.focus(); }}>{emoji}</button>)}</div>}
         </div>
         <Button className={sendClass} variant="primary" type="button" pending={busy} disabled={!draft.trim() && !attachments.length} onClick={() => void send()}><Send size={14} />{busy ? 'Enviando…' : 'Enviar'}</Button>
       </>}

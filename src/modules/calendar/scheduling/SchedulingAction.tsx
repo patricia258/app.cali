@@ -18,12 +18,12 @@ export function SchedulingAction({ tone = 'secondary', size = 'normal', type = '
         tw:data-[size=compact]:data-[tone=primary]:rounded-lg tw:data-[size=compact]:data-[tone=primary]:font-semibold
         tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-accent
         tw:disabled:cursor-default tw:disabled:opacity-45
-        tw:data-[tone=primary]:border-cali-brand tw:data-[tone=primary]:bg-cali-brand tw:data-[tone=primary]:text-white
-        tw:data-[tone=secondary]:border-[color:var(--theme-line,#e9dbd0)] tw:data-[tone=secondary]:bg-[color:var(--theme-surface,#fff)] tw:data-[tone=secondary]:text-cali-text
-        tw:data-[tone=danger]:border-[#dfc3c9] tw:data-[tone=danger]:bg-[#fff9fa] tw:data-[tone=danger]:text-[#8b3246]
-        tw:workspace-night:data-[tone=primary]:border-[#7a2942] tw:workspace-night:data-[tone=primary]:bg-[#7a2942]
-        tw:workspace-night:data-[tone=secondary]:border-[#554047] tw:workspace-night:data-[tone=secondary]:bg-[#2c2024] tw:workspace-night:data-[tone=secondary]:text-[#eee3e6]
-        tw:workspace-night:data-[tone=danger]:border-[#554047] tw:workspace-night:data-[tone=danger]:bg-[#2c2024] tw:workspace-night:data-[tone=danger]:text-[#eee3e6]
+        tw:data-[tone=primary]:border-cali-brand tw:data-[tone=primary]:bg-cali-brand tw:data-[tone=primary]:text-cali-neutral-surface
+        tw:data-[tone=secondary]:border-[color:var(--theme-line,var(--cali-color-sand-line))] tw:data-[tone=secondary]:bg-[color:var(--theme-surface,var(--cali-color-neutral-surface))] tw:data-[tone=secondary]:text-cali-text
+        tw:data-[tone=danger]:border-cali-red-soft tw:data-[tone=danger]:bg-cali-neutral-surface tw:data-[tone=danger]:text-cali-red-strong
+        tw:workspace-night:data-[tone=primary]:border-cali-red-strong tw:workspace-night:data-[tone=primary]:bg-cali-red-strong
+        tw:workspace-night:data-[tone=secondary]:border-cali-line-strong tw:workspace-night:data-[tone=secondary]:bg-cali-surface-muted tw:workspace-night:data-[tone=secondary]:text-cali-text
+        tw:workspace-night:data-[tone=danger]:border-cali-line-strong tw:workspace-night:data-[tone=danger]:bg-cali-surface-muted tw:workspace-night:data-[tone=danger]:text-cali-text
         ${className ?? ''}`}
     />
   );

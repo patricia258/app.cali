@@ -18,7 +18,7 @@ export function ClientScheduleApprovalDialog({ project, onClose, onSaved }: Prop
     <div className="tw:grid tw:grid-cols-2 tw:gap-3 tw:max-sm:grid-cols-1">
       <strong className="tw:col-span-full tw:text-sm">{project.name}</strong>
       <p className="tw:col-span-full tw:m-0 tw:text-xs tw:leading-relaxed tw:text-cali-muted">Ao aprovar, você confirma que concorda com este cronograma e a CALI começa a executar o projeto.</p>
-      <dl className="tw:contents tw:[&_div]:grid tw:[&_div]:min-w-0 tw:[&_div]:gap-1 tw:[&_div]:rounded-lg tw:[&_div]:border tw:[&_div]:border-solid tw:[&_div]:border-cali-line tw:[&_div]:bg-(--theme-surface-soft) tw:[&_div]:px-3.5 tw:[&_div]:py-3 tw:[&_dt]:text-[.6875rem] tw:[&_dt]:text-cali-muted tw:[&_dd]:m-0 tw:[&_dd]:text-sm tw:[&_dd]:font-bold tw:[&_dd]:text-cali-accent">
+      <dl className="tw:contents tw:[&_div]:grid tw:[&_div]:min-w-0 tw:[&_div]:gap-1 tw:[&_div]:rounded-lg tw:[&_div]:border tw:[&_div]:border-solid tw:[&_div]:border-cali-line tw:[&_div]:bg-(--theme-surface-soft) tw:[&_div]:px-3.5 tw:[&_div]:py-3 tw:[&_dt]:text-cali-label tw:[&_dt]:text-cali-muted tw:[&_dd]:m-0 tw:[&_dd]:text-sm tw:[&_dd]:font-bold tw:[&_dd]:text-cali-accent">
         <div><dt>Início planejado</dt><dd>{scheduleReviewDate(project.start_date || project.roadmap_start_date)}</dd></div>
         <div><dt>Conclusão prevista</dt><dd>{scheduleReviewDate(project.roadmap_end_date)}</dd></div>
       </dl>

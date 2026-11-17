@@ -33,28 +33,28 @@ function NoticePreview({
   placeholder?: ReactNode;
 }) {
   const className =
-    'tw:flex tw:w-full tw:min-w-0 tw:flex-col tw:overflow-hidden tw:rounded-[0.692rem] tw:border tw:border-solid tw:border-[#e9e0d9] tw:bg-white tw:p-0 tw:text-left tw:[&:nth-child(2)_small]:bg-[#f3eaf7] tw:[&:nth-child(2)_small]:text-[#76569c]';
+    'tw:flex tw:w-full tw:min-w-0 tw:flex-col tw:overflow-hidden tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:p-0 tw:text-left tw:[&:nth-child(2)_small]:bg-cali-violet-surface tw:[&:nth-child(2)_small]:text-cali-violet-text';
   const contents = (
     <>
-      <div className="tw:flex tw:min-h-[8.615rem] tw:flex-col tw:items-start tw:gap-[0.538rem] tw:px-[0.692rem] tw:pt-[0.769rem] tw:pb-[0.615rem]">
-        <small className="tw:rounded-[0.385rem] tw:bg-[#fff0df] tw:px-[0.538rem] tw:py-[0.308rem] tw:text-[0.692rem] tw:font-extrabold tw:tracking-[0.035rem] tw:text-[#9e6d35]">
+      <div className="tw:flex tw:min-h-[8.615rem] tw:flex-col tw:items-start tw:gap-2 tw:px-3 tw:pt-3 tw:pb-2.5">
+        <small className="tw:rounded-md tw:bg-cali-orange-surface tw:px-2 tw:py-1 tw:text-cali-label tw:font-extrabold tw:tracking-[0.035rem] tw:text-cali-gold-text">
           {label}
         </small>
-        <strong className="tw:text-[0.846rem]/[1.3] tw:text-[#352b2d]">{title}</strong>
-        <span className="tw:text-[0.692rem] tw:text-[#9e9187]">{description}</span>
+        <strong className="tw:text-sm/[1.3] tw:text-cali-neutral-strong">{title}</strong>
+        <span className="tw:text-cali-label tw:text-cali-sand-text">{description}</span>
       </div>
       {coverUrl ? (
         <img
-          className="tw:block tw:h-[9.077rem] tw:w-full tw:flex-none tw:object-cover tw:max-[37.5rem]:h-[7.692rem]"
+          className="tw:block tw:h-[9.077rem] tw:w-full tw:flex-none tw:object-cover tw:max-[37.5rem]:h-31"
           src={coverUrl}
           alt=""
         />
       ) : (
-        <div className="tw:grid tw:h-[9.077rem] tw:w-full tw:flex-none tw:place-items-center tw:bg-[#faf7f4] tw:text-[#aa814f] tw:max-[37.5rem]:h-[7.692rem]">
+        <div className="tw:grid tw:h-[9.077rem] tw:w-full tw:flex-none tw:place-items-center tw:bg-cali-surface-soft tw:text-cali-gold-accent tw:max-[37.5rem]:h-31">
           {placeholder}
         </div>
       )}
-      <div className="tw:flex tw:flex-wrap tw:justify-between tw:gap-[0.462rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#f0e8e2] tw:px-[0.538rem] tw:py-[0.692rem] tw:text-[0.692rem] tw:text-[#7a5261] tw:max-[36.25rem]:flex-col tw:[&_span]:flex tw:[&_span]:items-center tw:[&_span]:gap-[0.385rem]">
+      <div className="tw:flex tw:flex-wrap tw:justify-between tw:gap-2 tw:border-0 tw:border-t tw:border-solid tw:border-cali-neutral-soft tw:px-2 tw:py-3 tw:text-cali-label tw:text-cali-neutral-text tw:max-[36.25rem]:flex-col tw:[&_span]:flex tw:[&_span]:items-center tw:[&_span]:gap-1.5">
         {footer}
       </div>
     </>
@@ -98,18 +98,18 @@ export function ClientHomeNotices({
 
   return (
     <section
-      className="tw:min-w-0 tw:rounded-[0.923rem] tw:border tw:border-solid tw:border-[#e9ded4] tw:bg-white tw:p-[1.385rem]"
+      className="tw:min-w-0 tw:rounded-[0.923rem] tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:p-5.5"
       aria-labelledby="home-notices-title"
     >
-      <div className="tw:mb-[1.231rem] tw:flex tw:min-h-[4.231rem] tw:items-start tw:justify-between tw:gap-[1.385rem]">
+      <div className="tw:mb-5 tw:flex tw:min-h-[4.231rem] tw:items-start tw:justify-between tw:gap-5.5">
         <div>
-          <small className="tw:text-[0.769rem] tw:font-bold tw:tracking-[0.104rem] tw:text-[#aa814f]">
+          <small className="tw:text-xs tw:font-bold tw:tracking-[0.104rem] tw:text-cali-gold-accent">
             QUADRO DE AVISOS · CALI
           </small>
-          <h3 id="home-notices-title" className="tw:my-[0.462rem] tw:text-[1.308rem]">
+          <h3 id="home-notices-title" className="tw:my-2 tw:text-xl">
             Avisos da sua parceria
           </h3>
-          <p className="tw:m-0 tw:text-[0.846rem] tw:text-[#998b80]">
+          <p className="tw:m-0 tw:text-sm tw:text-cali-sand-text">
             Informações importantes para acompanhar e dar ciência.
           </p>
         </div>
@@ -117,7 +117,7 @@ export function ClientHomeNotices({
           Ver mural completo <ArrowRight size={15} />
         </Link>
       </div>
-      <div className="tw:grid tw:grid-cols-3 tw:gap-[0.692rem] tw:max-[37.5rem]:grid-cols-2">
+      <div className="tw:grid tw:grid-cols-3 tw:gap-3 tw:max-[37.5rem]:grid-cols-2">
         {items?.length ? (
           items.map((item) => (
             <NoticePreview

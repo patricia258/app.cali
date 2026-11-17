@@ -28,12 +28,12 @@ export class AppErrorBoundary extends Component<Props, State> {
     if (!this.state.failed) return this.props.children;
 
     return (
-      <main className="workspace-fatal-fallback tw:grid tw:min-h-dvh tw:place-items-center tw:bg-cali-day-canvas tw:p-6 tw:font-[Inter,system-ui,sans-serif] tw:text-[#322f2c]" role="alert">
-        <section className="tw:flex tw:w-full tw:max-w-110 tw:flex-col tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-7 tw:shadow-[0_18px_60px_#28172414]">
-          <span className="tw:mb-3 tw:block tw:text-[10px] tw:leading-[inherit] tw:font-extrabold tw:tracking-[1.4px] tw:text-[#af8f72]">CALI WORKSPACE</span>
-          <h1 className="tw:m-0 tw:text-[19px] tw:leading-[1.3]">O Workspace foi atualizado.</h1>
-          <p className="tw:m-0 tw:text-[13px] tw:leading-[1.6] tw:text-[#655a55]">Nada do que você fez foi perdido. Clique em recarregar para continuar na versão mais recente.</p>
-          <button type="button" className="tw:mt-1.5 tw:min-h-11 tw:cursor-pointer tw:self-start tw:rounded-[7px] tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-4 tw:py-[11px] tw:text-[12px] tw:leading-[inherit] tw:font-bold tw:text-white" onClick={() => window.location.assign(window.location.href)}>Recarregar Workspace</button>
+      <main className="workspace-fatal-fallback tw:grid tw:min-h-dvh tw:place-items-center tw:bg-cali-day-canvas tw:p-6 tw:font-[Inter,system-ui,sans-serif] tw:text-cali-text" role="alert">
+        <section className="tw:flex tw:w-full tw:max-w-110 tw:flex-col tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-7 tw:shadow-[0_18px_60px_rgb(var(--cali-rgb-red-inverse)/0.07843)]">
+          <span className="tw:mb-3 tw:block tw:text-cali-micro tw:leading-[inherit] tw:font-extrabold tw:tracking-[1.4px] tw:text-cali-warning">CALI WORKSPACE</span>
+          <h1 className="tw:m-0 tw:text-lg tw:leading-[1.3]">O Workspace foi atualizado.</h1>
+          <p className="tw:m-0 tw:text-cali-detail tw:leading-[1.6] tw:text-cali-muted">Nada do que você fez foi perdido. Clique em recarregar para continuar na versão mais recente.</p>
+          <button type="button" className="tw:mt-1.5 tw:min-h-11 tw:cursor-pointer tw:self-start tw:rounded-[7px] tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-4 tw:py-[11px] tw:text-cali-caption tw:leading-[inherit] tw:font-bold tw:text-cali-neutral-surface" onClick={() => window.location.assign(window.location.href)}>Recarregar Workspace</button>
         </section>
       </main>
     );

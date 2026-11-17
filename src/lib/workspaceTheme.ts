@@ -1,3 +1,4 @@
+import { caliPalette } from '../../supabase/functions/_shared/cali-palette';
 import { usesV2 } from '../app/visualRoutes';
 export type WorkspaceTheme = 'day' | 'night';
 
@@ -65,7 +66,7 @@ export function applyWorkspaceTheme(theme: WorkspaceTheme) {
   document.documentElement.style.colorScheme = theme === 'night' ? 'dark' : 'light';
   if (document.body) document.body.dataset.workspaceTheme = theme;
 
-  const themeColor = theme === 'night' ? '#171215' : '#faf8f5';
+  const themeColor = theme === 'night' ? caliPalette.neutral.darkest : caliPalette.sand.lightest;
   let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (!meta) {
     meta = document.createElement('meta');

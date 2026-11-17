@@ -28,9 +28,9 @@ import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 import { readClientHomeOverview, type DashboardData, type Deliverable } from '../../../api/client/home/overview';
 
 // Cores aprovadas das etiquetas de prazo, por situação real da entrega (sem tom = creme, em andamento).
-const approvedMilestone = 'tw:border-[#bfe4d4] tw:bg-[#d8f0e7] tw:text-[#32836a]';
-const reviewMilestone = 'tw:border-[#d6c1ec] tw:bg-[#e5d7f7] tw:text-[#754da1]';
-const attentionMilestone = 'tw:border-[#ad4c70] tw:bg-[#ad4c70] tw:text-white';
+const approvedMilestone = 'tw:border-cali-green-soft tw:bg-cali-teal-surface tw:text-cali-teal-text';
+const reviewMilestone = 'tw:border-cali-violet-line tw:bg-cali-violet-soft tw:text-cali-violet-text';
+const attentionMilestone = 'tw:border-cali-red-accent tw:bg-cali-red-accent tw:text-cali-neutral-surface';
 const milestoneTone: Record<string, string> = {
   approved: approvedMilestone,
   client_review: reviewMilestone,
@@ -251,9 +251,9 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
   const cancelledCount = cycleDeliverables.length - projectDeliverables.length;
   const cycleTotal = cycleDeliverables.length;
   const cycleBreakdown = [
-    { label: 'Aprovadas', count: approvedCount, color: '#367B60' },
-    { label: 'Pendentes', count: pendingCount, color: '#E3A536' },
-    { label: 'Canceladas', count: cancelledCount, color: '#B84D51' },
+    { label: 'Aprovadas', count: approvedCount, color: 'var(--cali-color-green-accent)' },
+    { label: 'Pendentes', count: pendingCount, color: 'var(--cali-color-orange-accent)' },
+    { label: 'Canceladas', count: cancelledCount, color: 'var(--cali-color-red-accent)' },
   ];
   const work = data.workMetrics;
   const deliveryStages = [
@@ -289,7 +289,7 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
       <Shell role="client">
         <section
           aria-label="Visão geral do cliente"
-          className="tw:relative tw:min-h-screen tw:bg-[#faf7f3] tw:bg-[linear-gradient(#96775d0d_1px,transparent_1px),linear-gradient(90deg,#96775d0d_1px,transparent_1px)] tw:[background-size:1.923rem_1.923rem] tw:font-cali-body tw:text-[0.923rem] tw:text-[#302b2b]"
+          className="tw:relative tw:min-h-screen tw:bg-cali-surface-soft tw:bg-[linear-gradient(rgb(var(--cali-rgb-sand-strong)/0.05098)_1px,transparent_1px),linear-gradient(90deg,rgb(var(--cali-rgb-sand-strong)/0.05098)_1px,transparent_1px)] tw:[background-size:1.923rem_1.923rem] tw:font-cali-body tw:text-cali-body tw:text-cali-neutral-strong"
         >
           <LoadingState>
             <Loader2 className="spin" size={20} />
@@ -308,22 +308,22 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
     <Shell role="client">
       <section
         aria-label="Visão geral do cliente"
-        className="tw:relative tw:min-h-screen tw:bg-[#faf7f3] tw:bg-[linear-gradient(#96775d0d_1px,transparent_1px),linear-gradient(90deg,#96775d0d_1px,transparent_1px)] tw:[background-size:1.923rem_1.923rem] tw:font-cali-body tw:text-[0.923rem] tw:text-[#302b2b]"
+        className="tw:relative tw:min-h-screen tw:bg-cali-surface-soft tw:bg-[linear-gradient(rgb(var(--cali-rgb-sand-strong)/0.05098)_1px,transparent_1px),linear-gradient(90deg,rgb(var(--cali-rgb-sand-strong)/0.05098)_1px,transparent_1px)] tw:[background-size:1.923rem_1.923rem] tw:font-cali-body tw:text-cali-body tw:text-cali-neutral-strong"
       >
-        {error && <InlineNotice className="tw:mx-[0.538rem] tw:mt-0! tw:mb-[0.923rem]">{error}</InlineNotice>}
+        {error && <InlineNotice className="tw:mx-2 tw:mt-0! tw:mb-3.5">{error}</InlineNotice>}
 
-        <div className="tw:mx-auto tw:max-w-[116.154rem] tw:px-[0.538rem] tw:pt-[0.615rem] tw:pb-[6.538rem] tw:max-[50rem]:px-0">
-          <div className="tw:mx-[0.154rem] tw:mb-[1.385rem] tw:flex tw:items-center tw:justify-between tw:gap-[1.923rem] tw:max-[50rem]:flex-col tw:max-[50rem]:items-start tw:[&_h1]:mt-[0.462rem] tw:[&_h1]:mb-[0.308rem] tw:[&_h1]:text-[3rem]/[1.15] tw:[&_h1]:font-[750] tw:[&_h1]:tracking-[-0.138rem] tw:max-[50rem]:[&_h1]:text-[2.231rem] tw:[&_p]:m-0 tw:[&_p]:text-[0.923rem] tw:[&_p]:text-[#857d77]">
+        <div className="tw:mx-auto tw:max-w-[116.154rem] tw:px-2 tw:pt-2.5 tw:pb-26 tw:max-[50rem]:px-0">
+          <div className="tw:mx-0.5 tw:mb-5.5 tw:flex tw:items-center tw:justify-between tw:gap-7.5 tw:max-[50rem]:flex-col tw:max-[50rem]:items-start tw:[&_h1]:mt-2 tw:[&_h1]:mb-1 tw:[&_h1]:text-5xl/[1.15] tw:[&_h1]:font-[750] tw:[&_h1]:tracking-[-0.138rem] tw:max-[50rem]:[&_h1]:text-4xl tw:[&_p]:m-0 tw:[&_p]:text-cali-body tw:[&_p]:text-cali-sand-text">
             <div>
-              <span className="tw:text-[0.692rem] tw:font-bold tw:tracking-[0.123rem] tw:text-[#a68666]">
+              <span className="tw:text-cali-label tw:font-bold tw:tracking-[0.123rem] tw:text-cali-gold-accent">
                 SUA PARCERIA COM A CALI
               </span>
               <h1>Olá, {data.profile?.full_name ? firstName(data.profile.full_name) : 'seja bem-vinda'}.</h1>
               <p>Veja o que aconteceu e o que vem a seguir na sua assessoria.</p>
             </div>
-            <div className="tw:flex tw:min-w-[23.231rem] tw:items-center tw:gap-[0.923rem] tw:rounded-[1.077rem] tw:border tw:border-solid tw:border-[#e2c6a5] tw:bg-[#ffffffdd] tw:px-[1.231rem] tw:py-[0.692rem] tw:max-[50rem]:w-full tw:max-[50rem]:min-w-0 tw:[&>div:last-child]:flex tw:[&>div:last-child]:flex-col tw:[&>div:last-child]:gap-[0.308rem] tw:[&_small]:text-[0.692rem] tw:[&_small]:font-bold tw:[&_small]:tracking-[0.077rem] tw:[&_small]:text-[#ab7944] tw:[&_strong]:text-[0.923rem] tw:[&>div:last-child>span]:text-[0.769rem] tw:[&>div:last-child>span]:font-bold tw:[&>div:last-child>span]:text-[#652338]">
+            <div className="tw:flex tw:min-w-[23.231rem] tw:items-center tw:gap-3.5 tw:rounded-[1.077rem] tw:border tw:border-solid tw:border-cali-gold-line tw:bg-cali-neutral-surface/87 tw:px-5 tw:py-3 tw:max-[50rem]:w-full tw:max-[50rem]:min-w-0 tw:[&>div:last-child]:flex tw:[&>div:last-child]:flex-col tw:[&>div:last-child]:gap-1 tw:[&_small]:text-cali-label tw:[&_small]:font-bold tw:[&_small]:tracking-[0.077rem] tw:[&_small]:text-cali-gold-accent tw:[&_strong]:text-cali-body tw:[&>div:last-child>span]:text-xs tw:[&>div:last-child>span]:font-bold tw:[&>div:last-child>span]:text-cali-burgundy-accent">
               <div
-                className="tw:grid tw:size-[3.538rem] tw:shrink-0 tw:place-items-center tw:overflow-hidden tw:rounded-[0.538rem] tw:border-2 tw:border-solid tw:border-[#c4a985] tw:bg-[linear-gradient(125deg,#382329,#a7a3a2)] tw:font-bold tw:text-white tw:[&_img]:block tw:[&_img]:size-full tw:[&_img]:object-cover"
+                className="tw:grid tw:size-14 tw:shrink-0 tw:place-items-center tw:overflow-hidden tw:rounded-lg tw:border-2 tw:border-solid tw:border-cali-sand-accent tw:bg-[linear-gradient(125deg,var(--cali-color-red-inverse),var(--cali-color-sand-text))] tw:font-bold tw:text-cali-neutral-surface tw:[&_img]:block tw:[&_img]:size-full tw:[&_img]:object-cover"
                 data-workspace-identity
               >
                 <WorkspaceProfileAvatar
@@ -353,12 +353,12 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
 
           <div>
             <aside
-              className="tw:mb-4 tw:min-h-[11.154rem] tw:rounded-[1.154rem] tw:bg-[linear-gradient(115deg,#5a1e2d,#713c3e_68%,#87584b)] tw:px-[2.154rem] tw:py-[1.615rem] tw:text-white tw:shadow-[0_0.769rem_2.077rem_#5a1e2d11]"
+              className="tw:mb-4 tw:min-h-[11.154rem] tw:rounded-[1.154rem] tw:bg-[linear-gradient(115deg,var(--cali-color-burgundy-accent),var(--cali-color-red-strong)_68%,var(--cali-color-red-text))] tw:px-8.5 tw:py-6.5 tw:text-cali-neutral-surface tw:shadow-[0_0.769rem_2.077rem_rgb(var(--cali-rgb-burgundy-accent)/0.06667)]"
               aria-label="Sua contratação"
             >
-              <div className="tw:flex tw:justify-between tw:gap-[1.385rem] tw:max-[50rem]:flex-col tw:max-[50rem]:items-start">
-                <div className="tw:flex tw:items-center tw:gap-[1.154rem] tw:[&_small]:text-[0.692rem] tw:[&_small]:font-extrabold tw:[&_small]:tracking-[0.115rem] tw:[&_small]:text-[#f0b9ba] tw:[&_h2]:mt-[0.462rem] tw:[&_h2]:mb-[0.231rem] tw:[&_h2]:text-[1.462rem] tw:[&_h2]:tracking-[-0.038rem] tw:[&>div:last-child>span]:text-[0.846rem] tw:[&>div:last-child>span]:text-[#eedcdb]">
-                  <div className="tw:flex tw:size-[4.462rem] tw:shrink-0 tw:items-center tw:justify-center tw:overflow-hidden tw:rounded-[0.538rem] tw:bg-[#fffbf6] tw:text-[2.231rem] tw:font-extrabold tw:text-[#49232f] tw:[&_span]:text-[#be8d57] tw:[&_img]:max-h-full tw:[&_img]:max-w-full tw:[&_img]:object-contain">
+              <div className="tw:flex tw:justify-between tw:gap-5.5 tw:max-[50rem]:flex-col tw:max-[50rem]:items-start">
+                <div className="tw:flex tw:items-center tw:gap-4.5 tw:[&_small]:text-cali-label tw:[&_small]:font-extrabold tw:[&_small]:tracking-[0.115rem] tw:[&_small]:text-cali-burgundy-soft tw:[&_h2]:mt-2 tw:[&_h2]:mb-1 tw:[&_h2]:text-2xl tw:[&_h2]:tracking-[-0.038rem] tw:[&>div:last-child>span]:text-sm tw:[&>div:last-child>span]:text-cali-burgundy-surface">
+                  <div className="tw:flex tw:size-18 tw:shrink-0 tw:items-center tw:justify-center tw:overflow-hidden tw:rounded-lg tw:bg-cali-sand-surface tw:text-4xl tw:font-extrabold tw:text-cali-burgundy-text tw:[&_span]:text-cali-gold-accent tw:[&_img]:max-h-full tw:[&_img]:max-w-full tw:[&_img]:object-contain">
                     {occurrenceLogoUrl ? (
                       <img src={occurrenceLogoUrl} alt="" />
                     ) : (
@@ -374,7 +374,7 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                     <span>{data.company?.display_name || 'Conta CALI'}</span>
                   </div>
                 </div>
-                <div className="tw:flex tw:min-w-[39%] tw:gap-[1.077rem] tw:max-[50rem]:w-full tw:[&>div]:flex tw:[&>div]:flex-1 tw:[&>div]:flex-col tw:[&>div]:gap-[0.385rem] tw:[&>div]:border-0 tw:[&>div]:border-l tw:[&>div]:border-solid tw:[&>div]:border-[#ffffff35] tw:[&>div]:py-[0.462rem] tw:[&>div]:pl-[1.538rem] tw:[&_strong]:text-[1.846rem]/none tw:[&_strong]:text-[#fff0cb] tw:[&_span]:text-[0.769rem] tw:[&_span]:font-semibold tw:[&_span]:text-[#f4dfda]">
+                <div className="tw:flex tw:min-w-[39%] tw:gap-4.5 tw:max-[50rem]:w-full tw:[&>div]:flex tw:[&>div]:flex-1 tw:[&>div]:flex-col tw:[&>div]:gap-1.5 tw:[&>div]:border-0 tw:[&>div]:border-l tw:[&>div]:border-solid tw:[&>div]:border-cali-neutral-surface/21 tw:[&>div]:py-2 tw:[&>div]:pl-6 tw:[&_strong]:text-3xl/none tw:[&_strong]:text-cali-gold-soft tw:[&_span]:text-xs tw:[&_span]:font-semibold tw:[&_span]:text-cali-sand-line">
                   {showHours && data.contractedHours > 0 ? (
                     <>
                       <div>
@@ -388,7 +388,7 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                       <div
                         className={
                           capacityOf(data.contractedHours, data.minutes).excessMinutes > 0
-                            ? 'tw:[&_strong]:text-[#ffd0c7]!'
+                            ? 'tw:[&_strong]:text-cali-red-soft!'
                             : undefined
                         }
                       >
@@ -415,7 +415,7 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
               </div>
               {contractedMinutes > 0 && (
                 <div
-                  className="tw:mt-[1.538rem] tw:[&>div:last-child]:mt-[0.462rem] tw:[&>div:last-child]:flex tw:[&>div:last-child]:justify-between tw:[&>div:last-child]:text-[0.692rem] tw:[&>div:last-child]:text-[#f5e9e6]"
+                  className="tw:mt-6 tw:[&>div:last-child]:mt-2 tw:[&>div:last-child]:flex tw:[&>div:last-child]:justify-between tw:[&>div:last-child]:text-cali-label tw:[&>div:last-child]:text-cali-neutral-soft"
                   role="progressbar"
                   aria-label="Horas consumidas neste mês"
                   aria-valuemin={0}
@@ -433,7 +433,7 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
           {waiting.length > 0 && (
             <Link
               to="/cliente/entregaveis"
-              className="tw:mb-4 tw:flex tw:items-center tw:gap-[0.462rem] tw:rounded-[0.692rem] tw:bg-[#fff0d7] tw:px-4 tw:py-[0.769rem] tw:text-[0.846rem]/[inherit] tw:text-[#82552c]"
+              className="tw:mb-4 tw:flex tw:items-center tw:gap-2 tw:rounded-cali-panel tw:bg-cali-orange-surface tw:px-4 tw:py-3 tw:text-sm/[inherit] tw:text-cali-gold-text"
             >
               {waiting.length} {waiting.length === 1 ? 'entrega aguarda' : 'entregas aguardam'} sua validação{' '}
               <ChevronRight size={15} />
@@ -443,21 +443,21 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
           <section className="tw:mb-4 tw:grid tw:grid-cols-3 tw:gap-4 tw:max-[71.875rem]:grid-cols-2 tw:max-[50rem]:grid-cols-1">
             <ClientHomeCard>
               <h3>Entregas do ciclo</h3>
-              <div className="tw:flex tw:items-center tw:justify-between tw:gap-[0.615rem]">
+              <div className="tw:flex tw:items-center tw:justify-between tw:gap-2.5">
                 <div>
-                  <strong className="tw:text-[2.615rem]/none tw:font-bold tw:tracking-[-0.077rem]">
+                  <strong className="tw:text-cali-display-lg/none tw:font-bold tw:tracking-[-0.077rem]">
                     {data.company ? cycleTotal : '—'}
                   </strong>
                   <p>{cycleTotal === 1 ? 'entrega no projeto atual' : 'entregas no projeto atual'}</p>
                 </div>
                 <div
-                  className="tw:relative tw:grid tw:size-[5.231rem] tw:shrink-0 tw:place-items-center tw:rounded-full"
+                  className="tw:relative tw:grid tw:size-21 tw:shrink-0 tw:place-items-center tw:rounded-full"
                   role="img"
                   aria-label={cycleBreakdown.map((item) => `${item.count} ${item.label.toLowerCase()}`).join(', ')}
                 >
                   <svg className="tw:size-full tw:-rotate-90" viewBox="0 0 100 100" aria-hidden="true">
                     <circle
-                      className="tw:stroke-[#e8e3df] tw:stroke-15"
+                      className="tw:stroke-cali-line tw:stroke-15"
                       cx="50"
                       cy="50"
                       r="40"
@@ -489,14 +489,14 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                           ),
                       )}
                   </svg>
-                  <span className="tw:absolute tw:inset-[0.846rem] tw:grid tw:size-[3.538rem] tw:place-items-center tw:rounded-full tw:bg-white tw:text-[1rem] tw:font-bold">
+                  <span className="tw:absolute tw:inset-3.5 tw:grid tw:size-14 tw:place-items-center tw:rounded-full tw:bg-cali-neutral-surface tw:text-base tw:font-bold">
                     {data.company ? `${cycleTotal ? Math.round((approvedCount / cycleTotal) * 100) : 0}%` : '—'}
                   </span>
                 </div>
-                <div className="tw:flex tw:flex-col tw:gap-[0.615rem] tw:text-[0.769rem] tw:[&_span]:flex tw:[&_span]:items-center tw:[&_span]:gap-[0.385rem] tw:[&_span]:whitespace-nowrap tw:[&_b]:ml-auto tw:[&_i]:inline-block tw:[&_i]:size-[0.538rem] tw:[&_i]:shrink-0 tw:[&_i]:rounded-full">
+                <div className="tw:flex tw:flex-col tw:gap-2.5 tw:text-xs tw:[&_span]:flex tw:[&_span]:items-center tw:[&_span]:gap-1.5 tw:[&_span]:whitespace-nowrap tw:[&_b]:ml-auto tw:[&_i]:inline-block tw:[&_i]:size-2 tw:[&_i]:shrink-0 tw:[&_i]:rounded-full">
                   {cycleBreakdown.map((item, index) => (
                     <span key={item.label}>
-                      <i className={['tw:bg-[#35aa7c]', 'tw:bg-[#f1bd49]', 'tw:bg-[#d55d73]'][index]} />{' '}
+                      <i className={['tw:bg-cali-teal-accent', 'tw:bg-cali-orange-line', 'tw:bg-cali-red-accent'][index]} />{' '}
                       {item.label} <b>{data.company ? item.count : '—'}</b>
                     </span>
                   ))}
@@ -508,22 +508,22 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
               <h3>
                 Percepção do trabalho <span>· mês atual</span>
               </h3>
-              <div className="tw:mt-[1.231rem] tw:flex tw:items-center tw:justify-between tw:[&_p]:my-[0.692rem]! tw:[&_p]:flex tw:[&_p]:items-center tw:[&_p]:gap-[0.615rem] tw:[&_p]:text-[#4a4441]!">
+              <div className="tw:mt-5 tw:flex tw:items-center tw:justify-between tw:[&_p]:my-3! tw:[&_p]:flex tw:[&_p]:items-center tw:[&_p]:gap-2.5 tw:[&_p]:text-cali-neutral-text!">
                 <div>
                   <p>
-                    <Star size={17} color="#bb5372" />{' '}
+                    <Star size={17} color="var(--cali-color-red-accent)" />{' '}
                     <strong>
                       {data.company ? data.npsCount : '—'}{' '}
                       {data.npsCount === 1 ? 'avaliação recebida' : 'avaliações recebidas'}
                     </strong>
                   </p>
                   <p>
-                    <Check size={17} color="#1b927f" />{' '}
+                    <Check size={17} color="var(--cali-color-teal-text)" />{' '}
                     {data.nps == null ? 'Aguardando a primeira' : 'Média das avaliações'}
                   </p>
                 </div>
                 <div
-                  className="tw:flex tw:min-w-[5.385rem] tw:flex-col tw:gap-[0.385rem] tw:border-0 tw:border-l tw:border-solid tw:border-[#ebddd2] tw:text-center tw:[&_svg]:block tw:[&_svg]:w-16 tw:[&_strong]:text-[1.769rem] tw:[&_small]:text-[0.769rem] tw:[&_small]:text-[#988b81]"
+                  className="tw:flex tw:min-w-[5.385rem] tw:flex-col tw:gap-1.5 tw:border-0 tw:border-l tw:border-solid tw:border-cali-sand-line tw:text-center tw:[&_svg]:block tw:[&_svg]:w-16 tw:[&_strong]:text-cali-title-lg tw:[&_small]:text-xs tw:[&_small]:text-cali-sand-text"
                   role="img"
                   aria-label={
                     data.nps == null
@@ -535,13 +535,13 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                     <svg viewBox="0 0 180 102" aria-hidden="true">
                       <defs>
                         <linearGradient id="ch-perception-gradient">
-                          <stop offset="0%" stopColor="#D85C73" />
-                          <stop offset="50%" stopColor="#E3A536" />
-                          <stop offset="100%" stopColor="#2BAFA8" />
+                          <stop offset="0%" stopColor="var(--cali-color-red-accent)" />
+                          <stop offset="50%" stopColor="var(--cali-color-orange-accent)" />
+                          <stop offset="100%" stopColor="var(--cali-color-teal-accent)" />
                         </linearGradient>
                       </defs>
                       <path
-                        className="tw:stroke-[#e8e3df] tw:stroke-9"
+                        className="tw:stroke-cali-line tw:stroke-9"
                         d="M 15 90 A 75 75 0 0 1 165 90"
                         fill="none"
                         pathLength="100"
@@ -560,7 +560,7 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                   <small>{data.nps == null ? 'Sem nota' : 'de 5 pontos'}</small>
                 </div>
               </div>
-              <small className="tw:text-[0.769rem] tw:text-[#988b81]">
+              <small className="tw:text-xs tw:text-cali-sand-text">
                 {data.nps == null ? 'De entregas ou ocorrências' : 'Entregas e ocorrências avaliadas'}
               </small>
             </ClientHomeCard>
@@ -569,12 +569,12 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
               <h3>
                 Conclusão do trabalho <span>· mês atual</span>
               </h3>
-              <div className="tw:mt-[1.308rem] tw:flex tw:items-center tw:justify-between">
-                <strong className="tw:text-[2.615rem]/none tw:font-bold tw:tracking-[-0.077rem]">
+              <div className="tw:mt-5 tw:flex tw:items-center tw:justify-between">
+                <strong className="tw:text-cali-display-lg/none tw:font-bold tw:tracking-[-0.077rem]">
                   {work ? `${data.completionPct}%` : '—'}
                 </strong>
                 <div
-                  className="tw:flex tw:gap-[0.385rem] tw:[&_i]:h-[0.385rem] tw:[&_i]:w-[1.692rem] tw:[&_i]:rounded-[0.462rem] tw:[&_i]:bg-[#c8c2bd] tw:[&_i:nth-child(2)]:bg-[#c87e94] tw:[&_i:nth-child(3)]:bg-[#7ca9bb] tw:[&_i:nth-child(4)]:bg-[#e1b95f] tw:[&_i:nth-child(5)]:bg-[#83bba0]"
+                  className="tw:flex tw:gap-1.5 tw:[&_i]:h-1.5 tw:[&_i]:w-7 tw:[&_i]:rounded-lg tw:[&_i]:bg-cali-neutral-line tw:[&_i:nth-child(2)]:bg-cali-burgundy-line tw:[&_i:nth-child(3)]:bg-cali-blue-line tw:[&_i:nth-child(4)]:bg-cali-orange-line tw:[&_i:nth-child(5)]:bg-cali-green-line"
                   role="img"
                   aria-label={deliveryStages.map((stage) => `${stage.label}: ${stage.count}`).join('; ')}
                 >
@@ -588,7 +588,7 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                 {work?.total === 1 ? 'atividade concluída' : 'atividades concluídas'} entre entregas e ocorrências.
               </p>
               {data.unlinkedHourEntries > 0 && (
-                <small className="tw:text-[0.769rem] tw:text-[#988b81]">
+                <small className="tw:text-xs tw:text-cali-sand-text">
                   {data.unlinkedHourEntries}{' '}
                   {data.unlinkedHourEntries === 1
                     ? 'lançamento de horas sem vínculo'
@@ -599,8 +599,8 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
             </ClientHomeCard>
           </section>
 
-          <div className="tw:my-[1.308rem] tw:grid tw:grid-cols-[minmax(0,1.65fr)_minmax(23.846rem,1fr)] tw:items-stretch tw:gap-[1.077rem] tw:max-[68.75rem]:grid-cols-1">
-            <ClientHomeNotices linkClassName="tw:inline-flex tw:items-center tw:gap-[0.308rem] tw:text-left tw:text-[0.769rem] tw:font-bold tw:text-[#64283a]" />
+          <div className="tw:my-5 tw:grid tw:grid-cols-[minmax(0,1.65fr)_minmax(23.846rem,1fr)] tw:items-stretch tw:gap-4.5 tw:max-[68.75rem]:grid-cols-1">
+            <ClientHomeNotices linkClassName="tw:inline-flex tw:items-center tw:gap-1 tw:text-left tw:text-xs tw:font-bold tw:text-cali-red-strong" />
             <ClientHomeTeam key={data.company?.id || 'unavailable'} companyId={data.company?.id} />
           </div>
 
@@ -608,8 +608,8 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
             className="tw:mb-4 tw:grid tw:grid-cols-1 tw:gap-4 tw:min-[42rem]:grid-cols-2"
             aria-label="Atualizações da conta"
           >
-            <ClientHomeCard className="tw:flex tw:min-h-[12.308rem] tw:gap-[1.154rem] tw:[&_h3]:mt-[0.769rem]! tw:[&_h3]:mb-[0.231rem]! tw:[&_h3]:text-[1.231rem]! tw:[&_h3]:normal-case">
-              <div className="tw:flex tw:w-[8.077rem] tw:min-w-[8.077rem] tw:flex-none tw:flex-col tw:items-center tw:justify-center tw:gap-[0.538rem] tw:overflow-hidden tw:bg-[#f1ece9] tw:text-[#582736]">
+            <ClientHomeCard className="tw:flex tw:min-h-[12.308rem] tw:gap-4.5 tw:[&_h3]:mt-3! tw:[&_h3]:mb-1! tw:[&_h3]:text-xl! tw:[&_h3]:normal-case">
+              <div className="tw:flex tw:w-[8.077rem] tw:min-w-[8.077rem] tw:flex-none tw:flex-col tw:items-center tw:justify-center tw:gap-2 tw:overflow-hidden tw:bg-cali-neutral-soft tw:text-cali-burgundy-accent">
                 {data.latestDocument ? (
                   <ClientDocumentBrandCover
                     companyId={data.company?.id || ''}
@@ -624,7 +624,7 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                 )}
               </div>
               <div className="tw:flex tw:min-w-0 tw:flex-col tw:items-start tw:wrap-anywhere">
-                <small className="tw:text-[0.692rem] tw:font-extrabold tw:tracking-[0.108rem] tw:text-[#a37d50]">
+                <small className="tw:text-cali-label tw:font-extrabold tw:tracking-[0.108rem] tw:text-cali-gold-accent">
                   DOCUMENTO MAIS RECENTE
                 </small>
                 <h3>
@@ -644,9 +644,9 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                 </ClientHomeLink>
               </div>
             </ClientHomeCard>
-            <ClientHomeCard className="tw:relative tw:flex tw:flex-col tw:[&_h3]:mt-[0.769rem]! tw:[&_h3]:mb-[0.231rem]! tw:[&_h3]:text-[1.231rem]! tw:[&_h3]:normal-case">
+            <ClientHomeCard className="tw:relative tw:flex tw:flex-col tw:[&_h3]:mt-3! tw:[&_h3]:mb-1! tw:[&_h3]:text-xl! tw:[&_h3]:normal-case">
               <div
-                className="tw:mb-[0.692rem] tw:flex tw:[&>span]:-ml-[0.385rem] tw:[&>span]:grid tw:[&>span]:size-[2.154rem] tw:[&>span]:place-items-center tw:[&>span]:overflow-hidden tw:[&>span]:rounded-[0.538rem] tw:[&>span]:border-2 tw:[&>span]:border-solid tw:[&>span]:border-white tw:[&>span]:bg-[#e7d3d2] tw:[&>span]:text-[0.692rem] tw:[&>span]:font-bold tw:[&>span]:text-cali-brand tw:[&>span:first-child]:ml-0 tw:[&>span:nth-child(2)]:bg-[#dedbe9] tw:[&>span:nth-child(3)]:bg-[#f1deaa] tw:[&_img]:block tw:[&_img]:size-full tw:[&_img]:rounded-[0.538rem] tw:[&_img]:object-cover"
+                className="tw:mb-3 tw:flex tw:[&>span]:-ml-1.5 tw:[&>span]:grid tw:[&>span]:size-8.5 tw:[&>span]:place-items-center tw:[&>span]:overflow-hidden tw:[&>span]:rounded-lg tw:[&>span]:border-2 tw:[&>span]:border-solid tw:[&>span]:border-cali-neutral-surface tw:[&>span]:bg-cali-burgundy-surface tw:[&>span]:text-cali-label tw:[&>span]:font-bold tw:[&>span]:text-cali-brand tw:[&>span:first-child]:ml-0 tw:[&>span:nth-child(2)]:bg-cali-violet-surface tw:[&>span:nth-child(3)]:bg-cali-gold-line tw:[&_img]:block tw:[&_img]:size-full tw:[&_img]:rounded-lg tw:[&_img]:object-cover"
                 aria-label="Contatos da empresa e da CALI"
               >
                 <span data-workspace-identity>
@@ -672,11 +672,11 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                 </span>
               </div>
               {latestOccurrence && (
-                <span className="tw:absolute tw:top-[1.231rem] tw:right-4 tw:rounded-[0.538rem] tw:bg-[#fcf3e6] tw:px-[0.615rem] tw:py-[0.385rem] tw:text-[0.692rem] tw:font-bold tw:text-[#9d702c]">
+                <span className="tw:absolute tw:top-5 tw:right-4 tw:rounded-lg tw:bg-cali-orange-surface tw:px-2.5 tw:py-1.5 tw:text-cali-label tw:font-bold tw:text-cali-gold-text">
                   {occurrenceStatusText[occurrenceStatus] || 'Em acompanhamento'}
                 </span>
               )}
-              <small className="tw:text-[0.692rem] tw:font-extrabold tw:tracking-[0.108rem] tw:text-[#a37d50]">
+              <small className="tw:text-cali-label tw:font-extrabold tw:tracking-[0.108rem] tw:text-cali-gold-accent">
                 OCORRÊNCIA MAIS RECENTE
               </small>
               <h3>
@@ -713,11 +713,11 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
           <div className="tw:grid tw:grid-cols-[2.06fr_1fr] tw:gap-4 tw:max-[50rem]:grid-cols-1">
             <ClientHomeCard
               as="section"
-              className="tw:min-h-[23.846rem] tw:max-[47.5rem]:overflow-hidden tw:[&_h3]:mt-[0.538rem]! tw:[&_h3]:mb-0! tw:[&_h3]:text-[1.308rem]! tw:[&_small:first-child]:text-[#6f293e]"
+              className="tw:min-h-[23.846rem] tw:max-[47.5rem]:overflow-hidden tw:[&_h3]:mt-2! tw:[&_h3]:mb-0! tw:[&_h3]:text-xl! tw:[&_small:first-child]:text-cali-red-strong"
             >
-              <div className="tw:flex tw:items-start tw:justify-between tw:gap-[0.769rem] tw:[&_h3]:m-0">
+              <div className="tw:flex tw:items-start tw:justify-between tw:gap-3 tw:[&_h3]:m-0">
                 <div>
-                  <small className="tw:text-[0.692rem] tw:font-extrabold tw:tracking-[0.108rem] tw:text-[#a37d50]">
+                  <small className="tw:text-cali-label tw:font-extrabold tw:tracking-[0.108rem] tw:text-cali-gold-accent">
                     EM MOVIMENTO
                   </small>
                   <h3>{activeProject?.name || 'Projeto atual'}</h3>
@@ -727,8 +727,8 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                 </ClientHomeLink>
               </div>
               {visibleDeliverables.length ? (
-                <div className="tw:mt-[1.538rem]" role="group" aria-label="Prazos e andamento das entregas">
-                  <div className="tw:grid tw:grid-cols-[33%_repeat(3,1fr)] tw:bg-[#faf7f3] tw:p-[0.846rem] tw:text-[0.692rem] tw:font-bold tw:tracking-[0.054rem] tw:text-[#ac9d91]">
+                <div className="tw:mt-6" role="group" aria-label="Prazos e andamento das entregas">
+                  <div className="tw:grid tw:grid-cols-[33%_repeat(3,1fr)] tw:bg-cali-surface-soft tw:p-3.5 tw:text-cali-label tw:font-bold tw:tracking-[0.054rem] tw:text-cali-sand-text">
                     <span>ENTREGA / STATUS</span>
                     <span>INÍCIO</span>
                     <span>MEIO</span>
@@ -743,24 +743,24 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                           : 50;
                       return (
                         <div
-                          className="tw:grid tw:min-h-[3.692rem] tw:w-full tw:grid-cols-[33%_1fr] tw:items-center tw:border-0 tw:border-b tw:border-solid tw:border-[#efe7df] tw:bg-transparent tw:text-left tw:text-[#302b2b]"
+                          className="tw:grid tw:min-h-[3.692rem] tw:w-full tw:grid-cols-[33%_1fr] tw:items-center tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:bg-transparent tw:text-left tw:text-cali-neutral-strong"
                           key={deliverable.id}
                         >
-                          <div className="tw:flex tw:flex-col tw:gap-[0.231rem] tw:[&_strong]:text-[0.846rem] tw:[&_small]:text-[0.769rem] tw:[&_small]:text-[#8e837b]">
+                          <div className="tw:flex tw:flex-col tw:gap-1 tw:[&_strong]:text-sm tw:[&_small]:text-xs tw:[&_small]:text-cali-sand-text">
                             <strong>{deliverable.title}</strong>
                             <small>{statusLabel[deliverable.status] || deliverable.status}</small>
                           </div>
-                          <div className="tw:relative tw:h-full tw:bg-[repeating-linear-gradient(to_right,transparent_0,transparent_calc(25%_-_1px),#e6d8c9_calc(25%_-_1px),#e6d8c9_25%)]">
+                          <div className="tw:relative tw:h-full tw:bg-[repeating-linear-gradient(to_right,transparent_0,transparent_calc(25%_-_1px),var(--cali-color-sand-line)_calc(25%_-_1px),var(--cali-color-sand-line)_25%)]">
                             {due && timeline ? (
                               <time
                                 dateTime={deliverable.due_at || undefined}
-                                className={`tw:absolute tw:top-1/2 tw:-translate-1/2 tw:rounded-full tw:border tw:border-solid tw:p-[0.615rem] tw:text-[0.692rem] tw:font-bold tw:whitespace-nowrap ${milestoneTone[deliverable.status] ?? 'tw:border-[#e5d1b0] tw:bg-[#f7e9d7] tw:text-[#896127]'}`}
+                                className={`tw:absolute tw:top-1/2 tw:-translate-1/2 tw:rounded-full tw:border tw:border-solid tw:p-2.5 tw:text-cali-label tw:font-bold tw:whitespace-nowrap ${milestoneTone[deliverable.status] ?? 'tw:border-cali-gold-line tw:bg-cali-orange-surface tw:text-cali-gold-text'}`}
                                 style={{ left: `clamp(2.75rem, ${position}%, calc(100% - 2.75rem))` }}
                               >
                                 {formatDate(deliverable.due_at)}
                               </time>
                             ) : (
-                              <span className="tw:absolute tw:top-1/2 tw:-translate-y-1/2 tw:text-[0.692rem]/[inherit] tw:text-[#8c8076]">
+                              <span className="tw:absolute tw:top-1/2 tw:-translate-y-1/2 tw:text-cali-label/[inherit] tw:text-cali-sand-text">
                                 Prazo a definir
                               </span>
                             )}
@@ -771,7 +771,7 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                   </div>
                   {timeline && (
                     <div
-                      className="tw:mt-[0.769rem] tw:ml-[33%] tw:flex tw:justify-between tw:text-[0.692rem] tw:text-[#aa998d]"
+                      className="tw:mt-3 tw:ml-[33%] tw:flex tw:justify-between tw:text-cali-label tw:text-cali-sand-text"
                       aria-hidden="true"
                     >
                       <span />
@@ -790,9 +790,9 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
 
             <div className="tw:flex tw:h-full tw:flex-col tw:gap-4">
               <ClientHomeCard as="section" className="tw:flex-1">
-                <div className="tw:flex tw:items-start tw:justify-between tw:gap-[0.769rem] tw:[&_h3]:m-0">
+                <div className="tw:flex tw:items-start tw:justify-between tw:gap-3 tw:[&_h3]:m-0">
                   <div>
-                    <small className="tw:text-[0.692rem] tw:font-extrabold tw:tracking-[0.108rem] tw:text-[#a37d50]">
+                    <small className="tw:text-cali-label tw:font-extrabold tw:tracking-[0.108rem] tw:text-cali-gold-accent">
                       PRÓXIMOS PASSOS
                     </small>
                     <h3>Agenda compartilhada</h3>
@@ -813,14 +813,14 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
                             : event.mode;
                       return (
                         <div
-                          className="tw:mt-[1.308rem] tw:flex tw:items-center tw:gap-[0.769rem] tw:[&>div:nth-of-type(2)]:flex tw:[&>div:nth-of-type(2)]:flex-col tw:[&>div:nth-of-type(2)]:gap-[0.462rem] tw:[&>div:nth-of-type(2)_strong]:text-[0.846rem] tw:[&>div:nth-of-type(2)_small]:text-[0.769rem] tw:[&>div:nth-of-type(2)_small]:text-[#82776f]"
+                          className="tw:mt-5 tw:flex tw:items-center tw:gap-3 tw:[&>div:nth-of-type(2)]:flex tw:[&>div:nth-of-type(2)]:flex-col tw:[&>div:nth-of-type(2)]:gap-2 tw:[&>div:nth-of-type(2)_strong]:text-sm tw:[&>div:nth-of-type(2)_small]:text-xs tw:[&>div:nth-of-type(2)_small]:text-cali-neutral-accent"
                           key={event.id}
                         >
-                          <div className="tw:flex tw:w-[3.231rem] tw:shrink-0 tw:flex-col tw:items-center tw:rounded-[0.538rem] tw:border tw:border-solid tw:border-[#e7dcd0] tw:p-[0.385rem] tw:[&_strong]:text-[1.615rem] tw:[&_small]:text-[0.692rem] tw:[&_small]:text-[#a97c49]">
+                          <div className="tw:flex tw:w-13 tw:shrink-0 tw:flex-col tw:items-center tw:rounded-lg tw:border tw:border-solid tw:border-cali-sand-line tw:p-1.5 tw:[&_strong]:text-cali-title tw:[&_small]:text-cali-label tw:[&_small]:text-cali-gold-accent">
                             <strong>{date.day}</strong>
                             <small>{date.month}</small>
                           </div>
-                          <span className="tw:size-[0.692rem] tw:rounded-full tw:bg-[#3684a3]" />
+                          <span className="tw:size-3 tw:rounded-full tw:bg-cali-blue-accent" />
                           <div>
                             <strong>{event.title}</strong>
                             <small>
@@ -852,12 +852,12 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
               </ClientHomeCard>
               <ClientHomeCard
                 as="section"
-                className="tw:min-h-[8.615rem] tw:[&_p]:my-[0.692rem]! tw:[&_p]:text-[0.846rem]!"
+                className="tw:min-h-[8.615rem] tw:[&_p]:my-3! tw:[&_p]:text-sm!"
               >
-                <div className="tw:flex tw:items-start tw:justify-between tw:gap-[0.769rem] tw:[&_h3]:m-0">
+                <div className="tw:flex tw:items-start tw:justify-between tw:gap-3 tw:[&_h3]:m-0">
                   <h3>Próxima decisão</h3>
                   {waiting.length > 0 && (
-                    <span className="tw:rounded-[0.538rem] tw:bg-[#ede8f8] tw:px-[0.615rem] tw:py-[0.385rem] tw:text-[0.692rem] tw:font-bold tw:text-[#785c9e]">
+                    <span className="tw:rounded-lg tw:bg-cali-violet-surface tw:px-2.5 tw:py-1.5 tw:text-cali-label tw:font-bold tw:text-cali-violet-text">
                       Em validação
                     </span>
                   )}
@@ -874,7 +874,7 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
         </div>
 
         <Link
-          className="ch-chat-trigger tw:fixed tw:right-8 tw:bottom-[1.769rem] tw:z-30 tw:flex tw:items-center tw:gap-[0.615rem] tw:rounded-[1rem] tw:border tw:border-solid tw:border-cali-gold tw:bg-cali-brand tw:px-[1.077rem] tw:py-[0.769rem] tw:font-bold tw:text-white tw:no-underline tw:shadow-[0_0.692rem_2.154rem_#5a1e2d33] tw:max-[50rem]:right-[0.769rem] tw:max-[50rem]:bottom-[0.769rem]"
+          className="ch-chat-trigger tw:fixed tw:right-8 tw:bottom-7 tw:z-30 tw:flex tw:items-center tw:gap-2.5 tw:rounded-2xl tw:border tw:border-solid tw:border-cali-gold tw:bg-cali-brand tw:px-4.5 tw:py-3 tw:font-bold tw:text-cali-neutral-surface tw:no-underline tw:shadow-[0_0.692rem_2.154rem_rgb(var(--cali-rgb-burgundy-accent)/0.2)] tw:max-[50rem]:right-3 tw:max-[50rem]:bottom-3"
           to="/cliente/registros"
         >
           <MessageCircle size={16} /> Falar com a CALI

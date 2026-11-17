@@ -124,21 +124,21 @@ function availability(front: Front, plan: Plan) {
 export function IncludedFrontCard({ front }: { front: Front }) {
   const story = storyFor(front);
   return (
-    <article className="tw:grid tw:min-w-0 tw:grid-cols-[auto_minmax(0,1fr)] tw:content-start tw:gap-x-[0.769rem] tw:gap-y-[0.462rem] tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#e9e0d8] tw:bg-white tw:p-[1.231rem]">
+    <article className="tw:grid tw:min-w-0 tw:grid-cols-[auto_minmax(0,1fr)] tw:content-start tw:gap-x-3 tw:gap-y-2 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-5">
       <span
-        className="tw:row-start-1 tw:grid tw:size-[1.692rem] tw:place-items-center tw:rounded-[0.462rem] tw:bg-[#e8f7ef] tw:text-[#308564]"
+        className="tw:row-start-1 tw:grid tw:size-7 tw:place-items-center tw:rounded-lg tw:bg-cali-success-surface tw:text-cali-success"
         aria-hidden="true"
       >
         <Check size={13} />
       </span>
-      <h3 className="tw:col-start-2 tw:m-0 tw:self-center tw:text-[1rem]/[1.3] tw:font-semibold tw:text-[#3e3533]">
+      <h3 className="tw:col-start-2 tw:m-0 tw:self-center tw:text-base/[1.3] tw:font-semibold tw:text-cali-text">
         {front.title}
       </h3>
-      <p className="tw:col-span-full tw:m-0 tw:text-[0.923rem]/[1.7] tw:text-[#91806f]">{story.problem}</p>
-      <span className="tw:col-span-full tw:mt-[0.308rem] tw:text-[0.692rem] tw:font-bold tw:tracking-[0.1rem] tw:text-[#a5866b] tw:uppercase">
+      <p className="tw:col-span-full tw:m-0 tw:text-cali-body/[1.7] tw:text-cali-sand-text">{story.problem}</p>
+      <span className="tw:col-span-full tw:mt-1 tw:text-cali-label tw:font-bold tw:tracking-[0.1rem] tw:text-cali-sand-text tw:uppercase">
         Na prática
       </span>
-      <ul className="tw:col-span-full tw:m-0 tw:flex tw:list-disc tw:flex-col tw:gap-[0.308rem] tw:pl-[1.154rem] tw:text-[0.923rem]/[1.7] tw:text-[#91806f]">
+      <ul className="tw:col-span-full tw:m-0 tw:flex tw:list-disc tw:flex-col tw:gap-1 tw:pl-4.5 tw:text-cali-body/[1.7] tw:text-cali-sand-text">
         {story.examples.map((example) => (
           <li key={example}>{example}</li>
         ))}
@@ -157,31 +157,31 @@ export function PossibleFrontCard({
 }) {
   const story = storyFor(front);
   return (
-    <details className="tw:group tw:overflow-hidden tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#e9e0d8] tw:bg-white tw:open:border-[#dcc9b2]">
-      <summary className="tw:flex tw:cursor-pointer tw:list-none tw:items-center tw:justify-between tw:gap-[0.923rem] tw:px-[1.231rem] tw:py-[1.077rem] tw:text-[0.923rem] tw:font-semibold tw:text-[#3e3533] tw:[&::-webkit-details-marker]:hidden">
+    <details className="tw:group tw:overflow-hidden tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:open:border-cali-sand-accent">
+      <summary className="tw:flex tw:cursor-pointer tw:list-none tw:items-center tw:justify-between tw:gap-3.5 tw:px-5 tw:py-4.5 tw:text-cali-body tw:font-semibold tw:text-cali-text tw:[&::-webkit-details-marker]:hidden">
         <span>{front.title}</span>
         <ChevronDown
           size={18}
-          className="tw:size-[1.231rem] tw:flex-none tw:text-[#b5a49b] tw:motion-safe:transition-transform tw:motion-safe:duration-[180ms] tw:group-open:rotate-180"
+          className="tw:size-5 tw:flex-none tw:text-cali-sand-accent tw:motion-safe:transition-transform tw:motion-safe:duration-[180ms] tw:group-open:rotate-180"
         />
       </summary>
-      <div className="tw:flex tw:flex-col tw:items-start tw:gap-[0.615rem] tw:px-[1.231rem] tw:pb-[1.231rem]">
-        <span className="tw:text-[0.692rem] tw:font-bold tw:tracking-[0.1rem] tw:text-[#a5866b] tw:uppercase">
+      <div className="tw:flex tw:flex-col tw:items-start tw:gap-2.5 tw:px-5 tw:pb-5">
+        <span className="tw:text-cali-label tw:font-bold tw:tracking-[0.1rem] tw:text-cali-sand-text tw:uppercase">
           {categoryTag[front.category]}
         </span>
-        <p className="tw:m-0 tw:text-[0.846rem]/[1.55] tw:text-[#82786f]">{story.problem}</p>
-        <span className="tw:col-span-full tw:mt-[0.308rem] tw:text-[0.692rem] tw:font-bold tw:tracking-[0.1rem] tw:text-[#a5866b] tw:uppercase">
+        <p className="tw:m-0 tw:text-sm/[1.55] tw:text-cali-muted">{story.problem}</p>
+        <span className="tw:col-span-full tw:mt-1 tw:text-cali-label tw:font-bold tw:tracking-[0.1rem] tw:text-cali-sand-text tw:uppercase">
           O que pode envolver
         </span>
-        <ul className="tw:col-span-full tw:m-0 tw:flex tw:list-disc tw:flex-col tw:gap-[0.308rem] tw:pl-[1.154rem] tw:text-[0.846rem]/[1.5] tw:text-[#655b57]">
+        <ul className="tw:col-span-full tw:m-0 tw:flex tw:list-disc tw:flex-col tw:gap-1 tw:pl-4.5 tw:text-sm/[1.5] tw:text-cali-muted">
           {story.examples.map((example) => (
             <li key={example}>{example}</li>
           ))}
         </ul>
-        <p className="tw:m-0 tw:text-[0.846rem]/[1.55] tw:text-[#82786f]">{availability(front, plan)}</p>
+        <p className="tw:m-0 tw:text-sm/[1.55] tw:text-cali-muted">{availability(front, plan)}</p>
         <button
           type="button"
-          className="tw:mt-[0.308rem] tw:inline-flex tw:cursor-pointer tw:items-center tw:gap-[0.538rem] tw:rounded-[0.538rem] tw:border tw:border-solid tw:border-[#e7ddd5] tw:bg-white tw:px-[0.923rem] tw:py-[0.692rem] tw:text-[0.846rem] tw:font-semibold tw:text-cali-brand"
+          className="tw:mt-1 tw:inline-flex tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-sm tw:font-semibold tw:text-cali-brand"
           onClick={() => onChoose(front)}
         >
           Conversar sobre esta frente <ArrowUpRight size={15} />

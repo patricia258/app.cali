@@ -32,19 +32,19 @@ export function ReportClientHistory({ companyId, currentId, onClose, renderCorre
     <CompactDialogOverlay onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose();
     }}>
-      <CompactDialog aria-label="Histórico do cliente" className="tw:w-[min(56.25rem,94vw)]! tw:max-w-[56.25rem]!">
+      <CompactDialog aria-label="Histórico do cliente" className="tw:w-[min(56.25rem,94vw)]! tw:max-w-225!">
         <Button variant="close" type="button" onClick={onClose}>×</Button>
-        <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-[0.769rem]/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-[#a88b76]">RASTREABILIDADE</span>
+        <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-xs/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-cali-muted">RASTREABILIDADE</span>
         <h2>Histórico do cliente</h2>
         {isPending ? <LoadingState>Carregando histórico…</LoadingState> : data ? (
           <>
             <p className="tw:mt-1 tw:mb-5 tw:text-cali-muted">{data.companyName}</p>
             <div className="tw:overflow-auto tw:rounded-xl tw:border tw:border-solid tw:border-cali-line">
-              <table className="tw:w-full tw:min-w-[42.5rem] tw:border-collapse tw:text-xs">
+              <table className="tw:w-full tw:min-w-170 tw:border-collapse tw:text-xs">
                 <thead className="tw:bg-[var(--theme-surface-soft)] tw:text-cali-muted">
                   <tr>
                     {['Referência', 'Tipo', 'Leitura', 'Ciência', 'Ações'].map((label) => (
-                      <th className="tw:border-b tw:border-solid tw:border-cali-line tw:px-3.5 tw:py-3 tw:text-left tw:text-[0.7rem] tw:uppercase tw:tracking-wider" key={label}>{label}</th>
+                      <th className="tw:border-b tw:border-solid tw:border-cali-line tw:px-3.5 tw:py-3 tw:text-left tw:text-cali-label tw:uppercase tw:tracking-wider" key={label}>{label}</th>
                     ))}
                   </tr>
                 </thead>
@@ -87,13 +87,13 @@ export function ReportClientHistory({ companyId, currentId, onClose, renderCorre
                               <dl className="tw:m-0 tw:grid tw:grid-cols-6 tw:overflow-hidden tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:max-md:grid-cols-2">
                                 {detail.map(([label, value]) => (
                                   <div key={label} className="tw:border-r tw:border-solid tw:border-cali-line tw:p-3">
-                                    <dt className="tw:mb-1 tw:text-[0.65rem] tw:font-extrabold tw:tracking-wide tw:text-cali-muted tw:uppercase">{label}</dt>
+                                    <dt className="tw:mb-1 tw:text-cali-micro tw:font-extrabold tw:tracking-wide tw:text-cali-muted tw:uppercase">{label}</dt>
                                     <dd className="tw:m-0 tw:font-bold tw:break-words">{value}</dd>
                                   </div>
                                 ))}
                                 {item.acknowledgement_protocol && (
                                   <div className="tw:col-span-full tw:border-t tw:border-solid tw:border-cali-line tw:p-3">
-                                    <dt className="tw:mb-1 tw:text-[0.65rem] tw:font-extrabold tw:text-cali-muted tw:uppercase">Protocolo da ciência</dt>
+                                    <dt className="tw:mb-1 tw:text-cali-micro tw:font-extrabold tw:text-cali-muted tw:uppercase">Protocolo da ciência</dt>
                                     <dd className="tw:m-0 tw:font-bold">{item.acknowledgement_protocol}</dd>
                                   </div>
                                 )}
@@ -124,8 +124,8 @@ export function ReportClientHistory({ companyId, currentId, onClose, renderCorre
 function HistoryStatus({ complete, label }: { complete: boolean; label: string }) {
   return (
     <span className={complete
-      ? 'tw:inline-block tw:rounded-full tw:bg-[#eaf0e8] tw:px-2 tw:py-1 tw:font-bold tw:whitespace-nowrap tw:text-[#4d694a]'
-      : 'tw:inline-block tw:rounded-full tw:bg-[#f4edda] tw:px-2 tw:py-1 tw:font-bold tw:whitespace-nowrap tw:text-[#80632e]'}>
+      ? 'tw:inline-block tw:rounded-full tw:bg-cali-green-surface tw:px-2 tw:py-1 tw:font-bold tw:whitespace-nowrap tw:text-cali-green-text'
+      : 'tw:inline-block tw:rounded-full tw:bg-cali-orange-surface tw:px-2 tw:py-1 tw:font-bold tw:whitespace-nowrap tw:text-cali-gold-text'}>
       {label}
     </span>
   );

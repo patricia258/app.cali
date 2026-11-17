@@ -11,7 +11,7 @@ export function ProfileOptOutPage() {
 
   return <div className={ui.page}>
     <header className={ui.header}><img className={ui.logo} src="/brand/cali-rh-bordo.png" alt="CALI RH" /></header>
-    <main className={ui.stage}><div className={`${ui.screen} ${ui.center} ${ui.enter} tw:max-w-[45rem]`}>
+    <main className={ui.stage}><div className={`${ui.screen} ${ui.center} ${ui.enter} tw:max-w-180`}>
       <small className={ui.eyebrow}>PERFIL COMPORTAMENTAL</small>
       {state === 'done' ? <><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>Pronto.</h1><p className={ui.description}>Você não vai receber mais mensagens sobre este convite. Se mudar de ideia, fale com quem enviou.</p></>
         : state === 'failed' ? <><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>Não foi possível</h1><p className={ui.description}>Este convite já foi respondido ou não existe mais.</p></>

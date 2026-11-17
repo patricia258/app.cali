@@ -39,7 +39,7 @@ export function NoticeContent({
     <>
       {notice.coverUrl && (
         <img
-          className={`tw:w-full tw:rounded-[0.538rem] tw:object-cover ${calendar ? 'tw:h-[8.615rem]' : 'tw:h-[9.538rem]'}`}
+          className={`tw:w-full tw:rounded-lg tw:object-cover ${calendar ? 'tw:h-[8.615rem]' : 'tw:h-[9.538rem]'}`}
           src={notice.coverUrl}
           alt=""
         />
@@ -48,27 +48,27 @@ export function NoticeContent({
         category={notice.category}
         className={
           notice.coverUrl
-            ? 'tw:absolute tw:top-8 tw:right-8 tw:shadow-[0_0.154rem_0.615rem_#19070a33]'
+            ? 'tw:absolute tw:top-8 tw:right-8 tw:shadow-[0_0.154rem_0.615rem_rgb(var(--cali-rgb-neutral-inverse)/0.2)]'
             : 'tw:self-start'
         }
       />
       <h2
-        className={`tw:mt-[0.154rem]! tw:mb-[-0.308rem]! tw:leading-[1.3] ${calendar ? 'tw:text-[1.154rem]' : 'tw:text-[1.231rem]'}`}
+        className={`tw:mt-0.5! tw:-mb-1! tw:leading-[1.3] ${calendar ? 'tw:text-lg' : 'tw:text-xl'}`}
       >
         {notice.title}
       </h2>
-      <p className={`tw:text-[0.923rem]/[1.55] tw:text-[#655a55] ${calendar ? 'tw:line-clamp-5' : ''}`}>
+      <p className={`tw:text-cali-body/[1.55] tw:text-cali-muted ${calendar ? 'tw:line-clamp-5' : ''}`}>
         {notice.body}
       </p>
       <dl
-        className={`tw:mt-[0.154rem]! tw:grid tw:grid-cols-2 tw:gap-x-[1.077rem] tw:rounded-[0.615rem] tw:bg-[#faf6f2] tw:px-[1.077rem] tw:py-[0.923rem] ${calendar ? 'tw:gap-y-[0.923rem]' : 'tw:gap-y-[0.769rem]'}`}
+        className={`tw:mt-0.5! tw:grid tw:grid-cols-2 tw:gap-x-4.5 tw:rounded-cali-compact-control tw:bg-cali-surface-soft tw:px-4.5 tw:py-3.5 ${calendar ? 'tw:gap-y-3.5' : 'tw:gap-y-3'}`}
       >
         {metadata.map(
           ([label, value]) =>
             value && (
               <div key={label}>
-                <dt className="tw:mb-[0.154rem] tw:text-[0.692rem] tw:text-[#a49082]">{label}</dt>
-                <dd className="tw:m-0 tw:text-[0.846rem] tw:font-bold">{value}</dd>
+                <dt className="tw:mb-0.5 tw:text-cali-label tw:text-cali-sand-text">{label}</dt>
+                <dd className="tw:m-0 tw:text-sm tw:font-bold">{value}</dd>
               </div>
             ),
         )}

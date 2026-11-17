@@ -192,11 +192,11 @@ const PACKAGE_FEATURES = {
 
 export function LandingPage() {
   return (
-    <main className="cali-landing tw:min-h-screen tw:overflow-x-hidden tw:bg-cali-day-canvas tw:font-cali-body tw:text-[.875rem] tw:leading-normal tw:text-cali-ink">
+    <main className="cali-landing tw:min-h-screen tw:overflow-x-hidden tw:bg-cali-day-canvas tw:font-cali-body tw:text-sm tw:leading-normal tw:text-cali-ink">
       <LandingHeader contactHref={WA_LINK} />
 
-      <section className="tw:relative tw:isolate tw:grid tw:min-h-[min(55rem,100svh)] tw:items-center tw:overflow-hidden tw:bg-[radial-gradient(ellipse_50%_60%_at_82%_38%,#e7c66f29,transparent_72%),radial-gradient(ellipse_60%_70%_at_8%_90%,#b58c5224,transparent_70%),linear-gradient(#f7f3ee09_1px,transparent_1px),linear-gradient(90deg,#f7f3ee09_1px,transparent_1px),linear-gradient(150deg,#6a2536_0%,#4a1826_48%,#2e1018_100%)] tw:[background-size:auto,auto,2rem_2rem,2rem_2rem,auto] tw:pt-[clamp(9.6875rem,18vh,12.5rem)] tw:pb-[clamp(5.625rem,11vh,7.8125rem)] tw:text-cali-day-canvas tw:[@media(35rem<width<=60rem)]:min-h-0 tw:[@media(35rem<width<=60rem)]:pt-[9.0625rem] tw:[@media(35rem<width<=60rem)]:pb-[5.3125rem] tw:[@media(max-width:35rem)]:min-h-0 tw:[@media(max-width:35rem)]:pt-[7.375rem] tw:[@media(max-width:35rem)]:pb-[4.5rem]" id="inicio">
-        <div className="tw:mx-auto tw:grid tw:w-[min(82.5rem,calc(100%-5rem))] tw:grid-cols-[minmax(0,.84fr)_minmax(0,1.16fr)] tw:content-center tw:items-center tw:gap-[clamp(2.125rem,5vw,4.875rem)] tw:[@media(35rem<width<=60rem)]:w-[min(45.625rem,calc(100%-3rem))] tw:[@media(35rem<width<=60rem)]:grid-cols-1 tw:[@media(35rem<width<=60rem)]:justify-items-center tw:[@media(35rem<width<=60rem)]:gap-[2.875rem] tw:[@media(max-width:35rem)]:w-[calc(100%-2rem)] tw:[@media(max-width:35rem)]:grid-cols-1 tw:[@media(max-width:35rem)]:justify-items-center tw:[@media(max-width:35rem)]:gap-9">
+      <section className="tw:relative tw:isolate tw:grid tw:min-h-[min(55rem,100svh)] tw:items-center tw:overflow-hidden tw:bg-[radial-gradient(ellipse_50%_60%_at_82%_38%,rgb(var(--cali-rgb-orange-line)/0.1608),transparent_72%),radial-gradient(ellipse_60%_70%_at_8%_90%,rgb(var(--cali-rgb-gold-accent)/0.1412),transparent_70%),linear-gradient(rgb(var(--cali-rgb-sand-soft)/0.03529)_1px,transparent_1px),linear-gradient(90deg,rgb(var(--cali-rgb-sand-soft)/0.03529)_1px,transparent_1px),linear-gradient(150deg,var(--cali-color-red-strong)_0%,var(--cali-color-burgundy-text)_48%,var(--cali-color-red-inverse)_100%)] tw:[background-size:auto,auto,2rem_2rem,2rem_2rem,auto] tw:pt-[clamp(9.6875rem,18vh,12.5rem)] tw:pb-[clamp(5.625rem,11vh,7.8125rem)] tw:text-cali-day-canvas tw:[@media(35rem<width<=60rem)]:min-h-0 tw:[@media(35rem<width<=60rem)]:pt-[9.0625rem] tw:[@media(35rem<width<=60rem)]:pb-21 tw:[@media(max-width:35rem)]:min-h-0 tw:[@media(max-width:35rem)]:pt-29.5 tw:[@media(max-width:35rem)]:pb-18" id="inicio">
+        <div className="tw:mx-auto tw:grid tw:w-[min(82.5rem,calc(100%-5rem))] tw:grid-cols-[minmax(0,.84fr)_minmax(0,1.16fr)] tw:content-center tw:items-center tw:gap-[clamp(2.125rem,5vw,4.875rem)] tw:[@media(35rem<width<=60rem)]:w-[min(45.625rem,calc(100%-3rem))] tw:[@media(35rem<width<=60rem)]:grid-cols-1 tw:[@media(35rem<width<=60rem)]:justify-items-center tw:[@media(35rem<width<=60rem)]:gap-11.5 tw:[@media(max-width:35rem)]:w-[calc(100%-2rem)] tw:[@media(max-width:35rem)]:grid-cols-1 tw:[@media(max-width:35rem)]:justify-items-center tw:[@media(max-width:35rem)]:gap-9">
           <LandingHeroCopy />
 
           <LandingProductPreview image={WORKSPACE_SCREEN_URLS[0] || '/landing/cali-workspace-sign-in-preview.jpg?v=1'} />
@@ -206,16 +206,16 @@ export function LandingPage() {
       <LandingSection tone="light" id="cali">
         <LandingWidth className="tw:grid tw:grid-cols-[minmax(0,1.03fr)_minmax(26.25rem,.97fr)] tw:items-center tw:gap-[clamp(3.375rem,8vw,6.875rem)] tw:[@media(max-width:65rem)]:grid-cols-1">
           <LandingReveal direction="left">
-            <span className="tw:mb-[1.125rem] tw:inline-block tw:text-[.656rem] tw:font-bold tw:tracking-[.14em] tw:text-(--id-gold)">A CALI RH</span>
+            <span className="tw:mb-4.5 tw:inline-block tw:text-cali-micro tw:font-bold tw:tracking-[.14em] tw:text-(--id-gold)">A CALI RH</span>
             <h2 className="tw:m-0 tw:text-[clamp(2.55rem,4.15vw,4.45rem)] tw:leading-[1.02] tw:text-cali-brand tw:[@media(max-width:35rem)]:text-[clamp(2.25rem,11vw,3.7rem)]">A plataforma organiza o trabalho. A condução continua sendo da CALI.</h2>
-            <p className="tw:m-0 tw:mt-6 tw:max-w-[41.25rem] tw:text-base tw:leading-[1.75] tw:text-[#655d58]">
-              A CALI atua como <strong className="tw:text-[#4b4140]">People Advisory Executive</strong> junto à liderança.
+            <p className="tw:m-0 tw:mt-6 tw:max-w-165 tw:text-base tw:leading-[1.75] tw:text-cali-muted">
+              A CALI atua como <strong className="tw:text-cali-neutral-text">People Advisory Executive</strong> junto à liderança.
               O Workspace registra prioridades, entregas e decisões sem transformar o cliente em operador de software.
             </p>
-            <p className="tw:m-0 tw:mt-3.5 tw:max-w-[41.25rem] tw:text-base tw:leading-[1.75] tw:text-[#655d58]">
-              <strong className="tw:text-[#4b4140]">A CALI conduz.</strong> O cliente enxerga o ciclo, valida o que importa e decide com contexto.
+            <p className="tw:m-0 tw:mt-3.5 tw:max-w-165 tw:text-base tw:leading-[1.75] tw:text-cali-muted">
+              <strong className="tw:text-cali-neutral-text">A CALI conduz.</strong> O cliente enxerga o ciclo, valida o que importa e decide com contexto.
             </p>
-            <a className="tw:mt-6.5 tw:inline-flex tw:items-center tw:gap-2 tw:text-[.8rem] tw:font-semibold tw:text-cali-brand tw:hover:gap-3" href="https://calirh.com" target="_blank" rel="noreferrer">
+            <a className="tw:mt-6.5 tw:inline-flex tw:items-center tw:gap-2 tw:text-cali-detail tw:font-semibold tw:text-cali-brand tw:hover:gap-3" href="https://calirh.com" target="_blank" rel="noreferrer">
               Ver a atuação da CALI <ArrowRight size={15} aria-hidden="true" />
             </a>
           </LandingReveal>

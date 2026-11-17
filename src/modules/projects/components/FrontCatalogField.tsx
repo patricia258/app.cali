@@ -21,10 +21,10 @@ export function FrontCatalogField({ name, taken, onChange, draft = false, inputC
   const takenNames = taken.map(normalizeFrontName);
   const duplicate = Boolean(normalized) && takenNames.includes(normalized);
   const catalogClasses = draft
-    ? 'tw:h-[3.5385rem] tw:min-w-[17.3077rem] tw:rounded-[.6154rem] tw:pl-[.7692rem] tw:pr-[2.4615rem] tw:[@media(max-width:900px)]:min-w-[13.8462rem]'
-    : 'tw:h-[3.5385rem] tw:w-full tw:rounded-[.7692rem] tw:pl-[.9231rem] tw:pr-[2.6154rem]';
+    ? 'tw:h-14 tw:min-w-[17.3077rem] tw:rounded-cali-compact-control tw:pl-3 tw:pr-10 tw:[@media(max-width:900px)]:min-w-[13.8462rem]'
+    : 'tw:h-14 tw:w-full tw:rounded-xl tw:pl-3.5 tw:pr-10.5';
   const select = <select
-    className={`${catalogClasses} tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:text-[.9231rem] tw:text-cali-text`}
+    className={`${catalogClasses} tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:text-cali-body tw:text-cali-text`}
     aria-label="Frente CALI"
     value={custom ? 'Outro' : known ?? ''}
     onChange={(event) => {
@@ -48,7 +48,7 @@ export function FrontCatalogField({ name, taken, onChange, draft = false, inputC
     onChange={(event) => onChange(event.target.value)}
     placeholder="Nome da nova frente"
   />;
-  const warning = duplicate && <small role="alert" className="tw:mt-[.3077rem] tw:block tw:text-[.6923rem] tw:text-[#9c334d]">Essa frente já foi adicionada neste cronograma.</small>;
+  const warning = duplicate && <small role="alert" className="tw:mt-1 tw:block tw:text-cali-label tw:text-cali-red-accent">Essa frente já foi adicionada neste cronograma.</small>;
 
   return <>{select}{input}{warning}</>;
 }

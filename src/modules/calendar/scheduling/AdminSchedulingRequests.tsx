@@ -61,27 +61,27 @@ export function AdminSchedulingRequests() {
               onClick={() => setSelectedId(active[0]?.id ?? null)}
               className="
                 tw:fixed tw:right-7.5 tw:bottom-7.5 tw:z-10040 tw:flex tw:min-h-15 tw:cursor-pointer
-                tw:items-center tw:gap-3 tw:rounded-2xl tw:border tw:border-solid tw:border-[#b98e55]
-                tw:bg-cali-brand tw:px-4.5 tw:text-white tw:shadow-[0_1.25rem_3rem_#5a1e2d52] tw:transition-transform
+                tw:items-center tw:gap-3 tw:rounded-2xl tw:border tw:border-solid tw:border-cali-gold-accent
+                tw:bg-cali-brand tw:px-4.5 tw:text-cali-neutral-surface tw:shadow-[0_1.25rem_3rem_rgb(var(--cali-rgb-burgundy-accent)/0.3216)] tw:transition-transform
                 tw:hover:-translate-y-0.5 tw:motion-reduce:transition-none tw:[@media(max-width:35rem)]:right-3.5
                 tw:[@media(max-width:35rem)]:bottom-3.5 tw:[@media(max-width:35rem)]:justify-center
                 tw:[@media(max-width:35rem)]:px-2.5
               "
             >
-              <span className="tw:grid tw:size-8.5 tw:shrink-0 tw:place-items-center tw:rounded-full tw:bg-white/15"><Bell size={16} aria-hidden="true" /></span>
+              <span className="tw:grid tw:size-8.5 tw:shrink-0 tw:place-items-center tw:rounded-full tw:bg-cali-neutral-surface/15"><Bell size={16} aria-hidden="true" /></span>
               <span className="tw:text-sm/[inherit] tw:[@media(max-width:35rem)]:hidden">Solicitações de agenda</span>
-              <span className="tw:grid tw:h-6 tw:min-w-6 tw:place-items-center tw:rounded-full tw:bg-[#f0cf77] tw:px-1.5 tw:text-sm/[inherit] tw:font-black tw:text-cali-brand">{pendingCount}</span>
+              <span className="tw:grid tw:h-6 tw:min-w-6 tw:place-items-center tw:rounded-full tw:bg-cali-orange-soft tw:px-1.5 tw:text-sm/[inherit] tw:font-black tw:text-cali-brand">{pendingCount}</span>
             </button>
           )}
           {selected && (
             <div onMouseDown={(event) => { if (event.target === event.currentTarget && !dialog) setSelectedId(null); }}
-              className="tw:fixed tw:inset-0 tw:z-10045 tw:bg-[#18091085] tw:backdrop-blur-sm">
+              className="tw:fixed tw:inset-0 tw:z-10045 tw:bg-cali-neutral-inverse/52 tw:backdrop-blur-sm">
               <DialogFrame as="aside" aria-label="Pedidos de agenda" aria-hidden={Boolean(dialog)}
                 className="
                   tw:fixed tw:right-7.5 tw:bottom-26.5 tw:z-10046 tw:flex tw:max-h-[min(62rem,calc(100dvh-8.5rem))]
                   tw:w-[min(40rem,calc(100vw-2.5rem))] tw:flex-col tw:overflow-hidden tw:rounded-3xl tw:border
                   tw:border-solid tw:border-cali-gold tw:bg-cali-surface tw:text-cali-text
-                  tw:shadow-[0_2.125rem_7rem_#14080d52] tw:transition-[opacity,transform] tw:duration-[380ms]
+                  tw:shadow-[0_2.125rem_7rem_rgb(var(--cali-rgb-neutral-inverse)/0.3216)] tw:transition-[opacity,transform] tw:duration-[380ms]
                   tw:ease-[cubic-bezier(.18,.85,.24,1)] tw:starting:translate-y-11 tw:starting:scale-[.96]
                   tw:starting:opacity-0 tw:motion-reduce:transition-none tw:[@media(max-width:35rem)]:right-2.5
                   tw:[@media(max-width:35rem)]:bottom-22 tw:[@media(max-width:35rem)]:max-h-[calc(100dvh-6.769rem)]
@@ -90,7 +90,7 @@ export function AdminSchedulingRequests() {
               >
                 <header className="tw:flex tw:items-start tw:justify-between tw:gap-3.5 tw:border-b tw:border-solid tw:border-cali-line tw:px-6 tw:pt-5 tw:pb-4">
                   <div>
-                    <small className="tw:block tw:text-[0.6875rem] tw:font-black tw:tracking-[.13em] tw:text-cali-gold">AGENDA CALI</small>
+                    <small className="tw:block tw:text-cali-label tw:font-black tw:tracking-[.13em] tw:text-cali-gold">AGENDA CALI</small>
                     <h2 className="tw:mt-1 tw:mb-0 tw:font-cali-body tw:text-2xl/[inherit]">Solicitações</h2>
                   </div>
                   <SchedulingAction aria-label="Fechar" onClick={() => setSelectedId(null)} className="tw:grid tw:size-10.5 tw:shrink-0 tw:place-items-center tw:p-0"><X size={16} aria-hidden="true" /></SchedulingAction>

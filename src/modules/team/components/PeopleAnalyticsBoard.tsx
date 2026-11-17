@@ -34,7 +34,7 @@ export type PaMember = {
 };
 export type PaPrivate = { member_id: string; gender: string | null; has_children: string | null };
 
-const COLORS = ['#5a1e2d', '#b58c52', '#7aafcd', '#a484d7', '#4c9a76', '#e0a45a', '#c9bcb3', '#d98a94'];
+const COLORS = ['var(--cali-color-burgundy-accent)', 'var(--cali-color-gold-accent)', 'var(--cali-color-blue-line)', 'var(--cali-color-violet-accent)', 'var(--cali-color-teal-accent)', 'var(--cali-color-orange-line)', 'var(--cali-color-sand-accent)', 'var(--cali-color-burgundy-line)'];
 const num = (value: number, digits = 0) =>
   value.toLocaleString('pt-BR', { minimumFractionDigits: digits, maximumFractionDigits: digits });
 const pct = (value: number | null) => (value == null ? '—' : `${num(value, 1)}%`);
@@ -70,7 +70,7 @@ function Card({
 }) {
   return (
     <section
-      className={`pa-card tw:flex tw:min-w-0 tw:flex-col tw:gap-[1.0769rem] tw:rounded-[0.6923rem] tw:border tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-[1.3846rem] tw:[&>header]:flex tw:[&>header]:flex-wrap tw:[&>header]:items-start tw:[&>header]:justify-between tw:[&>header]:gap-[1.0769rem] tw:[&>header>div:first-child]:min-w-0 tw:[&>header>div:first-child]:flex-[1_1_16.9231rem] tw:max-[35rem]:[&>header>div:first-child]:basis-full tw:[&_h3]:mt-0 tw:[&_h3]:mb-[0.3077rem] tw:[&_h3]:text-[1.0769rem]/[normal] tw:[&_h3]:font-bold tw:[&_h3]:text-[#322f2c] tw:[&_header_p]:m-0 tw:[&_header_p]:text-[0.8462rem]/[1.5] tw:[&_header_p]:text-[#8c7e74] ${wide ? 'tw:col-span-full' : ''}`}
+      className={`pa-card tw:flex tw:min-w-0 tw:flex-col tw:gap-4.5 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-5.5 tw:[&>header]:flex tw:[&>header]:flex-wrap tw:[&>header]:items-start tw:[&>header]:justify-between tw:[&>header]:gap-4.5 tw:[&>header>div:first-child]:min-w-0 tw:[&>header>div:first-child]:flex-[1_1_16.9231rem] tw:max-[35rem]:[&>header>div:first-child]:basis-full tw:[&_h3]:mt-0 tw:[&_h3]:mb-1 tw:[&_h3]:text-lg/[normal] tw:[&_h3]:font-bold tw:[&_h3]:text-cali-text tw:[&_header_p]:m-0 tw:[&_header_p]:text-sm/[1.5] tw:[&_header_p]:text-cali-muted ${wide ? 'tw:col-span-full' : ''}`}
     >
       <header>
         <div>
@@ -80,7 +80,7 @@ function Card({
         {control}
       </header>
       {results && results.length > 0 && (
-        <div className="tw:flex tw:flex-wrap tw:gap-[0.6154rem] tw:[&>div]:flex tw:[&>div]:min-w-0 tw:[&>div]:flex-[1_1_8rem] tw:[&>div]:flex-col tw:[&>div]:gap-[0.3077rem] tw:[&>div]:rounded-[0.5385rem] tw:[&>div]:bg-[#faf6f2] tw:[&>div]:px-[0.9231rem] tw:[&>div]:py-[0.7692rem] tw:[&>div.warn]:bg-[#fff6e3] tw:[&_small]:text-[0.7692rem]/[1.3] tw:[&_small]:text-[#8c7e74] tw:[&_strong]:font-cali-body tw:[&_strong]:text-[1.5385rem]/[1.1] tw:[&_strong]:font-bold tw:[&_strong]:text-[#322f2c] tw:[&_.pos_strong]:text-[#31805a] tw:[&_.neg_strong]:text-[#b7495d] tw:[&_.warn_strong]:text-[#a66a00] tw:max-[35rem]:[&_strong]:text-[1.3077rem]">
+        <div className="tw:flex tw:flex-wrap tw:gap-2.5 tw:[&>div]:flex tw:[&>div]:min-w-0 tw:[&>div]:flex-[1_1_8rem] tw:[&>div]:flex-col tw:[&>div]:gap-1 tw:[&>div]:rounded-lg tw:[&>div]:bg-cali-surface-soft tw:[&>div]:px-3.5 tw:[&>div]:py-3 tw:[&>div.warn]:bg-cali-orange-surface tw:[&_small]:text-xs/[1.3] tw:[&_small]:text-cali-muted tw:[&_strong]:font-cali-body tw:[&_strong]:text-2xl/[1.1] tw:[&_strong]:font-bold tw:[&_strong]:text-cali-text tw:[&_.pos_strong]:text-cali-success tw:[&_.neg_strong]:text-cali-danger tw:[&_.warn_strong]:text-cali-warning tw:max-[35rem]:[&_strong]:text-xl">
           {results.map(([label, value, tone]) => (
             <div key={label} className={tone || ''}>
               <small>{label}</small>
@@ -91,7 +91,7 @@ function Card({
       )}
       {children}
       {reading && (
-        <p className="pa-reading tw:mt-auto tw:mb-0 tw:rounded-[0.5385rem] tw:bg-[#f7f3ee] tw:px-[0.9231rem] tw:py-[0.7692rem] tw:text-[0.8462rem]/[1.55] tw:text-[#67574c] tw:[&_b]:text-cali-brand">
+        <p className="pa-reading tw:mt-auto tw:mb-0 tw:rounded-lg tw:bg-cali-day-canvas tw:px-3.5 tw:py-3 tw:text-sm/[1.55] tw:text-cali-muted tw:[&_b]:text-cali-brand">
           <b>Leitura:</b> {reading}
         </p>
       )}
@@ -111,12 +111,12 @@ function Bars({
   const [hover, setHover] = useState<number | null>(null);
   const peak = Math.max(1, ...items.flatMap((item) => [item.value || 0, item.second || 0]));
   if (!items.some((item) => item.value != null))
-    return <div className="tw:py-[1.6923rem] tw:text-[0.8462rem] tw:text-[#96867c]">{empty}</div>;
+    return <div className="tw:py-7 tw:text-sm tw:text-cali-muted">{empty}</div>;
   const shown = hover != null ? items[hover] : null;
   return (
-    <div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-[0.6154rem]">
+    <div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-2.5">
       <div
-        className="tw:flex tw:min-w-0 tw:items-stretch tw:gap-[0.4615rem] tw:overflow-x-auto tw:[&_button]:flex tw:[&_button]:min-w-[2.6154rem] tw:[&_button]:max-w-[6.4615rem] tw:[&_button]:flex-[1_1_0] tw:[&_button]:flex-col tw:[&_button]:items-center tw:[&_button]:gap-[0.3846rem] tw:[&_button]:rounded-md tw:[&_button]:border-0 tw:[&_button]:bg-transparent tw:[&_button]:px-[0.1538rem] tw:[&_button]:py-[0.3077rem] tw:[&_button]:text-[#67574c] tw:[&_button.on]:bg-[#faf3ec] tw:[&_em]:text-[0.7692rem] tw:[&_em]:font-bold tw:[&_em]:whitespace-nowrap tw:[&_em]:text-[#322f2c] tw:[&_em]:not-italic tw:[&_button>span]:flex tw:[&_button>span]:h-[9.2308rem] tw:[&_button>span]:w-full tw:[&_button>span]:items-end tw:[&_button>span]:justify-center tw:[&_button>span]:gap-[0.2308rem] tw:[&_button>span]:border-0 tw:[&_button>span]:border-b tw:[&_button>span]:border-solid tw:[&_button>span]:border-[#eadfd8] tw:[&_i]:block tw:[&_i]:min-h-[0.1538rem] tw:[&_i]:w-[min(1.6923rem,70%)] tw:[&_i]:rounded-t tw:[&_i]:bg-cali-brand tw:[&_i]:motion-safe:transition-opacity tw:[&_i.in]:w-[min(0.9231rem,42%)] tw:[&_i.in]:bg-[#4c9a76] tw:[&_i.out]:w-[min(0.9231rem,42%)] tw:[&_i.out]:bg-[#b7495d] tw:hover:[&_button:not(.on)_i]:opacity-45 tw:[&_small]:whitespace-nowrap tw:[&_small]:text-[0.6923rem] tw:[&_small]:text-[#a18e80]"
+        className="tw:flex tw:min-w-0 tw:items-stretch tw:gap-2 tw:overflow-x-auto tw:[&_button]:flex tw:[&_button]:min-w-[2.6154rem] tw:[&_button]:max-w-[6.4615rem] tw:[&_button]:flex-[1_1_0] tw:[&_button]:flex-col tw:[&_button]:items-center tw:[&_button]:gap-1.5 tw:[&_button]:rounded-md tw:[&_button]:border-0 tw:[&_button]:bg-transparent tw:[&_button]:px-0.5 tw:[&_button]:py-1 tw:[&_button]:text-cali-muted tw:[&_button.on]:bg-cali-sand-soft tw:[&_em]:text-xs tw:[&_em]:font-bold tw:[&_em]:whitespace-nowrap tw:[&_em]:text-cali-text tw:[&_em]:not-italic tw:[&_button>span]:flex tw:[&_button>span]:h-[9.2308rem] tw:[&_button>span]:w-full tw:[&_button>span]:items-end tw:[&_button>span]:justify-center tw:[&_button>span]:gap-1 tw:[&_button>span]:border-0 tw:[&_button>span]:border-b tw:[&_button>span]:border-solid tw:[&_button>span]:border-cali-line tw:[&_i]:block tw:[&_i]:min-h-[0.1538rem] tw:[&_i]:w-[min(1.6923rem,70%)] tw:[&_i]:rounded-t tw:[&_i]:bg-cali-brand tw:[&_i]:motion-safe:transition-opacity tw:[&_i.in]:w-[min(0.9231rem,42%)] tw:[&_i.in]:bg-cali-teal-accent tw:[&_i.out]:w-[min(0.9231rem,42%)] tw:[&_i.out]:bg-cali-danger tw:hover:[&_button:not(.on)_i]:opacity-45 tw:[&_small]:whitespace-nowrap tw:[&_small]:text-cali-label tw:[&_small]:text-cali-muted"
         onMouseLeave={() => setHover(null)}
       >
         {items.map((item, index) => (
@@ -149,7 +149,7 @@ function Bars({
         ))}
       </div>
       <p
-        className="pa-hover tw:m-0 tw:min-h-[1.3077rem] tw:text-[0.8462rem]/[1.5] tw:text-[#67574c]"
+        className="pa-hover tw:m-0 tw:min-h-[1.3077rem] tw:text-sm/[1.5] tw:text-cali-muted"
         aria-live="polite"
       >
         {shown ? shown.detail : 'Passe o mouse sobre uma barra para ver o detalhe do mês.'}
@@ -164,7 +164,7 @@ function Pie({ slices, unit = 'pessoas', empty }: { slices: [string, number][]; 
   const total = data.reduce((sum, [, value]) => sum + value, 0);
   if (!total)
     return (
-      <div className="tw:py-[1.6923rem] tw:text-[0.8462rem] tw:text-[#96867c]">
+      <div className="tw:py-7 tw:text-sm tw:text-cali-muted">
         {empty || 'Sem dados para este recorte.'}
       </div>
     );
@@ -178,7 +178,7 @@ function Pie({ slices, unit = 'pessoas', empty }: { slices: [string, number][]; 
   const shown = hover != null ? data[hover] : null;
   return (
     <div
-      className="tw:flex tw:min-w-0 tw:flex-1 tw:items-center tw:gap-[2rem] tw:px-[0.4615rem] tw:py-[0.3077rem] tw:max-[35rem]:flex-col tw:max-[35rem]:items-start tw:max-[35rem]:gap-[1.0769rem] tw:max-[35rem]:p-0 tw:[&_svg]:size-[12rem] tw:[&_svg]:flex-none tw:max-[35rem]:[&_svg]:size-[10.1538rem] tw:[&_circle]:cursor-pointer tw:[&_circle]:motion-safe:transition-[opacity,stroke-width] tw:[&_text]:fill-cali-brand tw:[&_text]:font-cali-body tw:[&_text]:text-[0.5385rem] tw:[&_text]:font-bold tw:[&_text.sub]:fill-[#a18e80] tw:[&_text.sub]:text-[0.2077rem] tw:[&_text.sub]:font-medium"
+      className="tw:flex tw:min-w-0 tw:flex-1 tw:items-center tw:gap-8 tw:px-2 tw:py-1 tw:max-[35rem]:flex-col tw:max-[35rem]:items-start tw:max-[35rem]:gap-4.5 tw:max-[35rem]:p-0 tw:[&_svg]:size-48 tw:[&_svg]:flex-none tw:max-[35rem]:[&_svg]:size-[10.1538rem] tw:[&_circle]:cursor-pointer tw:[&_circle]:motion-safe:transition-[opacity,stroke-width] tw:[&_text]:fill-cali-brand tw:[&_text]:font-cali-body tw:[&_text]:font-bold tw:[&_text.sub]:fill-cali-muted tw:[&_text.sub]:font-medium"
       onMouseLeave={() => setHover(null)}
     >
       <svg
@@ -186,7 +186,7 @@ function Pie({ slices, unit = 'pessoas', empty }: { slices: [string, number][]; 
         role="img"
         aria-label={data.map(([label, value]) => `${label}: ${num(value)}`).join(', ')}
       >
-        <circle cx="21" cy="21" r="15.915" fill="none" stroke="#f3ece6" strokeWidth="7" />
+        <circle cx="21" cy="21" r="15.915" fill="none" className="tw:stroke-cali-surface-muted" strokeWidth="7" />
         {segments.map(({ label, share, dashOffset }, index) => (
           <circle
             key={label}
@@ -202,14 +202,14 @@ function Pie({ slices, unit = 'pessoas', empty }: { slices: [string, number][]; 
             onMouseEnter={() => setHover(index)}
           />
         ))}
-        <text x="21" y="20.4" textAnchor="middle">
+        <text x="21" y="20.4" textAnchor="middle" fontSize={7}>
           {shown ? `${Math.round((shown[1] / total) * 100)}%` : num(total)}
         </text>
-        <text x="21" y="25.2" textAnchor="middle" className="sub">
+        <text x="21" y="25.2" textAnchor="middle" className="sub" fontSize={2.7}>
           {shown ? `${num(shown[1], unit === 'horas' ? 1 : 0)} ${unit}` : unit}
         </text>
       </svg>
-      <ul className="tw:m-0 tw:flex tw:min-w-0 tw:flex-1 tw:list-none tw:flex-col tw:p-0 tw:max-[35rem]:w-full tw:[&_li]:grid tw:[&_li]:grid-cols-[0.7692rem_minmax(0,1fr)_auto_3.2308rem] tw:[&_li]:items-center tw:[&_li]:gap-[0.7692rem] tw:[&_li]:border-0 tw:[&_li]:border-b tw:[&_li]:border-solid tw:[&_li]:border-[#f4ede7] tw:[&_li]:px-[0.6154rem] tw:[&_li]:py-[0.6923rem] tw:[&_li]:text-[0.9231rem]/[1.3] tw:[&_li]:text-[#67574c] tw:[&_li:last-child]:border-0 tw:[&_li.on]:rounded-md tw:[&_li.on]:bg-[#faf3ec] tw:[&_i]:size-[0.7692rem] tw:[&_i]:rounded-[0.2308rem] tw:[&_b]:text-[#322f2c] tw:[&_em]:text-right tw:[&_em]:font-bold tw:[&_em]:text-cali-brand tw:[&_em]:not-italic">
+      <ul className="tw:m-0 tw:flex tw:min-w-0 tw:flex-1 tw:list-none tw:flex-col tw:p-0 tw:max-[35rem]:w-full tw:[&_li]:grid tw:[&_li]:grid-cols-[0.7692rem_minmax(0,1fr)_auto_3.2308rem] tw:[&_li]:items-center tw:[&_li]:gap-3 tw:[&_li]:border-0 tw:[&_li]:border-b tw:[&_li]:border-solid tw:[&_li]:border-cali-line tw:[&_li]:px-2.5 tw:[&_li]:py-3 tw:[&_li]:text-cali-body/[1.3] tw:[&_li]:text-cali-muted tw:[&_li:last-child]:border-0 tw:[&_li.on]:rounded-md tw:[&_li.on]:bg-cali-sand-soft tw:[&_i]:size-3 tw:[&_i]:rounded-sm tw:[&_b]:text-cali-text tw:[&_em]:text-right tw:[&_em]:font-bold tw:[&_em]:text-cali-brand tw:[&_em]:not-italic">
         {data.map(([label, value], index) => (
           <li key={label} className={hover === index ? 'on' : ''} onMouseEnter={() => setHover(index)}>
             <i style={{ background: COLORS[index % COLORS.length] }} />
@@ -302,19 +302,19 @@ export function PeopleAnalyticsPeriod({ series, metrics, members, month, pageRan
 
   return (
     <div className="pa-board tw:min-w-0">
-      <div className="pa-section-head tw:mt-[2rem] tw:mb-[1.0769rem] tw:flex tw:flex-col tw:gap-[0.3077rem] tw:rounded-[0.6923rem] tw:bg-cali-brand tw:px-[1.3846rem] tw:py-[1.0769rem] tw:text-white tw:[&_small]:text-[0.6923rem] tw:[&_small]:font-bold tw:[&_small]:tracking-[0.1077rem] tw:[&_small]:text-[#e3c9a3] tw:[&_h2]:m-0 tw:[&_h2]:text-[1.2308rem]/[normal] tw:[&_h2]:font-bold tw:[&_h2]:text-inherit tw:[&_p]:m-0 tw:[&_p]:text-[0.8462rem] tw:[&_p]:text-[#eadfd8]">
+      <div className="pa-section-head tw:mt-8 tw:mb-4.5 tw:flex tw:flex-col tw:gap-1 tw:rounded-cali-panel tw:bg-cali-brand tw:px-5.5 tw:py-4.5 tw:text-cali-neutral-surface tw:[&_small]:text-cali-label tw:[&_small]:font-bold tw:[&_small]:tracking-[0.1077rem] tw:[&_small]:text-cali-gold-line tw:[&_h2]:m-0 tw:[&_h2]:text-xl/[normal] tw:[&_h2]:font-bold tw:[&_h2]:text-inherit tw:[&_p]:m-0 tw:[&_p]:text-sm tw:[&_p]:text-cali-line">
         <small>EVOLUÇÃO NO PERÍODO</small>
         <h2>Como a equipe mudou ao longo dos meses</h2>
         <p>Cada gráfico tem o próprio seletor de período e mostra o resultado em destaque.</p>
       </div>
-      <div className="pa-grid tw:grid tw:grid-cols-2 tw:gap-[1.2308rem] tw:max-[56.25rem]:grid-cols-1">
+      <div className="pa-grid tw:grid tw:grid-cols-2 tw:gap-5 tw:max-[56.25rem]:grid-cols-1">
         <Card
           wide
           title="Movimento do quadro"
           what={`Quantas pessoas entraram, quantas saíram e como o quadro ficou · ${flow.label}`}
           control={
-            <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-[0.6154rem]">
-              <div className="ie-switch tw:flex tw:overflow-hidden tw:rounded-md tw:border tw:border-solid tw:border-[#e9dfd8] tw:[&_button]:border-0 tw:[&_button]:bg-white tw:[&_button]:px-[0.7692rem] tw:[&_button]:py-[0.6923rem] tw:[&_button]:text-[0.7692rem] tw:[&_button]:text-[#897a71] tw:[&_button.on]:bg-cali-brand tw:[&_button.on]:text-white">
+            <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.5">
+              <div className="ie-switch tw:flex tw:overflow-hidden tw:rounded-md tw:border tw:border-solid tw:border-cali-line tw:[&_button]:border-0 tw:[&_button]:bg-cali-neutral-surface tw:[&_button]:px-3 tw:[&_button]:py-3 tw:[&_button]:text-xs tw:[&_button]:text-cali-sand-text tw:[&_button.on]:bg-cali-brand tw:[&_button.on]:text-cali-neutral-surface">
                 <button type="button" className={kind === 'flow' ? 'on' : ''} onClick={() => setKind('flow')}>
                   Entradas / saídas
                 </button>
@@ -366,7 +366,7 @@ export function PeopleAnalyticsPeriod({ series, metrics, members, month, pageRan
             )}
           />
           {kind === 'flow' && (
-            <p className="tw:m-0 tw:flex tw:items-center tw:gap-[0.4615rem] tw:text-[0.7692rem] tw:text-[#8c7e74] tw:[&_i]:size-[0.6923rem] tw:[&_i]:rounded-[0.2308rem] tw:[&_i]:bg-[#4c9a76] tw:[&_i.out]:ml-[0.7692rem] tw:[&_i.out]:bg-[#b7495d]">
+            <p className="tw:m-0 tw:flex tw:items-center tw:gap-2 tw:text-xs tw:text-cali-muted tw:[&_i]:size-3 tw:[&_i]:rounded-sm tw:[&_i]:bg-cali-teal-accent tw:[&_i.out]:ml-3 tw:[&_i.out]:bg-cali-danger">
               <i className="in" /> admissões <i className="out" /> desligamentos
             </p>
           )}
@@ -475,7 +475,7 @@ export function PeopleAnalyticsPeriod({ series, metrics, members, month, pageRan
             unit="saídas"
           />
           {reasons.length > 0 && (
-            <div className="tw:flex tw:flex-col tw:gap-[0.6154rem] tw:border-t tw:border-solid tw:border-[#f0e7e0] tw:pt-[0.9231rem] tw:[&>div]:grid tw:[&>div]:grid-cols-[minmax(0,11.5385rem)_minmax(0,1fr)_1.8462rem] tw:[&>div]:items-center tw:[&>div]:gap-[0.7692rem] tw:[&>div]:text-[0.8462rem] tw:[&>div]:text-[#67574c] tw:[&>div>div]:h-[0.6154rem] tw:[&>div>div]:overflow-hidden tw:[&>div>div]:rounded tw:[&>div>div]:bg-[#f3ece6] tw:[&_i]:block tw:[&_i]:h-full tw:[&_i]:rounded tw:[&_i]:bg-cali-gold tw:[&_b]:text-right tw:[&_b]:text-[#322f2c]">
+            <div className="tw:flex tw:flex-col tw:gap-2.5 tw:border-t tw:border-solid tw:border-cali-neutral-soft tw:pt-3.5 tw:[&>div]:grid tw:[&>div]:grid-cols-[minmax(0,11.5385rem)_minmax(0,1fr)_1.8462rem] tw:[&>div]:items-center tw:[&>div]:gap-3 tw:[&>div]:text-sm tw:[&>div]:text-cali-muted tw:[&>div>div]:h-2.5 tw:[&>div>div]:overflow-hidden tw:[&>div>div]:rounded tw:[&>div>div]:bg-cali-surface-muted tw:[&_i]:block tw:[&_i]:h-full tw:[&_i]:rounded tw:[&_i]:bg-cali-gold tw:[&_b]:text-right tw:[&_b]:text-cali-text">
               {reasons.map(([name, count]) => (
                 <div key={name}>
                   <span>{name}</span>
@@ -569,12 +569,12 @@ export function PeopleAnalyticsMonth({ series, metrics, working, privateRows, mo
 
   return (
     <div className="pa-board tw:min-w-0">
-      <div className="pa-section-head tw:mt-[2rem] tw:mb-[1.0769rem] tw:flex tw:flex-col tw:gap-[0.3077rem] tw:rounded-[0.6923rem] tw:border tw:border-l-4 tw:border-solid tw:border-[#e9dfd8] tw:border-l-cali-gold tw:bg-white tw:px-[1.3846rem] tw:py-[1.0769rem] tw:text-[#322f2c] tw:[&_small]:text-[0.6923rem] tw:[&_small]:font-bold tw:[&_small]:tracking-[0.1077rem] tw:[&_small]:text-[#af8f72] tw:[&_h2]:m-0 tw:[&_h2]:text-[1.2308rem]/[normal] tw:[&_h2]:font-bold tw:[&_h2]:text-inherit tw:[&_p]:m-0 tw:[&_p]:text-[0.8462rem] tw:[&_p]:text-[#8c7e74]">
+      <div className="pa-section-head tw:mt-8 tw:mb-4.5 tw:flex tw:flex-col tw:gap-1 tw:rounded-cali-panel tw:border tw:border-l-4 tw:border-solid tw:border-cali-line tw:border-l-cali-gold tw:bg-cali-neutral-surface tw:px-5.5 tw:py-4.5 tw:text-cali-text tw:[&_small]:text-cali-label tw:[&_small]:font-bold tw:[&_small]:tracking-[0.1077rem] tw:[&_small]:text-cali-warning tw:[&_h2]:m-0 tw:[&_h2]:text-xl/[normal] tw:[&_h2]:font-bold tw:[&_h2]:text-inherit tw:[&_p]:m-0 tw:[&_p]:text-sm tw:[&_p]:text-cali-muted">
         <small>RETRATO DO MÊS · {longMonth(month).toUpperCase()}</small>
         <h2>Quem são as pessoas ativas neste mês</h2>
         <p>Estes blocos mostram só o mês escolhido no topo da página; não somam o período.</p>
       </div>
-      <div className="pa-grid tw:grid tw:grid-cols-2 tw:gap-[1.2308rem] tw:max-[56.25rem]:grid-cols-1">
+      <div className="pa-grid tw:grid tw:grid-cols-2 tw:gap-5 tw:max-[56.25rem]:grid-cols-1">
         <Card
           title="Movimento do mês"
           what={`De quantas pessoas ${longMonth(month)} começou a quantas terminou`}
@@ -596,7 +596,7 @@ export function PeopleAnalyticsMonth({ series, metrics, working, privateRows, mo
           ]}
         >
           {point ? (
-            <div className="tw:flex tw:flex-col tw:gap-[0.7692rem] tw:[&>div]:grid tw:[&>div]:grid-cols-[9.2308rem_minmax(0,1fr)_3.3846rem] tw:[&>div]:items-center tw:[&>div]:gap-[0.9231rem] tw:[&>div]:text-[0.8462rem] tw:[&>div]:text-[#67574c] tw:max-[35rem]:[&>div]:grid-cols-[7.3846rem_minmax(0,1fr)_2.7692rem] tw:[&>div>div]:h-[1.0769rem] tw:[&>div>div]:overflow-hidden tw:[&>div>div]:rounded-[0.3846rem] tw:[&>div>div]:bg-[#f3ece6] tw:[&_i]:block tw:[&_i]:h-full tw:[&_i]:rounded-[0.3846rem] tw:[&_i]:bg-cali-brand tw:[&_.in_i]:bg-[#4c9a76] tw:[&_.out_i]:bg-[#b7495d] tw:[&_b]:text-right tw:[&_b]:text-[1rem] tw:[&_b]:text-[#322f2c] tw:[&_.in_b]:text-[#31805a] tw:[&_.out_b]:text-[#b7495d]">
+            <div className="tw:flex tw:flex-col tw:gap-3 tw:[&>div]:grid tw:[&>div]:grid-cols-[9.2308rem_minmax(0,1fr)_3.3846rem] tw:[&>div]:items-center tw:[&>div]:gap-3.5 tw:[&>div]:text-sm tw:[&>div]:text-cali-muted tw:max-[35rem]:[&>div]:grid-cols-[7.3846rem_minmax(0,1fr)_2.7692rem] tw:[&>div>div]:h-4.5 tw:[&>div>div]:overflow-hidden tw:[&>div>div]:rounded-md tw:[&>div>div]:bg-cali-surface-muted tw:[&_i]:block tw:[&_i]:h-full tw:[&_i]:rounded-md tw:[&_i]:bg-cali-brand tw:[&_.in_i]:bg-cali-teal-accent tw:[&_.out_i]:bg-cali-danger tw:[&_b]:text-right tw:[&_b]:text-base tw:[&_b]:text-cali-text tw:[&_.in_b]:text-cali-success tw:[&_.out_b]:text-cali-danger">
               {cascade.map(([label, value, kind]) => (
                 <div key={label} className={kind}>
                   <span>{label}</span>
@@ -611,7 +611,7 @@ export function PeopleAnalyticsMonth({ series, metrics, working, privateRows, mo
               ))}
             </div>
           ) : (
-            <div className="tw:py-[1.6923rem] tw:text-[0.8462rem] tw:text-[#96867c]">
+            <div className="tw:py-7 tw:text-sm tw:text-cali-muted">
               Confirme a equipe deste mês para ver o movimento.
             </div>
           )}
@@ -669,7 +669,7 @@ export function PeopleAnalyticsMonth({ series, metrics, working, privateRows, mo
               </tbody>
             </DataTable>
           ) : (
-            <div className="tw:py-[1.6923rem] tw:text-[0.8462rem] tw:text-[#96867c]">
+            <div className="tw:py-7 tw:text-sm tw:text-cali-muted">
               Quadro aprovado ainda não lançado em “Dados do mês”.
             </div>
           )}
@@ -692,7 +692,7 @@ export function PeopleAnalyticsMonth({ series, metrics, working, privateRows, mo
           what="Há quanto tempo as pessoas ativas estão na empresa"
           control={
             <select
-              className="tw:rounded-md tw:border tw:border-solid tw:border-[#e7ddd5] tw:bg-white tw:px-[0.6923rem] tw:py-[0.4615rem] tw:text-[0.8462rem] tw:font-semibold tw:text-cali-brand"
+              className="tw:rounded-md tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-cali-brand"
               aria-label="Área"
               value={area}
               onChange={(event) => setArea(event.target.value)}
@@ -762,7 +762,7 @@ export function PeopleAnalyticsMonth({ series, metrics, working, privateRows, mo
           />
         </Card>
 
-        <section className="pa-card pa-missing tw:col-span-full tw:flex tw:min-w-0 tw:flex-col tw:gap-[1.0769rem] tw:rounded-[0.6923rem] tw:border tw:border-solid tw:border-[#ecd9b0] tw:bg-[#fffaf1] tw:p-[1.3846rem] tw:[&_h3]:mt-0 tw:[&_h3]:mb-[0.3077rem] tw:[&_h3]:text-[1.0769rem]/[normal] tw:[&_h3]:font-bold tw:[&_h3]:text-[#322f2c] tw:[&_p]:m-0 tw:[&_p]:text-[0.8462rem]/[1.5] tw:[&_p]:text-[#8c7e74]">
+        <section className="pa-card pa-missing tw:col-span-full tw:flex tw:min-w-0 tw:flex-col tw:gap-4.5 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-warning-line tw:bg-cali-warning-surface tw:p-5.5 tw:[&_h3]:mt-0 tw:[&_h3]:mb-1 tw:[&_h3]:text-lg/[normal] tw:[&_h3]:font-bold tw:[&_h3]:text-cali-text tw:[&_p]:m-0 tw:[&_p]:text-sm/[1.5] tw:[&_p]:text-cali-muted">
           <header>
             <div>
               <h3>O que a planilha pede e ainda não tem dado no cadastro</h3>

@@ -29,12 +29,26 @@ function rest(context, origin, endpoint, method, respond) {
   );
 }
 
+async function assertSummaryPadding(page) {
+  const identification = page.locator('.reports-v16-identification > div');
+  const facts = page.locator('.reports-v16-fact-grid > article');
+  await identification.first().waitFor();
+  await facts.first().waitFor();
+  for (const columns of [identification, facts]) {
+    const padding = await columns.evaluateAll((items) => items.map((item) => {
+      const style = getComputedStyle(item);
+      return [Number.parseFloat(style.paddingLeft), Number.parseFloat(style.paddingRight)];
+    }));
+    assert.ok(padding.every(([left, right]) => left >= 12 && left === right), 'Os cards precisam de padding horizontal simétrico.');
+  }
+}
+
 browserSuite([
   {
     id: '12-admin-report-preview-draft-autosave-review-and-freeze',
     role: 'admin',
     timezoneId: 'America/Sao_Paulo',
-    async run({ page, context, origin }) {
+    async run({ page, context, origin, snapshot: capture }) {
       const snapshot = { ...tables.reports[0].source_snapshot, generatedAt: clock, period };
       const performance = {
         deliverable_id: 'c0111111-1111-4111-8111-111111111113',
@@ -103,6 +117,8 @@ browserSuite([
       const toolbar = page.locator('.reports-v16-toolbar');
       const create = toolbar.getByRole('button', { name: 'Criar fechamento oficial', exact: true });
       await toolbar.getByText('12 de 20 dias de coleta', { exact: true }).waitFor();
+      await assertSummaryPadding(page);
+      await capture('preview-spacing');
       assert.equal(await create.isDisabled(), true);
       assert.equal(await toolbar.getByRole('button', { name: 'Iniciar revisão' }).count(), 0);
       assert.deepEqual(inserts, []);
@@ -138,6 +154,7 @@ browserSuite([
       const startReview = toolbar.getByRole('button', { name: 'Iniciar revisão', exact: true });
       await startReview.waitFor();
       await page.getByText(protocol, { exact: true }).waitFor();
+      await assertSummaryPadding(page);
       assert.equal(inserts.length, 1);
       assert.equal(inserts[0].status, 'draft');
       assert.equal(inserts[0].version, 1);

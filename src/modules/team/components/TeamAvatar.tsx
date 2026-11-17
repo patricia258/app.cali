@@ -19,13 +19,13 @@ export function TeamAvatar({ name, style = 'neutral', large = false, leader = fa
   const src = avatarSources[style] ?? avatarSources.neutral;
   const [failedSrc, setFailedSrc] = useState<string>();
   const size = large
-    ? 'tw:size-[4.125rem] tw:compact-content:size-[5.077rem]'
-    : 'tw:size-[2.375rem] tw:compact-content:size-[2.923rem]';
+    ? 'tw:size-16.5 tw:compact-content:size-20.5'
+    : 'tw:size-9.5 tw:compact-content:size-11.5';
   return (
     <span className={`tw:relative tw:inline-grid tw:flex-none tw:place-items-center ${size}`}>
       <span
         aria-hidden="true"
-        className={`tw:grid tw:size-full tw:place-items-center tw:overflow-hidden tw:rounded-[0.4375rem] tw:border tw:border-solid tw:border-cali-gold tw:bg-[#f7f3ee] tw:font-cali-heading tw:font-bold tw:leading-none tw:text-cali-brand ${large ? 'tw:text-2xl' : 'tw:text-base'}`}
+        className={`tw:grid tw:size-full tw:place-items-center tw:overflow-hidden tw:rounded-md tw:border tw:border-solid tw:border-cali-gold tw:bg-cali-day-canvas tw:font-cali-heading tw:font-bold tw:leading-none tw:text-cali-brand ${large ? 'tw:text-2xl' : 'tw:text-base'}`}
       >
         {failedSrc === src ? (
           name.trim().slice(0, 1).toUpperCase() || 'C'
@@ -42,7 +42,7 @@ export function TeamAvatar({ name, style = 'neutral', large = false, leader = fa
         <span
           title="Liderança"
           aria-label="Liderança"
-          className={`tw:absolute tw:grid tw:place-items-center tw:rounded-[0.4375rem] tw:bg-[#e9c57e] tw:text-cali-brand tw:shadow-[0_0.125rem_0.3125rem_#28111636] ${large ? 'tw:-right-1.75 tw:-top-2 tw:size-6' : 'tw:-right-1.5 tw:-top-1.75 tw:size-5 tw:compact-content:size-[1.54rem]'}`}
+          className={`tw:absolute tw:grid tw:place-items-center tw:rounded-md tw:bg-cali-orange-soft tw:text-cali-brand tw:shadow-[0_0.125rem_0.3125rem_rgb(var(--cali-rgb-red-inverse)/0.2118)] ${large ? 'tw:-right-1.75 tw:-top-2 tw:size-6' : 'tw:-right-1.5 tw:-top-1.75 tw:size-5 tw:compact-content:size-6'}`}
         >
           <Star size={large ? 15 : 12} fill="currentColor" />
         </span>

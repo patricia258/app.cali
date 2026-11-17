@@ -19,19 +19,19 @@ export function CompanyProfileFooter({ status, onLifecycle, onCancel, onSave, sa
   ];
 
   return (
-    <footer className="tw:flex tw:justify-between tw:gap-[.923rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#eaded6] tw:bg-[#faf6f2] tw:px-[1.846rem] tw:py-[1.231rem] tw:max-[45rem]:flex-wrap tw:max-[45rem]:px-[.923rem]">
-      <div role="group" aria-label="Situação da conta" className="tw:flex tw:flex-wrap tw:items-center tw:gap-[.615rem]">
+    <footer className="tw:flex tw:justify-between tw:gap-3.5 tw:border-0 tw:border-t tw:border-solid tw:border-cali-sand-line tw:bg-cali-surface-soft tw:px-7.5 tw:py-5 tw:max-[45rem]:flex-wrap tw:max-[45rem]:px-3.5">
+      <div role="group" aria-label="Situação da conta" className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.5">
         {actions.map(({ label, action }) => (
-          <button key={action} type="button" onClick={() => onLifecycle(action)} className="tw:rounded-[.538rem] tw:border tw:border-solid tw:border-transparent tw:bg-transparent tw:px-[1rem] tw:py-[.769rem] tw:font-semibold tw:text-[#9d5452]">
+          <button key={action} type="button" onClick={() => onLifecycle(action)} className="tw:rounded-lg tw:border tw:border-solid tw:border-transparent tw:bg-transparent tw:px-4 tw:py-3 tw:font-semibold tw:text-cali-red-text">
             {label}
           </button>
         ))}
       </div>
-      <div className="tw:flex tw:items-center tw:gap-[.615rem]">
-        <button type="button" onClick={onCancel} className="tw:rounded-[.538rem] tw:border tw:border-solid tw:border-[#e5d8d0] tw:bg-white tw:px-[1rem] tw:py-[.769rem] tw:font-semibold tw:text-cali-brand">
+      <div className="tw:flex tw:items-center tw:gap-2.5">
+        <button type="button" onClick={onCancel} className="tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-4 tw:py-3 tw:font-semibold tw:text-cali-brand">
           Cancelar
         </button>
-        <button type="button" onClick={onSave} disabled={saving} className="tw:rounded-[.538rem] tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-[1rem] tw:py-[.769rem] tw:font-semibold tw:text-white">
+        <button type="button" onClick={onSave} disabled={saving} className="tw:rounded-lg tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-4 tw:py-3 tw:font-semibold tw:text-cali-neutral-surface">
           {saving ? 'Salvando…' : 'Salvar alterações'}
         </button>
       </div>

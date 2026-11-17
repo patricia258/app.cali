@@ -345,7 +345,9 @@ component(
     assert.equal(await select.inputValue(), 'all');
     await select.selectOption('open');
     assert.equal(await select.inputValue(), 'open');
-    assert.match(await select.getAttribute('class'), /\bwf-record-filter\b.*\bfixture-select\b/);
+    const selectClasses = await select.evaluate((element) => Array.from(element.classList));
+    assert.ok(selectClasses.includes('wf-record-filter'));
+    assert.ok(selectClasses.includes('fixture-select'));
     const textarea = page.getByRole('textbox', { name: 'Observações' });
     await page.getByRole('button', { name: 'Conferir refs' }).click();
     assert.equal(await page.getByRole('status', { name: 'Referências' }).textContent(), 'Refs nativas');

@@ -4,8 +4,15 @@
    (remuneração, gênero, filhos) saem separados em "dados_restritos"; quem recebe fica registrado na auditoria.
    A exportação aplicável deve ser entregue dentro dos 30 dias corridos do encerramento, antes da eliminação. */
 import { readCompanyExport, signCompanyExportDocuments } from '../../../api/admin/companies/export';
+import { caliPalette } from '../../../../supabase/functions/_shared/cali-palette';
 
 const LINK_DAYS = 7;
+const indexColors = {
+  text: caliPalette.burgundy.darker,
+  muted: caliPalette.neutral.base,
+  line: caliPalette.sand.light,
+  link: caliPalette.burgundy.base,
+};
 const escapeHtml = (value: string) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
 const slug = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'empresa';
 
@@ -31,7 +38,15 @@ export async function exportCompanyData(companyId: string, companyName: string, 
     return `<tr><td>${escapeHtml(doc.protocol || '—')}</td><td>${escapeHtml(doc.title || doc.original_filename || 'Documento')}</td><td>${date ? new Date(date).toLocaleDateString('pt-BR') : '—'}</td><td>${href ? `<a href="${escapeHtml(href)}">Baixar</a>` : 'Sem arquivo'}</td></tr>`;
   }).join('');
   const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Documentos · ${escapeHtml(companyName)}</title>
-<style>body{font-family:Inter,Arial,sans-serif;color:#2b2024;margin:32px auto;max-width:860px;padding:0 16px}h1{font-size:20px;margin:0 0 6px}p{color:#6b5d63;font-size:13px}table{width:100%;border-collapse:collapse;font-size:13px;margin-top:18px}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid #eee3dc}th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#8a7a80}a{color:#7a1f3d;font-weight:600}</style></head>
+<style>
+  body{font-family:Inter,Arial,sans-serif;color:${indexColors.text};margin:32px auto;max-width:860px;padding:0 16px}
+  h1{font-size:20px;margin:0 0 6px}
+  p{color:${indexColors.muted};font-size:13px}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:18px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid ${indexColors.line}}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:${indexColors.muted}}
+  a{color:${indexColors.link};font-weight:600}
+</style></head>
 <body><h1>Documentos de ${escapeHtml(companyName)}</h1><p>Gerado pelo CALI Workspace em ${new Date().toLocaleDateString('pt-BR')}. Os links de download valem até ${until}; depois disso, peça um novo arquivo à CALI RH.</p>
 <table><thead><tr><th>Protocolo</th><th>Documento</th><th>Data</th><th>Arquivo</th></tr></thead><tbody>${rows || '<tr><td colspan="4">Nenhum documento cadastrado.</td></tr>'}</tbody></table></body></html>`;
   download(html, 'text/html', `${base}-documentos.html`);

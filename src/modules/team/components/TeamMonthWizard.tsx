@@ -201,26 +201,26 @@ export function TeamMonthWizard({
   return createPortal(
     <TeamDialogOverlay onClose={onClose}>
       <WorkflowDialog create
-        className="tw:flex tw:max-h-[calc(100dvh-2.25rem)] tw:w-full! tw:max-w-[42.5rem] tw:flex-col tw:overflow-hidden tw:p-0!"
+        className="tw:flex tw:max-h-[calc(100dvh-2.25rem)] tw:w-full! tw:max-w-170 tw:flex-col tw:overflow-hidden tw:p-0!"
         aria-label="Atualização mensal"
       >
         <TeamDialogHeader onClose={onClose}>
           <TeamDialogEyebrow>EQUIPE · {month}</TeamDialogEyebrow>
           <h2>O que mudou neste mês?</h2>
         </TeamDialogHeader>
-        <div className="tw:px-[1.5625rem] tw:pt-4.5 tw:pb-5 tw:min-h-0 tw:overflow-y-auto tw:overscroll-contain">
+        <div className="tw:px-6 tw:pt-4.5 tw:pb-5 tw:min-h-0 tw:overflow-y-auto tw:overscroll-contain">
           <div className="tw:mb-3.5 tw:flex tw:gap-3">
             {titles.map((t, i) => (
               <span
                 key={t}
-                className={`tw:grid tw:size-8 tw:place-items-center tw:rounded-[0.4375rem] tw:text-[0.6875rem] tw:font-bold ${i === stage ? 'tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:text-white' : 'tw:bg-[var(--v2-surface-f4ede6,#f4ede6)] tw:text-[var(--v2-text-a78a72,#a78a72)]'}`}
+                className={`tw:grid tw:size-8 tw:place-items-center tw:rounded-md tw:text-cali-label tw:font-bold ${i === stage ? 'tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:text-cali-neutral-surface' : 'tw:bg-[var(--v2-surface-f4ede6,var(--cali-color-neutral-soft))] tw:text-[var(--v2-text-a78a72,var(--cali-color-sand-text))]'}`}
                 title={t}
               >
                 {i + 1}
               </span>
             ))}
           </div>
-          <div className="tw:flex tw:gap-5 tw:text-xs tw:leading-relaxed tw:text-[var(--v2-text-8c7462,#8c7462)] tw:[&_h3]:text-lg tw:[&_h3]:text-cali-brand tw:mt-4 tw:mb-3.5 tw:min-h-[6.625rem] tw:items-start tw:justify-between tw:max-[37.5rem]:min-h-0 tw:[&_h3]:mt-0 tw:[&_h3]:mb-2.5 tw:[&_p]:m-0 tw:[&_p]:max-w-[56ch] tw:[&_p]:text-[0.88rem]/[1.55] tw:[&_p_strong]:font-extrabold">
+          <div className="tw:flex tw:gap-5 tw:text-xs tw:leading-relaxed tw:text-[var(--v2-text-8c7462,var(--cali-color-sand-strong))] tw:[&_h3]:text-lg tw:[&_h3]:text-cali-brand tw:mt-4 tw:mb-3.5 tw:min-h-26.5 tw:items-start tw:justify-between tw:max-[37.5rem]:min-h-0 tw:[&_h3]:mt-0 tw:[&_h3]:mb-2.5 tw:[&_p]:m-0 tw:[&_p]:max-w-[56ch] tw:[&_p]:text-sm/[1.55] tw:[&_p_strong]:font-extrabold">
             <div>
               <h3>{titles[stage]}</h3>
               <p>
@@ -251,7 +251,7 @@ export function TeamMonthWizard({
               </p>
             </div>
             <span
-              className="tw:ml-auto tw:shrink-0 tw:text-cali-gold tw:grid tw:size-[5.3125rem] tw:place-items-center tw:rounded-[1.125rem] tw:max-[37.5rem]:size-[3.625rem] tw:max-[37.5rem]:rounded-xl tw:max-[37.5rem]:[&_svg]:size-[1.9375rem]"
+              className="tw:ml-auto tw:shrink-0 tw:text-cali-gold tw:grid tw:size-21 tw:place-items-center tw:rounded-[1.125rem] tw:max-[37.5rem]:size-14.5 tw:max-[37.5rem]:rounded-xl tw:max-[37.5rem]:[&_svg]:size-8"
               aria-hidden="true"
             >
               {(() => {
@@ -264,7 +264,7 @@ export function TeamMonthWizard({
             <>
               {rows[stage].map((r, i) => (
                 <div
-                  className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.25 tw:border-b tw:border-solid tw:border-[var(--v2-line-e5d6c9,#e5d6c9)] tw:py-3.5 tw:[&>:is(input,select)]:min-w-30 tw:[&>:is(input,select)]:flex-1 tw:[&>:is(input,select)]:text-[0.6875rem] tw:[&_button]:border tw:[&_button]:border-solid tw:[&_button]:border-[var(--v2-line-e5d6c9,#e5d6c9)] tw:[&_button]:bg-cali-surface tw:[&_button]:text-cali-brand tw:my-2.5 tw:rounded-[0.8125rem] tw:[&_label]:text-[0.7rem] tw:[&_input]:h-[2.625rem] tw:[&_input]:rounded-[0.625rem] tw:[&_input]:px-3 tw:[&_select]:h-[2.625rem] tw:[&_select]:rounded-[0.625rem] tw:[&_select]:px-3 tw:[&_button]:grid tw:[&_button]:size-[2.375rem] tw:[&_button]:place-items-center"
+                  className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.25 tw:border-b tw:border-solid tw:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:py-3.5 tw:[&>:is(input,select)]:min-w-30 tw:[&>:is(input,select)]:flex-1 tw:[&>:is(input,select)]:text-cali-label tw:[&_button]:border tw:[&_button]:border-solid tw:[&_button]:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:[&_button]:bg-cali-surface tw:[&_button]:text-cali-brand tw:my-2.5 tw:rounded-xl tw:[&_label]:text-cali-label tw:[&_input]:h-10.5 tw:[&_input]:rounded-cali-panel tw:[&_input]:px-3 tw:[&_select]:h-10.5 tw:[&_select]:rounded-cali-panel tw:[&_select]:px-3 tw:[&_button]:grid tw:[&_button]:size-9.5 tw:[&_button]:place-items-center"
                   key={r.rowId}
                 >
                   {fields[stage].map((f) =>
@@ -351,7 +351,7 @@ export function TeamMonthWizard({
                 </div>
               ))}
               <button
-                className="tw:rounded-[0.4375rem] tw:border tw:border-solid tw:border-[var(--v2-line-e5d6c9,#e5d6c9)] tw:bg-cali-surface tw:p-2.5 tw:text-[0.6875rem] tw:text-cali-brand tw:mt-1.5 tw:inline-flex tw:min-h-10 tw:items-center tw:gap-1.5 tw:font-bold"
+                className="tw:rounded-md tw:border tw:border-solid tw:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:bg-cali-surface tw:p-2.5 tw:text-cali-label tw:text-cali-brand tw:mt-1.5 tw:inline-flex tw:min-h-10 tw:items-center tw:gap-1.5 tw:font-bold"
                 onClick={() => {
                   const rowId = crypto.randomUUID();
                   setRows((all) => all.map((list, s) => (s === stage ? [...list, { rowId }] : list)));
@@ -365,7 +365,7 @@ export function TeamMonthWizard({
             <>
               {jobs.map((v, i) => (
                 <div
-                  className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.25 tw:border-b tw:border-solid tw:border-[var(--v2-line-e5d6c9,#e5d6c9)] tw:py-3.5 tw:[&>:is(input,select)]:min-w-30 tw:[&>:is(input,select)]:flex-1 tw:[&>:is(input,select)]:text-[0.6875rem] tw:[&_button]:border tw:[&_button]:border-solid tw:[&_button]:border-[var(--v2-line-e5d6c9,#e5d6c9)] tw:[&_button]:bg-cali-surface tw:[&_button]:text-cali-brand tw:my-2.5 tw:rounded-[0.8125rem] tw:[&_label]:text-[0.7rem] tw:[&_input]:h-[2.625rem] tw:[&_input]:rounded-[0.625rem] tw:[&_input]:px-3 tw:[&_select]:h-[2.625rem] tw:[&_select]:rounded-[0.625rem] tw:[&_select]:px-3 tw:[&_button]:grid tw:[&_button]:size-[2.375rem] tw:[&_button]:place-items-center"
+                  className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.25 tw:border-b tw:border-solid tw:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:py-3.5 tw:[&>:is(input,select)]:min-w-30 tw:[&>:is(input,select)]:flex-1 tw:[&>:is(input,select)]:text-cali-label tw:[&_button]:border tw:[&_button]:border-solid tw:[&_button]:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:[&_button]:bg-cali-surface tw:[&_button]:text-cali-brand tw:my-2.5 tw:rounded-xl tw:[&_label]:text-cali-label tw:[&_input]:h-10.5 tw:[&_input]:rounded-cali-panel tw:[&_input]:px-3 tw:[&_select]:h-10.5 tw:[&_select]:rounded-cali-panel tw:[&_select]:px-3 tw:[&_button]:grid tw:[&_button]:size-9.5 tw:[&_button]:place-items-center"
                   key={v.vacancy_code}
                 >
                   <input
@@ -419,7 +419,7 @@ export function TeamMonthWizard({
                 </div>
               ))}
               <button
-                className="tw:rounded-[0.4375rem] tw:border tw:border-solid tw:border-[var(--v2-line-e5d6c9,#e5d6c9)] tw:bg-cali-surface tw:p-2.5 tw:text-[0.6875rem] tw:text-cali-brand tw:mt-1.5 tw:inline-flex tw:min-h-10 tw:items-center tw:gap-1.5 tw:font-bold"
+                className="tw:rounded-md tw:border tw:border-solid tw:border-[var(--v2-line-e5d6c9,var(--cali-color-sand-line))] tw:bg-cali-surface tw:p-2.5 tw:text-cali-label tw:text-cali-brand tw:mt-1.5 tw:inline-flex tw:min-h-10 tw:items-center tw:gap-1.5 tw:font-bold"
                 onClick={() =>
                   setJobs([
                     ...jobs,
@@ -439,7 +439,7 @@ export function TeamMonthWizard({
             </>
           )}
           {stage === 4 && (
-            <div className="tw:flex tw:flex-wrap tw:gap-2.5 tw:[&_p]:w-full tw:[&_p]:text-[0.83rem] tw:[&_p:first-child]:mb-1.75 tw:[&_p:first-child]:flex tw:[&_p:first-child]:flex-wrap tw:[&_p:first-child]:items-center tw:[&_p:first-child]:gap-1.25 tw:[&_p_svg]:mr-1 tw:[&_p_svg]:text-cali-gold tw:[&>div]:min-w-30 tw:[&>div]:rounded-xl tw:[&>div]:p-3.25 tw:[&_strong]:block tw:[&_strong]:font-cali-body tw:[&_strong]:text-[1.45rem] tw:[&_strong]:font-extrabold tw:[&_span]:text-[0.74rem]">
+            <div className="tw:flex tw:flex-wrap tw:gap-2.5 tw:[&_p]:w-full tw:[&_p]:text-cali-detail tw:[&_p:first-child]:mb-1.75 tw:[&_p:first-child]:flex tw:[&_p:first-child]:flex-wrap tw:[&_p:first-child]:items-center tw:[&_p:first-child]:gap-1.25 tw:[&_p_svg]:mr-1 tw:[&_p_svg]:text-cali-gold tw:[&>div]:min-w-30 tw:[&>div]:rounded-xl tw:[&>div]:p-3.25 tw:[&_strong]:block tw:[&_strong]:font-cali-body tw:[&_strong]:text-2xl tw:[&_strong]:font-extrabold tw:[&_span]:text-xs">
               <p>
                 <CalendarDays size={17} /> Confirmação em <strong>{confirmationDate()}</strong> · Referência:{' '}
                 <strong>
@@ -456,7 +456,7 @@ export function TeamMonthWizard({
                   <span>{label}</span>
                 </div>
               ))}
-              <ul className="tw:mt-1.75 tw:mb-0 tw:flex-[1_0_100%] tw:list-none tw:p-0 tw:empty:hidden tw:[&_li]:px-0.5 tw:[&_li]:py-2 tw:[&_li]:text-[0.79rem]">
+              <ul className="tw:mt-1.75 tw:mb-0 tw:flex-[1_0_100%] tw:list-none tw:p-0 tw:empty:hidden tw:[&_li]:px-0.5 tw:[&_li]:py-2 tw:[&_li]:text-cali-detail">
                 {rows[0].map((r) => (
                   <li key={r.rowId}>
                     <b>Saída:</b> {members.find((m) => m.employee_code === r.code)?.full_name || r.code} ·{' '}
@@ -486,7 +486,7 @@ export function TeamMonthWizard({
         <TeamDialogFooter>
           {error && (
             <span
-              className="tw:mx-[1.5625rem] tw:basis-full tw:rounded-lg tw:bg-[#fbecee] tw:px-3.25 tw:py-2.75 tw:text-[0.6875rem] tw:text-[#b05165] tw:workspace-night:text-[#ffb7b7]"
+              className="tw:mx-6 tw:basis-full tw:rounded-lg tw:bg-cali-danger-surface tw:px-3.25 tw:py-2.75 tw:text-cali-label tw:text-cali-danger tw:workspace-night:text-cali-burgundy-soft"
               role="alert"
             >
               {error}

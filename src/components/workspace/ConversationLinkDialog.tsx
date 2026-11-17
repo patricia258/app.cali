@@ -19,7 +19,7 @@ export function ConversationLinkDialog({ onClose, onAdd }: { onClose: () => void
   }
 
   return (
-    <div className="tw:fixed tw:inset-0 tw:z-[2147483000] tw:grid tw:place-items-center tw:bg-[#2b181e]/45 tw:p-4" onMouseDown={(event) => {
+    <div className="tw:fixed tw:inset-0 tw:z-[2147483000] tw:grid tw:place-items-center tw:bg-cali-red-inverse/45 tw:p-4" onMouseDown={(event) => {
       if (event.target === event.currentTarget) { event.stopPropagation(); onClose(); }
     }}>
       <DialogForm aria-label="Inserir um link na mensagem" className="tw:relative tw:w-[min(29rem,100%)] tw:rounded-2xl tw:bg-cali-surface tw:p-5 tw:text-cali-text tw:shadow-xl" onSubmit={(event) => { event.preventDefault(); submit(); }}>

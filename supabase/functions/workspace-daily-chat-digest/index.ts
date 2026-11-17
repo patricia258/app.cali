@@ -1,3 +1,4 @@
+import { emailColors } from '../_shared/email-colors.ts';
 import type { JsonValue } from '../_shared/json.ts';
 import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -37,31 +38,31 @@ type Thread = { recordId: string; protocol: string; title: string; type: string;
 
 function digestHtml(name: string, companyLabel: string, totalMessages: number, threads: Thread[]) {
   const rows = threads.slice(0, 10).map((thread) => `
-    <tr><td style="padding:14px 0;border-bottom:1px solid #EEE4DD">
-      <div style="font-size:10px;letter-spacing:.08em;color:#B58C52;font-weight:700;text-transform:uppercase">${esc(thread.protocol)} · ${esc(thread.type)}</div>
-      <div style="font-size:15px;line-height:1.4;color:#2B2B2B;font-weight:700;margin:4px 0">${esc(thread.title)}</div>
-      <div style="font-size:12px;color:#7D716B">${thread.count} mensagem${thread.count === 1 ? "" : "s"} nova${thread.count === 1 ? "" : "s"}</div>
-      <div style="margin-top:8px"><a href="${esc(thread.url)}" style="font-size:12px;color:#5A1E2D;font-weight:700;text-decoration:none">Abrir conversa →</a></div>
+    <tr><td style="padding:14px 0;border-bottom:1px solid ${emailColors.lineSoft}">
+      <div style="font-size:10px;letter-spacing:.08em;color:${emailColors.accentText};font-weight:700;text-transform:uppercase">${esc(thread.protocol)} · ${esc(thread.type)}</div>
+      <div style="font-size:15px;line-height:1.4;color:${emailColors.text};font-weight:700;margin:4px 0">${esc(thread.title)}</div>
+      <div style="font-size:12px;color:${emailColors.textMuted}">${thread.count} mensagem${thread.count === 1 ? "" : "s"} nova${thread.count === 1 ? "" : "s"}</div>
+      <div style="margin-top:8px"><a href="${esc(thread.url)}" style="font-size:12px;color:${emailColors.brand};font-weight:700;text-decoration:none">Abrir conversa →</a></div>
     </td></tr>`).join("");
-  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#F7F3EE;font-family:Arial,Helvetica,sans-serif;color:#2B2B2B">
+  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:${emailColors.page};font-family:Arial,Helvetica,sans-serif;color:${emailColors.text}">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 14px">
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#fff;border:1px solid #E8DDD4;border-radius:18px;overflow:hidden">
-      <tr><td style="padding:20px 26px;border-bottom:1px solid #E8DDD4;background:#FFFDFB">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:${emailColors.surface};border:1px solid ${emailColors.line};border-radius:18px;overflow:hidden">
+      <tr><td style="padding:20px 26px;border-bottom:1px solid ${emailColors.line};background:${emailColors.surfaceSoft}">
         <table width="100%" cellpadding="0" cellspacing="0"><tr>
           <td align="left"><img src="${LOGO_URL}" alt="CALI Workspace" width="150" style="display:block;max-width:150px;height:auto"></td>
           <td align="right"><img src="${MARK_URL}" alt="" width="34" height="34" style="display:block;width:34px;height:34px;object-fit:contain"></td>
         </tr></table>
       </td></tr>
       <tr><td style="padding:30px 30px 26px">
-        <div style="font-size:10px;letter-spacing:.12em;color:#B58C52;font-weight:700;margin-bottom:8px">RESUMO DO SEU CANAL COM A CALI</div>
-        <h1 style="font-family:Georgia,serif;font-size:25px;line-height:1.25;font-weight:400;color:#5A1E2D;margin:0 0 12px">Você tem mensagens novas no Workspace</h1>
+        <div style="font-size:10px;letter-spacing:.12em;color:${emailColors.accentText};font-weight:700;margin-bottom:8px">RESUMO DO SEU CANAL COM A CALI</div>
+        <h1 style="font-family:Georgia,serif;font-size:25px;line-height:1.25;font-weight:400;color:${emailColors.brand};margin:0 0 12px">Você tem mensagens novas no Workspace</h1>
         <p style="font-size:15px;line-height:1.65;margin:0 0 8px">Olá, ${esc(name || "tudo bem?")}. Há <strong>${totalMessages}</strong> mensagem${totalMessages === 1 ? "" : "s"} nova${totalMessages === 1 ? "" : "s"} em ${threads.length} conversa${threads.length === 1 ? "" : "s"} que ainda não foram lidas.</p>
-        <p style="font-size:13px;line-height:1.55;color:#7D716B;margin:0 0 22px">${esc(companyLabel)}</p>
+        <p style="font-size:13px;line-height:1.55;color:${emailColors.textMuted};margin:0 0 22px">${esc(companyLabel)}</p>
         <table width="100%" cellpadding="0" cellspacing="0">${rows}</table>
-        <div style="text-align:center;margin:26px 0 18px"><a href="${APP_URL}" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir CALI Workspace</a></div>
-        <div style="height:1px;background:#EAE1D8;margin-bottom:16px"></div>
-        <p style="font-size:12px;color:#8C807A;margin:0">Este é o resumo diário das conversas. Novas mensagens continuam chegando em tempo real dentro da plataforma, sem gerar um e-mail a cada resposta.</p>
-        <p style="font-size:12px;line-height:1.6;color:#8C807A;margin:10px 0 0">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_URL}" style="color:#5A1E2D;text-decoration:underline">Workspace</a>.</p>
+        <div style="text-align:center;margin:26px 0 18px"><a href="${APP_URL}" style="display:inline-block;background:${emailColors.brand};color:${emailColors.onBrand};text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir CALI Workspace</a></div>
+        <div style="height:1px;background:${emailColors.line};margin-bottom:16px"></div>
+        <p style="font-size:12px;color:${emailColors.textMuted};margin:0">Este é o resumo diário das conversas. Novas mensagens continuam chegando em tempo real dentro da plataforma, sem gerar um e-mail a cada resposta.</p>
+        <p style="font-size:12px;line-height:1.6;color:${emailColors.textMuted};margin:10px 0 0">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_URL}" style="color:${emailColors.brand};text-decoration:underline">Workspace</a>.</p>
       </td></tr>
     </table>
   </td></tr></table></body></html>`;

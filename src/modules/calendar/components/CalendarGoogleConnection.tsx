@@ -28,9 +28,9 @@ export function CalendarGoogleConnection({ readStatus, connected, onDisconnected
     : 'Conecte sua agenda Google para sincronizar os compromissos da CALI.';
 
   return (
-    <section className="tw:mt-2 tw:mb-3.5 tw:flex tw:flex-wrap tw:items-center tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-[#c89e3f] tw:bg-[linear-gradient(135deg,#fff0b8,#e7c66f_56%,#f7dfa0)] tw:px-3.5 tw:py-2.5 tw:text-[#2e251d] tw:shadow-[0_1.1rem_2.5rem_#533b1d24] tw:workspace-night:border-[#c79d52] tw:workspace-night:bg-[linear-gradient(135deg,#5d4527,#8d6b38_54%,#6b512e)] tw:workspace-night:text-[#fff8e6]">
-      <div className="tw:grid tw:size-8 tw:shrink-0 tw:place-items-center tw:rounded-lg tw:bg-cali-brand tw:text-white"><Cloud size={15} aria-hidden="true" /></div>
-      <div className="tw:flex tw:min-w-0 tw:flex-1 tw:flex-wrap tw:items-baseline tw:gap-3"><strong className="tw:text-sm/[inherit]">Google Workspace</strong><p className="tw:m-0 tw:text-xs/[inherit] tw:text-[#5b4931] tw:workspace-night:text-[#f6e8c6]">{copy}</p></div>
+    <section className="tw:mt-2 tw:mb-3.5 tw:flex tw:flex-wrap tw:items-center tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-cali-gold-accent tw:bg-[linear-gradient(135deg,var(--cali-color-gold-soft),var(--cali-color-orange-line)_56%,var(--cali-color-gold-line))] tw:px-3.5 tw:py-2.5 tw:text-cali-gold-inverse tw:shadow-[0_1.1rem_2.5rem_rgb(var(--cali-rgb-gold-strong)/0.1412)] tw:workspace-night:border-cali-gold-accent tw:workspace-night:bg-[linear-gradient(135deg,var(--cali-color-gold-strong),var(--cali-color-gold-text)_54%,var(--cali-color-gold-strong))] tw:workspace-night:text-cali-warning-surface">
+      <div className="tw:grid tw:size-8 tw:shrink-0 tw:place-items-center tw:rounded-lg tw:bg-cali-brand tw:text-cali-neutral-surface"><Cloud size={15} aria-hidden="true" /></div>
+      <div className="tw:flex tw:min-w-0 tw:flex-1 tw:flex-wrap tw:items-baseline tw:gap-3"><strong className="tw:text-sm/[inherit]">Google Workspace</strong><p className="tw:m-0 tw:text-xs/[inherit] tw:text-cali-gold-strong tw:workspace-night:text-cali-gold-soft">{copy}</p></div>
       <div className="tw:ml-auto tw:flex tw:flex-wrap tw:items-center tw:justify-end tw:gap-3 tw:[@media(max-width:47.5rem)]:w-full tw:[@media(max-width:47.5rem)]:justify-start">
         {enabled && query.isPending && <span className={connectionDetail}>Verificando integração...</span>}
         {query.error && <span role="status" className={connectionDetail}>Não foi possível verificar a integração: {errorMessage(query.error, 'erro')}</span>}
@@ -58,4 +58,4 @@ export function CalendarGoogleConnection({ readStatus, connected, onDisconnected
   );
 }
 
-const connectionDetail = 'tw:max-w-[24rem] tw:text-right tw:text-sm/[inherit] tw:text-[#7f736d] tw:workspace-night:text-[#bdaeb1] tw:[@media(max-width:47.5rem)]:text-left';
+const connectionDetail = 'tw:max-w-96 tw:text-right tw:text-sm/[inherit] tw:text-cali-neutral-accent tw:workspace-night:text-cali-sand-accent tw:[@media(max-width:47.5rem)]:text-left';

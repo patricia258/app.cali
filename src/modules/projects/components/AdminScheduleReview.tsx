@@ -4,9 +4,9 @@ import { useProjectScheduleReviewRequests } from '../hooks/useProjectScheduleRev
 import { ScheduleAdjustmentDecisionDialog } from './ScheduleAdjustmentDecisionDialog';
 import { ScheduleReminderDialog } from './ScheduleReminderDialog';
 
-export const scheduleBanner = 'tw:mb-[1.2308rem] tw:flex tw:items-center tw:justify-between tw:gap-[1.2308rem] tw:rounded-[.7692rem] tw:border tw:border-solid tw:border-[#f0dfc0] tw:bg-[#fffaf1] tw:px-[1.2308rem] tw:py-[1rem] tw:text-[.9231rem] tw:text-[#7a5a2c] tw:shadow-[0_.4615rem_1.6923rem_#2e1d220d]';
-const pendingBanner = 'tw:mb-[1.2308rem] tw:flex tw:items-center tw:justify-between tw:gap-[1.2308rem] tw:rounded-[.7692rem] tw:border tw:border-solid tw:border-[#b58c5294] tw:bg-[radial-gradient(circle_at_88%_20%,#ffffff47,transparent_24%),linear-gradient(135deg,#fff1bd_0%,#f8df91_58%,#f3d27d_100%)] tw:px-[1.2308rem] tw:py-[1rem] tw:shadow-[0_.9231rem_2.3077rem_#b58c5221] tw:[html[data-workspace-theme=night]_&]:border-[#d6ae6773] tw:[html[data-workspace-theme=night]_&]:bg-[radial-gradient(circle_at_88%_20%,#b58c5224,transparent_24%),linear-gradient(135deg,#3b2b21_0%,#30241f_58%,#28201c_100%)] tw:[html[data-workspace-theme=night]_&]:shadow-[0_1.0769rem_2.6154rem_#0003]';
-const actionClass = 'tw:min-h-[3rem] tw:cursor-pointer tw:whitespace-nowrap tw:rounded-[.5385rem] tw:border tw:border-solid tw:border-[#dec9c3] tw:bg-white tw:px-[1rem] tw:py-[.6923rem] tw:text-[.8462rem] tw:font-bold tw:text-cali-brand tw:disabled:cursor-not-allowed tw:disabled:opacity-50';
+export const scheduleBanner = 'tw:mb-5 tw:flex tw:items-center tw:justify-between tw:gap-5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-warning-line tw:bg-cali-warning-surface tw:px-5 tw:py-4 tw:text-cali-body tw:text-cali-warning tw:shadow-[0_.4615rem_1.6923rem_rgb(var(--cali-rgb-burgundy-strong)/0.05098)]';
+const pendingBanner = 'tw:mb-5 tw:flex tw:items-center tw:justify-between tw:gap-5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-gold/58 tw:bg-[radial-gradient(circle_at_88%_20%,rgb(var(--cali-rgb-neutral-surface)/0.2784),transparent_24%),linear-gradient(135deg,var(--cali-color-gold-soft)_0%,var(--cali-color-gold-line)_58%,var(--cali-color-orange-soft)_100%)] tw:px-5 tw:py-4 tw:shadow-[0_.9231rem_2.3077rem_rgb(var(--cali-rgb-gold-accent)/0.1294)] tw:[html[data-workspace-theme=night]_&]:border-cali-orange-line/45 tw:[html[data-workspace-theme=night]_&]:bg-[radial-gradient(circle_at_88%_20%,rgb(var(--cali-rgb-gold-accent)/0.1412),transparent_24%),linear-gradient(135deg,var(--cali-color-sand-inverse)_0%,var(--cali-color-sand-inverse)_58%,var(--cali-color-burgundy-strong)_100%)] tw:[html[data-workspace-theme=night]_&]:shadow-[0_1.0769rem_2.6154rem_rgb(var(--cali-rgb-shadow)/0.2)]';
+const actionClass = 'tw:min-h-12 tw:cursor-pointer tw:whitespace-nowrap tw:rounded-lg tw:border tw:border-solid tw:border-cali-line-strong tw:bg-cali-neutral-surface tw:px-4 tw:py-3 tw:text-sm tw:font-bold tw:text-cali-brand tw:disabled:cursor-not-allowed tw:disabled:opacity-50';
 const dateTime = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 function formatDateTime(value?: string | null) {
@@ -32,33 +32,33 @@ export function AdminScheduleReview({ project, onChanged, onNotice }: Props) {
 
   return <>
     {isAwaiting ? <section className={`${pendingBanner} tw:relative tw:overflow-hidden tw:[@media(max-width:950px)]:flex-col tw:[@media(max-width:950px)]:items-start tw:[@media(max-width:950px)]:flex-wrap`}>
-      <div aria-hidden="true" className="tw:pointer-events-none tw:absolute tw:top-0 tw:left-0 tw:h-[.2308rem] tw:w-full tw:bg-[linear-gradient(90deg,#5a1e2d_0%,#b58c52_48%,#b58c5233_100%)]" />
-      <div aria-hidden="true" className="tw:pointer-events-none tw:absolute tw:top-[-5.3846rem] tw:right-[-2.7692rem] tw:size-[16.9231rem] tw:rotate-9 tw:bg-[#5a1e2d] tw:opacity-[.055] tw:[mask:url('/brand/cali-oak-mark.svg')_center/contain_no-repeat] tw:[html[data-workspace-theme=night]_&]:bg-[#f7f3ee] tw:[html[data-workspace-theme=night]_&]:opacity-[.045]" />
-      <div className="tw:relative tw:z-1 tw:grid tw:min-w-0 tw:flex-1 tw:gap-[.3846rem]">
-        <span className="tw:text-[.6923rem] tw:font-black tw:tracking-[.1em] tw:text-[#6f3243] tw:[html[data-workspace-theme=night]_&]:text-[#e0bd7b]">AGUARDANDO CLIENTE</span>
-        <strong className="tw:text-[1.1538rem] tw:text-[#302426] tw:[html[data-workspace-theme=night]_&]:text-[#f7efe5]">Cronograma enviado para aprovação</strong>
-        <p className="tw:m-0 tw:mt-[.2308rem] tw:text-[.8462rem] tw:leading-[1.45] tw:text-[#66534b] tw:[html[data-workspace-theme=night]_&]:text-[#d7c9bf]">Cronograma enviado para aprovação. A aprovação não altera datas nem inicia a contagem no dia da resposta. Início planejado: {startDate ? formatProjectDate(startDate) : 'A definir'}.</p>
+      <div aria-hidden="true" className="tw:pointer-events-none tw:absolute tw:top-0 tw:left-0 tw:h-1 tw:w-full tw:bg-[linear-gradient(90deg,var(--cali-color-burgundy-accent)_0%,var(--cali-color-gold-accent)_48%,rgb(var(--cali-rgb-gold-accent)/0.2)_100%)]" />
+      <div aria-hidden="true" className="tw:pointer-events-none tw:absolute tw:-top-21.5 tw:-right-11 tw:size-[16.9231rem] tw:rotate-9 tw:bg-cali-brand tw:opacity-[.055] tw:[mask:url('/brand/cali-oak-mark.svg')_center/contain_no-repeat] tw:[html[data-workspace-theme=night]_&]:bg-cali-day-canvas tw:[html[data-workspace-theme=night]_&]:opacity-[.045]" />
+      <div className="tw:relative tw:z-1 tw:grid tw:min-w-0 tw:flex-1 tw:gap-1.5">
+        <span className="tw:text-cali-label tw:font-black tw:tracking-[.1em] tw:text-cali-red-strong tw:[html[data-workspace-theme=night]_&]:text-cali-orange-line">AGUARDANDO CLIENTE</span>
+        <strong className="tw:text-lg tw:text-cali-burgundy-strong tw:[html[data-workspace-theme=night]_&]:text-cali-orange-surface">Cronograma enviado para aprovação</strong>
+        <p className="tw:m-0 tw:mt-1 tw:text-sm tw:leading-[1.45] tw:text-cali-neutral-text tw:[html[data-workspace-theme=night]_&]:text-cali-neutral-line">Cronograma enviado para aprovação. A aprovação não altera datas nem inicia a contagem no dia da resposta. Início planejado: {startDate ? formatProjectDate(startDate) : 'A definir'}.</p>
       </div>
-      <dl className="tw:relative tw:z-1 tw:m-0 tw:flex tw:min-w-[26.9231rem] tw:items-stretch tw:[@media(max-width:950px)]:w-full tw:[@media(max-width:950px)]:min-w-0 tw:[@media(max-width:620px)]:grid tw:[@media(max-width:620px)]:grid-cols-2 tw:[@media(max-width:620px)]:gap-[.7692rem]">
+      <dl className="tw:relative tw:z-1 tw:m-0 tw:flex tw:min-w-[26.9231rem] tw:items-stretch tw:[@media(max-width:950px)]:w-full tw:[@media(max-width:950px)]:min-w-0 tw:[@media(max-width:620px)]:grid tw:[@media(max-width:620px)]:grid-cols-2 tw:[@media(max-width:620px)]:gap-3">
         {[
           ['Enviado em', formatDateTime(current?.requested_at)],
           ['Resposta prevista até', formatDateTime(current?.response_due_at)],
           ['Ajustes utilizados', `${used}/2`],
-        ].map(([label, value]) => <div key={label} className="tw:grid tw:gap-[.2308rem] tw:border-l tw:border-solid tw:border-[#5a1e2d2b] tw:px-[1.0769rem] tw:first:border-l-0 tw:first:pl-0 tw:[@media(max-width:620px)]:border-l-0 tw:[@media(max-width:620px)]:p-0">
-          <dt className="tw:text-[.6154rem] tw:font-black tw:tracking-[.06em] tw:text-[#896b3d] tw:uppercase tw:[html[data-workspace-theme=night]_&]:text-[#e0bd7b]">{label}</dt>
-          <dd className="tw:m-0 tw:text-[.8462rem] tw:font-bold tw:whitespace-nowrap tw:text-[#403331] tw:[html[data-workspace-theme=night]_&]:text-[#f7efe5]">{value}</dd>
+        ].map(([label, value]) => <div key={label} className="tw:grid tw:gap-1 tw:border-l tw:border-solid tw:border-cali-brand/17 tw:px-4.5 tw:first:border-l-0 tw:first:pl-0 tw:[@media(max-width:620px)]:border-l-0 tw:[@media(max-width:620px)]:p-0">
+          <dt className="tw:text-cali-micro tw:font-black tw:tracking-[.06em] tw:text-cali-gold-text tw:uppercase tw:[html[data-workspace-theme=night]_&]:text-cali-orange-line">{label}</dt>
+          <dd className="tw:m-0 tw:text-sm tw:font-bold tw:whitespace-nowrap tw:text-cali-neutral-strong tw:[html[data-workspace-theme=night]_&]:text-cali-orange-surface">{value}</dd>
         </div>)}
       </dl>
-      <button type="button" className={`${actionClass} tw:relative tw:z-1 tw:shadow-[0_.4615rem_1.0769rem_#5a1e2d1f] tw:[@media(max-width:950px)]:ml-auto tw:[@media(max-width:620px)]:ml-0`}
+      <button type="button" className={`${actionClass} tw:relative tw:z-1 tw:shadow-[0_.4615rem_1.0769rem_rgb(var(--cali-rgb-burgundy-accent)/0.1216)] tw:[@media(max-width:950px)]:ml-auto tw:[@media(max-width:620px)]:ml-0`}
         onClick={() => setDialog('reminder')} disabled={!current}>Lembrar cliente</button>
     </section> : current && <section className={`${scheduleBanner} tw:[@media(max-width:950px)]:flex-col tw:[@media(max-width:950px)]:items-start`}>
-      <div className="tw:grid tw:min-w-0 tw:gap-[.2308rem]">
-        <span className="tw:text-[.6923rem] tw:font-black tw:tracking-[.1em] tw:text-[#7e4d5a]">AJUSTE SOLICITADO · {current.request_number}/2</span>
-        <strong className="tw:text-[1rem] tw:text-cali-text">{change.targetLabel || 'Cronograma'}</strong>
-        <p className="tw:m-0 tw:mt-[.2308rem] tw:text-[.8462rem] tw:leading-[1.45] tw:text-cali-muted">{current.response_note || 'O cliente solicitou uma alteração no cronograma.'}</p>
-        {scheduleChangeSummary(change).map((item) => <span key={item} className="tw:mt-[.3077rem] tw:text-[.6923rem] tw:text-[#8a6738]">{item}</span>)}
+      <div className="tw:grid tw:min-w-0 tw:gap-1">
+        <span className="tw:text-cali-label tw:font-black tw:tracking-[.1em] tw:text-cali-red-strong">AJUSTE SOLICITADO · {current.request_number}/2</span>
+        <strong className="tw:text-base tw:text-cali-text">{change.targetLabel || 'Cronograma'}</strong>
+        <p className="tw:m-0 tw:mt-1 tw:text-sm tw:leading-[1.45] tw:text-cali-muted">{current.response_note || 'O cliente solicitou uma alteração no cronograma.'}</p>
+        {scheduleChangeSummary(change).map((item) => <span key={item} className="tw:mt-1 tw:text-cali-label tw:text-cali-gold-text">{item}</span>)}
       </div>
-      <div className="tw:flex tw:items-center tw:gap-[.6154rem]">
+      <div className="tw:flex tw:items-center tw:gap-2.5">
         <button type="button" className={actionClass} onClick={() => setDialog('reject')}>Não aplicar</button>
         <button type="button" className={actionClass} onClick={() => setDialog('accept')}>Acolher solicitação</button>
       </div>

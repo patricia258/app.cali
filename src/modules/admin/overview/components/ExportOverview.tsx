@@ -26,6 +26,15 @@ function overviewExportBounds(range: ExportRange) {
   };
 }
 
+function readPrintStyles(sheet: CSSStyleSheet): string {
+  try {
+    return Array.from(sheet.cssRules, (rule) => rule.cssText).join('\n');
+  } catch {
+    // Folhas externas sem acesso ao CSSOM não impedem a impressão.
+    return '';
+  }
+}
+
 export function ExportOverview({ data }: { data: DashboardData }) {
   const [open, setOpen] = useState(false);
   const [range, setRange] = useState<ExportRange>("month");
@@ -90,16 +99,7 @@ export function ExportOverview({ data }: { data: DashboardData }) {
       return;
     }
 
-    let css = "";
-    for (const sheet of Array.from(document.styleSheets)) {
-      try {
-        css += Array.from(sheet.cssRules)
-          .map((rule) => rule.cssText)
-          .join("\n");
-      } catch {
-        // Folhas externas sem acesso ao CSSOM não impedem a impressão.
-      }
-    }
+    const css = Array.from(document.styleSheets, readPrintStyles).join('\n');
 
     const target = printWindow.document;
     if (!target.doctype) target.prepend(target.implementation.createDocumentType('html', '', ''));
@@ -120,21 +120,21 @@ export function ExportOverview({ data }: { data: DashboardData }) {
       <Button type="button" variant="adminOutline" onClick={() => setOpen(true)}><Download size={15} /> Exportar</Button>
       {open && createPortal((
         <DialogFrame
-          className="tw:fixed tw:inset-0 tw:z-10000 tw:isolate tw:grid tw:place-items-center tw:bg-[#22161ab8] tw:p-[1.846rem] tw:backdrop-blur-[0.615rem] tw:max-[42.5rem]:p-[0.769rem]"
+          className="tw:fixed tw:inset-0 tw:z-10000 tw:isolate tw:grid tw:place-items-center tw:bg-cali-overlay/72 tw:p-7.5 tw:backdrop-blur-[0.615rem] tw:max-[42.5rem]:p-3"
           as="div"
           aria-label="Exportar visão geral"
         >
-          <section className="tw:grid tw:max-h-[calc(100dvh-3.692rem)] tw:w-[min(86.154rem,100%)] tw:grid-rows-[auto_auto_minmax(0,1fr)_auto] tw:overflow-hidden tw:rounded-[1.692rem] tw:border tw:border-solid tw:border-[#b58c5261] tw:bg-[var(--theme-surface,#fffdfa)] tw:shadow-[0_28px_90px_#22161a47] tw:workspace-night:bg-[#241b1e] tw:max-[42.5rem]:max-h-[calc(100dvh-1.538rem)] tw:max-[42.5rem]:rounded-[1.231rem]">
-            <header className="tw:flex tw:justify-between tw:gap-[1.538rem] tw:border-0 tw:border-b tw:border-solid tw:border-[var(--theme-line,#5a1e2d1f)] tw:px-8 tw:pt-[1.692rem] tw:pb-[1.385rem] tw:max-[42.5rem]:px-[1.231rem]">
+          <section className="tw:grid tw:max-h-[calc(100dvh-3.692rem)] tw:w-[min(86.154rem,100%)] tw:grid-rows-[auto_auto_minmax(0,1fr)_auto] tw:overflow-hidden tw:rounded-[1.692rem] tw:border tw:border-solid tw:border-cali-gold/38 tw:bg-cali-surface tw:shadow-cali-dialog tw:workspace-night:bg-cali-burgundy-inverse tw:max-[42.5rem]:max-h-[calc(100dvh-1.538rem)] tw:max-[42.5rem]:rounded-[1.231rem]">
+            <header className="tw:flex tw:justify-between tw:gap-6 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:px-8 tw:pt-7 tw:pb-5.5 tw:max-[42.5rem]:px-5">
               <div>
-                <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-[0.769rem]/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-[#a88b76]">EXPORTAÇÃO</span>
-                <h2 className="tw:my-[0.308rem]! tw:text-[1.692rem]/[inherit] tw:text-[var(--theme-text,#2b2b2b)]">Visão geral da operação</h2>
-                <p className="tw:m-0 tw:text-[0.923rem]/[inherit] tw:text-[var(--theme-muted,#756b67)]">
+                <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-xs/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-cali-muted">EXPORTAÇÃO</span>
+                <h2 className="tw:my-1! tw:text-cali-title-lg/[inherit] tw:text-cali-text">Visão geral da operação</h2>
+                <p className="tw:m-0 tw:text-cali-body/[inherit] tw:text-cali-muted">
                   Escolha o recorte e revise a prévia antes de salvar em PDF.
                 </p>
               </div>
               <button
-                className="tw:grid tw:size-[2.769rem] tw:cursor-pointer tw:place-items-center tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#ecded5] tw:bg-white tw:p-[0.615rem] tw:text-[#322f2c]"
+                className="tw:grid tw:size-11 tw:cursor-pointer tw:place-items-center tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-2.5 tw:text-cali-ink"
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Fechar"
@@ -142,11 +142,11 @@ export function ExportOverview({ data }: { data: DashboardData }) {
                 <X size={20} />
               </button>
             </header>
-            <div className="tw:flex tw:gap-[0.923rem] tw:border-0 tw:border-b tw:border-solid tw:border-[var(--theme-line)] tw:bg-[color-mix(in_srgb,var(--theme-accent,#5a1e2d)_4%,var(--theme-surface))] tw:px-8 tw:py-[1.231rem] tw:workspace-night:bg-[#2b2024] tw:max-[42.5rem]:grid tw:max-[42.5rem]:px-[1.231rem]">
-              <label className="tw:grid tw:min-w-[14.615rem] tw:gap-[0.462rem] tw:max-[42.5rem]:w-full">
-                <span className="tw:text-[0.769rem]/[inherit] tw:font-extrabold tw:tracking-[0.08em] tw:text-cali-muted tw:uppercase">Período</span>
+            <div className="tw:flex tw:gap-3.5 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:bg-cali-surface-soft tw:px-8 tw:py-5 tw:workspace-night:bg-cali-burgundy-strong tw:max-[42.5rem]:grid tw:max-[42.5rem]:px-5">
+              <label className="tw:grid tw:min-w-[14.615rem] tw:gap-2 tw:max-[42.5rem]:w-full">
+                <span className="tw:text-xs/[inherit] tw:font-extrabold tw:tracking-[0.08em] tw:text-cali-muted tw:uppercase">Período</span>
                 <select
-                  className="tw:h-[3.231rem] tw:min-w-[14.615rem] tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-[0.923rem] tw:py-[0.692rem] tw:text-[0.923rem]/[inherit] tw:text-[#322f2c] tw:workspace-night:bg-[#241b1e] tw:workspace-night:text-cali-day-canvas"
+                  className="tw:h-13 tw:min-w-[14.615rem] tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body/[inherit] tw:text-cali-text tw:workspace-night:bg-cali-burgundy-inverse tw:workspace-night:text-cali-day-canvas"
                   value={range}
                   onChange={(event) =>
                     setRange(event.target.value as ExportRange)
@@ -157,10 +157,10 @@ export function ExportOverview({ data }: { data: DashboardData }) {
                   <option value="year">Ano atual</option>
                 </select>
               </label>
-              <label className="tw:grid tw:min-w-[14.615rem] tw:gap-[0.462rem] tw:max-[42.5rem]:w-full">
-                <span className="tw:text-[0.769rem]/[inherit] tw:font-extrabold tw:tracking-[0.08em] tw:text-cali-muted tw:uppercase">Cliente</span>
+              <label className="tw:grid tw:min-w-[14.615rem] tw:gap-2 tw:max-[42.5rem]:w-full">
+                <span className="tw:text-xs/[inherit] tw:font-extrabold tw:tracking-[0.08em] tw:text-cali-muted tw:uppercase">Cliente</span>
                 <select
-                  className="tw:h-[3.231rem] tw:min-w-[14.615rem] tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-[0.923rem] tw:py-[0.692rem] tw:text-[0.923rem]/[inherit] tw:text-[#322f2c] tw:workspace-night:bg-[#241b1e] tw:workspace-night:text-cali-day-canvas"
+                  className="tw:h-13 tw:min-w-[14.615rem] tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body/[inherit] tw:text-cali-text tw:workspace-night:bg-cali-burgundy-inverse tw:workspace-night:text-cali-day-canvas"
                   value={companyId}
                   onChange={(event) => setCompanyId(event.target.value)}
                 >
@@ -173,7 +173,7 @@ export function ExportOverview({ data }: { data: DashboardData }) {
                 </select>
               </label>
             </div>
-            <div className="tw:overflow-auto tw:bg-[color-mix(in_srgb,var(--theme-line)_32%,transparent)] tw:p-[2.154rem] tw:workspace-night:bg-[#171114] tw:max-[42.5rem]:p-[0.923rem]">
+            <div className="tw:overflow-auto tw:bg-cali-line/32 tw:p-8.5 tw:workspace-night:bg-cali-canvas tw:max-[42.5rem]:p-3.5">
               <article className="overview-export-print" ref={printDocument}>
                 <header className="overview-export-document-head">
                   <span className="overview-export-brand-logo" aria-label="CALI Workspace" />
@@ -320,16 +320,16 @@ export function ExportOverview({ data }: { data: DashboardData }) {
               </article>
             </div>
             {printError && <InlineNotice role="alert">{printError}</InlineNotice>}
-            <footer className="tw:flex tw:items-center tw:justify-end tw:gap-[0.769rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#efe4dc] tw:px-[2.077rem] tw:py-[1.154rem] tw:max-[42.5rem]:flex-col-reverse tw:max-[42.5rem]:px-[1.231rem]">
+            <footer className="tw:flex tw:items-center tw:justify-end tw:gap-3 tw:border-0 tw:border-t tw:border-solid tw:border-cali-line tw:px-8.5 tw:py-4.5 tw:max-[42.5rem]:flex-col-reverse tw:max-[42.5rem]:px-5">
               <Button
                 variant="secondary"
-                className="tw:min-h-0! tw:rounded-[0.538rem]! tw:border-[#dec9c3]! tw:bg-white! tw:px-[1.077rem]! tw:py-[0.769rem]! tw:text-[0.846rem]/[1.2]! tw:text-cali-brand! tw:shadow-none! tw:max-[42.5rem]:w-full tw:max-[42.5rem]:justify-center"
+                className="tw:min-h-0! tw:rounded-lg! tw:border-cali-line-strong! tw:bg-cali-neutral-surface! tw:px-4.5! tw:py-3! tw:text-sm/[1.2]! tw:text-cali-brand! tw:shadow-none! tw:max-[42.5rem]:w-full tw:max-[42.5rem]:justify-center"
                 type="button"
                 onClick={() => setOpen(false)}
               >
                 Voltar
               </Button>
-              <Button variant="primary" className="tw:min-h-0! tw:rounded-[0.538rem]! tw:border-cali-brand! tw:bg-cali-brand! tw:px-[1.077rem]! tw:py-[0.769rem]! tw:text-[0.846rem]/[1.2]! tw:text-white! tw:shadow-none! tw:max-[42.5rem]:w-full tw:max-[42.5rem]:justify-center" type="button" onClick={printPdf}>
+              <Button variant="primary" className="tw:min-h-0! tw:rounded-lg! tw:border-cali-brand! tw:bg-cali-brand! tw:px-4.5! tw:py-3! tw:text-sm/[1.2]! tw:text-cali-neutral-surface! tw:shadow-none! tw:max-[42.5rem]:w-full tw:max-[42.5rem]:justify-center" type="button" onClick={printPdf}>
                 Abrir visualização do PDF
               </Button>
             </footer>

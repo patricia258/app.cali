@@ -30,10 +30,10 @@ const dayEnd = 20 * 60;
 const dayNames = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 const dateFormat = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' });
 const labels = [
-  { label: 'Reunião', color: '#6D2338' },
-  { label: 'Prazo', color: '#A85B3A' },
-  { label: 'Solicitação', color: '#B58C52' },
-  { label: 'Google Agenda', color: '#4A90C2' },
+  { label: 'Reunião', color: 'var(--cali-color-red-strong)' },
+  { label: 'Prazo', color: 'var(--cali-color-orange-text)' },
+  { label: 'Solicitação', color: 'var(--cali-color-gold-accent)' },
+  { label: 'Google Agenda', color: 'var(--cali-color-blue-accent)' },
 ];
 const kindColor: Record<Item['kind'], string> = { event: labels[0].color, deadline: labels[1].color, request: labels[2].color, google: labels[3].color };
 
@@ -48,7 +48,7 @@ function minutes(value: string) {
 
 function paint(item: Item): CSSProperties & Record<`--${string}`, string> {
   const color = item.kind === 'google' && item.color ? item.color : kindColor[item.kind];
-  return { '--event-color': color, '--event-soft': `${color}18`, '--event-foreground': item.textColor || '#ffffff' };
+  return { '--event-color': color, '--event-soft': `${color}18`, '--event-foreground': item.textColor || 'var(--cali-color-neutral-surface)' };
 }
 
 function placeTimedItems<T extends Item>(items: T[]) {
@@ -85,7 +85,7 @@ export function ClientTimelineCalendar<T extends Item>({ view, cursor, weekDays,
 
   return (
     <>
-      <div className="tw:mt-[1.231rem] tw:overflow-hidden tw:rounded-[0.923rem] tw:border tw:border-solid tw:border-[#eadfd5] tw:bg-white">
+      <div className="tw:mt-5 tw:overflow-hidden tw:rounded-[0.923rem] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface">
         {view === 'month' ? (
           <>
             <div className={grid.monthHead}>{dayNames.map(day => <span key={day} className={grid.monthWeekday}>{day}</span>)}</div>
@@ -95,16 +95,16 @@ export function ClientTimelineCalendar<T extends Item>({ view, cursor, weekDays,
                 const isToday = dateKey(day) === today;
                 return (
                   <article key={day.toISOString()} className={`${grid.monthCell} ${day.getMonth() !== month ? grid.monthOutside : ''} ${isToday ? grid.monthToday : ''}`}>
-                    <span className={`tw:inline-grid tw:h-6 tw:min-w-6 tw:place-items-center tw:rounded-md tw:text-[0.71875rem] tw:font-bold tw:text-[#5f5650] ${isToday ? grid.todayNumber : ''}`}>{day.getDate()}</span>
+                    <span className={`tw:inline-grid tw:h-6 tw:min-w-6 tw:place-items-center tw:rounded-md tw:text-cali-label tw:font-bold tw:text-cali-muted ${isToday ? grid.todayNumber : ''}`}>{day.getDate()}</span>
                     <div className={grid.monthEvents}>
                       {dayItems.slice(0, 3).map(item => {
                         const personal = item.kind === 'google';
                         return (
-                          <button type="button" key={item.id} className={`${grid.monthChip} tw:min-h-[1.6875rem] tw:gap-1.5 tw:px-1.5 tw:py-1 ${personal ? grid.personalEventColors : 'tw:workspace-night:text-[#f3eeeb]!'}`}
+                          <button type="button" key={item.id} className={`${grid.monthChip} tw:min-h-[1.6875rem] tw:gap-1.5 tw:px-1.5 tw:py-1 ${personal ? grid.personalEventColors : 'tw:workspace-night:text-cali-text!'}`}
                             style={paint(item)} title={`${item.typeLabel} · ${item.title}`} onClick={() => onOpenItem(item)}>
-                            <span className={`${grid.monthChipDot} ${personal ? 'tw:bg-white!' : ''}`} />
-                            {item.kind !== 'deadline' && <time className={`${grid.monthChipTime} tw:text-[0.5625rem]! ${personal ? 'tw:text-inherit' : 'tw:text-cali-muted'}`}>{item.timeLabel}</time>}
-                            <strong className="tw:min-w-0 tw:truncate tw:text-[0.625rem] tw:font-bold">{item.title}</strong>
+                            <span className={`${grid.monthChipDot} ${personal ? 'tw:bg-cali-neutral-surface!' : ''}`} />
+                            {item.kind !== 'deadline' && <time className={`${grid.monthChipTime} tw:text-cali-micro! ${personal ? 'tw:text-inherit' : 'tw:text-cali-muted'}`}>{item.timeLabel}</time>}
+                            <strong className="tw:min-w-0 tw:truncate tw:text-cali-micro tw:font-bold">{item.title}</strong>
                           </button>
                         );
                       })}
@@ -125,7 +125,7 @@ export function ClientTimelineCalendar<T extends Item>({ view, cursor, weekDays,
                   <strong className={`${grid.weekDayNumber} ${dateKey(day) === today ? grid.todayNumber : ''}`}>{day.getDate()}</strong>
                 </div>
               ))}
-              <div className={`${grid.weekAllDay} tw:min-h-[2.615rem]! tw:flex tw:items-center tw:justify-end tw:pr-[0.615rem] tw:text-[0.808rem] tw:font-bold tw:text-[#8a7c74]`}>Dia inteiro</div>
+              <div className={`${grid.weekAllDay} tw:min-h-[2.615rem]! tw:flex tw:items-center tw:justify-end tw:pr-2.5 tw:text-cali-detail tw:font-bold tw:text-cali-muted`}>Dia inteiro</div>
               {weekDays.map(day => (
                 <div key={`all-${day.toISOString()}`} className={`${grid.weekAllDay} tw:min-h-[2.615rem]!`}>
                   {itemsOf(day).filter(item => item.kind === 'deadline').map(item => (
@@ -134,7 +134,7 @@ export function ClientTimelineCalendar<T extends Item>({ view, cursor, weekDays,
                 </div>
               ))}
               <div className={grid.weekAxis} style={{ height: hours.length * hourHeight }}>
-                {hours.map(hour => <span key={hour} className="tw:absolute tw:right-[0.615rem] tw:translate-y-[0.538rem] tw:text-[0.808rem] tw:font-bold tw:text-[#8a7c74]" style={{ top: (hour - 7) * hourHeight }}>{String(hour).padStart(2, '0')}:00</span>)}
+                {hours.map(hour => <span key={hour} className="tw:absolute tw:right-2.5 tw:translate-y-[0.538rem] tw:text-cali-detail tw:font-bold tw:text-cali-muted" style={{ top: (hour - 7) * hourHeight }}>{String(hour).padStart(2, '0')}:00</span>)}
               </div>
               {weekDays.map(day => (
                 <div key={`lane-${day.toISOString()}`} className={`calendar-week-lane ${grid.weekLane}`} style={{ height: hours.length * hourHeight }}>
@@ -144,12 +144,12 @@ export function ClientTimelineCalendar<T extends Item>({ view, cursor, weekDays,
                     const offset = Math.min(column * 11, 33);
                     const personal = item.kind === 'google';
                     return (
-                      <button type="button" key={item.id} className={`${grid.weekEvent} tw:gap-px tw:px-1.5 tw:py-1 ${personal ? grid.personalEventColors : 'tw:workspace-night:text-[#f3eeeb]!'} ${height < 36 ? grid.weekEventCompact : ''}`}
+                      <button type="button" key={item.id} className={`${grid.weekEvent} tw:gap-px tw:px-1.5 tw:py-1 ${personal ? grid.personalEventColors : 'tw:workspace-night:text-cali-text!'} ${height < 36 ? grid.weekEventCompact : ''}`}
                         style={{ ...paint(item), top: (start - dayStart) / 60 * hourHeight, height: Math.max(3, height - 2), left: 3 + offset, width: `calc(100% - ${7 + offset}px)`, zIndex: 1 + column }}
                         title={`${item.typeLabel} · ${item.timeLabel} · ${item.title}`} onClick={() => onOpenItem(item)}>
-                        <strong className="tw:truncate tw:text-[0.6875rem]/[1.1]">{item.title}</strong>
-                        <time className="tw:truncate tw:text-[0.625rem]/[1.1] tw:text-inherit tw:opacity-85">{item.timeLabel}</time>
-                        <small className="tw:truncate tw:text-[0.625rem]/[1.1] tw:text-inherit tw:opacity-85">{item.statusLabel}</small>
+                        <strong className="tw:truncate tw:text-cali-label/[1.1]">{item.title}</strong>
+                        <time className="tw:truncate tw:text-cali-micro/[1.1] tw:text-inherit tw:opacity-85">{item.timeLabel}</time>
+                        <small className="tw:truncate tw:text-cali-micro/[1.1] tw:text-inherit tw:opacity-85">{item.statusLabel}</small>
                       </button>
                     );
                   })}
@@ -158,16 +158,16 @@ export function ClientTimelineCalendar<T extends Item>({ view, cursor, weekDays,
             </div>
           </div>
         )}
-        <footer className="tw:flex tw:flex-wrap tw:items-center tw:justify-between tw:gap-[1.231rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#efe6de] tw:px-[1.385rem] tw:py-[0.923rem] tw:text-[0.846rem] tw:text-[#67574c]">
-          <div className="tw:flex tw:flex-wrap tw:gap-x-[1.231rem] tw:gap-y-[0.615rem]">
+        <footer className="tw:flex tw:flex-wrap tw:items-center tw:justify-between tw:gap-5 tw:border-0 tw:border-t tw:border-solid tw:border-cali-sand-line tw:px-5.5 tw:py-3.5 tw:text-sm tw:text-cali-muted">
+          <div className="tw:flex tw:flex-wrap tw:gap-x-5 tw:gap-y-2.5">
             {labels.map(({ label, color }) => (
-              <span key={label} className="tw:inline-flex tw:items-center tw:gap-[0.538rem]"><i className="tw:size-[0.615rem] tw:rounded-full" style={{ backgroundColor: color }} />{label}</span>
+              <span key={label} className="tw:inline-flex tw:items-center tw:gap-2"><i className="tw:size-2.5 tw:rounded-full" style={{ backgroundColor: color }} />{label}</span>
             ))}
           </div>
-          <span><b className="tw:mr-[0.308rem] tw:text-base tw:text-cali-ink">{total}</b> {total === 1 ? 'compromisso' : 'compromissos'} no período</span>
+          <span><b className="tw:mr-1 tw:text-base tw:text-cali-ink">{total}</b> {total === 1 ? 'compromisso' : 'compromissos'} no período</span>
         </footer>
       </div>
-      <div className="tw:mt-[1.08rem] tw:text-[.77rem]/[1.55] tw:text-[#98897e]">Este calendário mostra compromissos e entregas da CALI, não jornadas de ponto, férias ou escala de colaboradores.</div>
+      <div className="tw:mt-4.5 tw:text-xs/[1.55] tw:text-cali-sand-text">Este calendário mostra compromissos e entregas da CALI, não jornadas de ponto, férias ou escala de colaboradores.</div>
     </>
   );
 }

@@ -6,7 +6,7 @@
   body:has(.v2-admin-nps),
   body:has(.v2-admin-nps) #root {
     @apply tw:h-auto! tw:min-h-0! tw:overflow-visible!;
-    background: white !important;
+    background: var(--cali-color-neutral-surface) !important;
   }
 
   body:has(.v2-admin-nps) #root * {

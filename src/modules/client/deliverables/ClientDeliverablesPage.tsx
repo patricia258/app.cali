@@ -332,33 +332,33 @@ export function ClientDeliverablesPage() {
       <div>
         <CompactPageHeading eyebrow="ÁREA DA EMPRESA / EXECUÇÃO" title="Projetos" description="Execução, planejamento e acompanhamento da assessoria em um só lugar." />
         {reality && <ClientProjectLifecycleBanner companyId={reality.company.id} projectId={project?.id ?? null} />}
-        {reality && project && <div className="tw:mt-[1.31rem] tw:mb-[1.08rem] tw:flex tw:min-w-0 tw:flex-wrap tw:items-center tw:justify-between tw:gap-[.92rem] tw:rounded-[.77rem] tw:border tw:border-solid tw:border-[#e9e0d8] tw:bg-white tw:px-[1.08rem] tw:py-[.77rem] tw:text-[.85rem] tw:text-[#8b7f77]">
-          <label className="tw:inline-flex tw:min-w-0 tw:max-w-full tw:items-center tw:gap-[.615rem] tw:text-[#3e3533]">
+        {reality && project && <div className="tw:mt-5 tw:mb-4.5 tw:flex tw:min-w-0 tw:flex-wrap tw:items-center tw:justify-between tw:gap-3.5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-4.5 tw:py-3 tw:text-sm tw:text-cali-muted">
+          <label className="tw:inline-flex tw:min-w-0 tw:max-w-full tw:items-center tw:gap-2.5 tw:text-cali-text">
             <strong className="tw:shrink-0">Projeto · </strong>
             <select aria-label="Projeto" value={project.id}
-              className="tw:min-w-0 tw:rounded-[.538rem] tw:border tw:border-solid tw:border-[#e7ddd5] tw:bg-white tw:px-[.69rem] tw:py-[.538rem] tw:text-[.85rem] tw:font-semibold tw:text-cali-ink"
+              className="tw:min-w-0 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3 tw:py-2 tw:text-sm tw:font-semibold tw:text-cali-ink"
               onChange={(event) => { setProjectId(event.target.value); closeDeliverable(); }}>
               {reality.projects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
             </select>
           </label>
-          <span className="tw:text-[.77rem] tw:text-[#9a8273]">{project.protocol || reality.company.displayName}</span>
+          <span className="tw:text-xs tw:text-cali-sand-text">{project.protocol || reality.company.displayName}</span>
         </div>}
         {notice && <InlineNotice tone="success"><CheckCircle2 size={18} />{notice}</InlineNotice>}
         {error && <InlineNotice><AlertTriangle size={18} />{error}</InlineNotice>}
         {reality && project && <ClientScheduleReviewPanel key={project.id} companyId={reality.company.id} project={project} refreshProject={refreshReality} />}
         {reality && !project && <section className="tw:mt-2 tw:grid tw:gap-1.5 tw:rounded-2xl tw:border tw:border-dashed tw:border-cali-line tw:bg-cali-surface tw:p-6 tw:text-center">
-          <span className="tw:text-[.6875rem] tw:font-black tw:tracking-widest tw:text-cali-accent">NENHUM CRONOGRAMA COMPARTILHADO</span>
+          <span className="tw:text-cali-label tw:font-black tw:tracking-widest tw:text-cali-accent">NENHUM CRONOGRAMA COMPARTILHADO</span>
           <h2 className="tw:m-0 tw:text-lg tw:font-bold">Não há projeto aguardando sua validação agora.</h2>
-          <p className="tw:m-0 tw:mx-auto tw:max-w-[42.5rem] tw:text-xs tw:leading-relaxed tw:text-cali-muted">Rascunhos internos da CALI não aparecem nesta área. Quando um cronograma estiver pronto para sua revisão, ele será disponibilizado aqui e você receberá uma notificação.</p>
+          <p className="tw:m-0 tw:mx-auto tw:max-w-170 tw:text-xs tw:leading-relaxed tw:text-cali-muted">Rascunhos internos da CALI não aparecem nesta área. Quando um cronograma estiver pronto para sua revisão, ele será disponibilizado aqui e você receberá uma notificação.</p>
         </section>}
         {reality && project && <div>
           <ProjectSectionTabs label="Seções do projeto" tabs={[[ 'timeline', 'Cronograma' ], [ 'deliverables', 'Entregáveis' ], [ 'history', 'Histórico' ]]} value={projectTab} onChange={setProjectTab} />
           {waitingDelivery && <DeliveryNotice icon={<AlertCircle size={16} />} title="Há uma validação aguardando você"
-              className="tw:mb-[1.23rem]" action={<DeliveryActionButton tone="primary" className="tw:min-h-0! tw:gap-[0.462rem]! tw:px-[0.923rem]! tw:py-[0.769rem]! tw:text-[0.769rem]! tw:font-semibold! tw:whitespace-nowrap" onClick={() => openDeliverable(waitingDelivery)}>Abrir entrega <ArrowRight size={13} /></DeliveryActionButton>}>
+              className="tw:mb-5" action={<DeliveryActionButton tone="primary" className="tw:min-h-0! tw:gap-2! tw:px-3.5! tw:py-3! tw:text-xs! tw:font-semibold! tw:whitespace-nowrap" onClick={() => openDeliverable(waitingDelivery)}>Abrir entrega <ArrowRight size={13} /></DeliveryActionButton>}>
               {waitingDelivery.title} · sua análise define se seguimos para publicação ou para uma nova versão.
             </DeliveryNotice>}
-          {projectTab === 'timeline' && <DeliverySchedule items={projectDeliverables} labels={statusLabel} onOpen={openDeliverable} empty={<p className="tw:p-[1.85rem] tw:text-center tw:text-[#999]">Quando a CALI abrir as primeiras entregas deste projeto, elas aparecerão aqui.</p>} />}
-          {projectTab === 'history' && <section className="tw:min-w-0 tw:overflow-hidden tw:rounded-[.77rem] tw:border tw:border-solid tw:border-[#e9dbd0] tw:bg-white tw:p-[1.77rem]">
+          {projectTab === 'timeline' && <DeliverySchedule items={projectDeliverables} labels={statusLabel} onOpen={openDeliverable} empty={<p className="tw:p-7.5 tw:text-center tw:text-cali-muted">Quando a CALI abrir as primeiras entregas deste projeto, elas aparecerão aqui.</p>} />}
+          {projectTab === 'history' && <section className="tw:min-w-0 tw:overflow-hidden tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-7">
             <DeliveryHistory
               title="Histórico do projeto"
               description="Mudanças de situação das entregas compartilhadas, da mais recente para a mais antiga."
@@ -377,12 +377,12 @@ export function ClientDeliverablesPage() {
             />
           </section>}
           {projectTab === 'deliverables' && <section>
-            <header className="tw:mb-[1.54rem]">
-              <small className="tw:text-[.77rem] tw:tracking-[.092rem] tw:text-[#af8f72]">ÁREA DA EMPRESA / PROJETOS</small>
-              <h1 className="tw:my-[.462rem] tw:text-[2.154rem]">Entregáveis</h1>
-              <p className="tw:text-[.923rem] tw:text-[#93857e]">Frentes contratadas, cronograma, arquivos e decisões em um só fluxo.</p>
+            <header className="tw:mb-6">
+              <small className="tw:text-xs tw:tracking-[.092rem] tw:text-cali-warning">ÁREA DA EMPRESA / PROJETOS</small>
+              <h1 className="tw:my-2 tw:text-4xl">Entregáveis</h1>
+              <p className="tw:text-cali-body tw:text-cali-sand-text">Frentes contratadas, cronograma, arquivos e decisões em um só fluxo.</p>
             </header>
-            <div className="tw:grid tw:gap-[1.08rem]">
+            <div className="tw:grid tw:gap-4.5">
               {fronts.length ? fronts.map((front, index) => {
                 const items = projectDeliverables.filter((item) => item.workstreamId === front.id || item.workstream === front.name);
                 const expanded = expandedFronts[front.id] !== false;
@@ -410,7 +410,7 @@ export function ClientDeliverablesPage() {
           complexity={selected.complexity || 'MC1'}
           description={`${selected.workstream || 'Frente CALI'} · ${roadmapLabel(selected)}`}
         >
-          <Button type="button" variant="inlineClose" className="tw:grid tw:cursor-pointer tw:place-items-center tw:rounded-[.615rem] tw:border tw:border-solid tw:border-[#ecded5] tw:bg-white tw:p-[.615rem]" aria-label="Fechar entrega" onClick={closeDeliverable}><X size={18} /></Button>
+          <Button type="button" variant="inlineClose" className="tw:grid tw:cursor-pointer tw:place-items-center tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-2.5" aria-label="Fechar entrega" onClick={closeDeliverable}><X size={18} /></Button>
         </DeliveryDetailHeader>
         <DeliveryDetailTabs<DetailTab> tabs={['overview', 'conversation', 'history']} selected={detailTab} onChange={setDetailTab}
           label={(tab) => tab === 'overview' ? 'Visão geral' : tab === 'conversation' ? 'Conversas' : 'Histórico'} />
@@ -418,7 +418,7 @@ export function ClientDeliverablesPage() {
         <DeliverableConversation
           key={selected.id} role="client" companyId={companyId} deliverableId={selected.id} active={detailTab === 'conversation'}
         />
-        {detailTab !== 'conversation' && <div className="tw:min-h-0 tw:flex-1 tw:overflow-y-auto tw:px-[2.077rem] tw:py-[1.538rem] tw:[scrollbar-width:none]">
+        {detailTab !== 'conversation' && <div className="tw:min-h-0 tw:flex-1 tw:overflow-y-auto tw:px-8.5 tw:py-6 tw:[scrollbar-width:none]">
           {detailTab === 'overview' && <>
             <DeliverySummary items={[
               { icon: <Clock3 size={14} />, label: 'Prazo', value: formatDate(selected.dueAt) },
@@ -426,11 +426,11 @@ export function ClientDeliverablesPage() {
               { icon: <FileText size={14} />, label: 'Versão', value: selected.document?.versionLabel || '—' },
               { icon: <Leaf size={14} />, label: 'Frente de atuação', value: selected.workstream || 'Frente CALI' },
             ]} />
-            <div className="tw:pt-[.308rem] tw:pb-[.923rem] tw:[&_p]:m-0 tw:[&_p]:text-[.923rem]/[1.65] tw:[&_p]:text-[#766b64]">
-              <h3 className="tw:mt-0 tw:mb-[.769rem] tw:text-[1.077rem]">Sobre esta entrega</h3>
+            <div className="tw:pt-1 tw:pb-3.5 tw:[&_p]:m-0 tw:[&_p]:text-cali-body/[1.65] tw:[&_p]:text-cali-neutral-accent">
+              <h3 className="tw:mt-0 tw:mb-3 tw:text-lg">Sobre esta entrega</h3>
               {selected.description && <p>{selected.description}</p>}
               <ProjectComplexityCard code={selected.complexity || 'MC1'} />
-              <p className="tw:mt-[.615rem]! tw:text-[.808rem]/[1.45]! tw:italic tw:text-[#9a8d85]!"><span aria-hidden="true">* </span>{complexityClientNote}</p>
+              <p className="tw:mt-2.5! tw:text-cali-detail/[1.45]! tw:italic tw:text-cali-muted!"><span aria-hidden="true">* </span>{complexityClientNote}</p>
               {selected.originalDueAt && selected.originalDueAt !== selected.dueAt && <p>Prazo original: {formatDate(selected.originalDueAt)}.</p>}
             </div>
             <DeliverableDependencies deliverableId={selected.id} companyId="" title={selected.title} dueAt={selected.dueAt || null} mode="client" />
@@ -442,7 +442,7 @@ export function ClientDeliverablesPage() {
                 : 'Quando a versão compartilhável estiver pronta, ela aparecerá aqui e em Documentos.'}
               action={selected.document
                 ? <DeliveryActionButton tone="primary" onClick={() => void openPublishedDocument(selected.document!)}>Abrir</DeliveryActionButton>
-                : <span className="tw:rounded-[.538rem] tw:bg-[#fff1d8] tw:px-[.769rem] tw:py-[.615rem] tw:text-[.769rem] tw:whitespace-nowrap tw:text-[#875c21] tw:max-[34.375rem]:hidden">{statusLabel[selected.status]}</span>}
+                : <span className="tw:rounded-lg tw:bg-cali-orange-surface tw:px-3 tw:py-2.5 tw:text-xs tw:whitespace-nowrap tw:text-cali-gold-text tw:max-[34.375rem]:hidden">{statusLabel[selected.status]}</span>}
             />}
             {selected.feedback && <ClientDeliveryFile icon={<Star size={20} />} title={`Sua avaliação: ${selected.feedback.score}/5`} description={selected.feedback.comment || 'Sem comentário adicional.'} />}
             {selected.status === 'client_review' && <DeliveryNotice icon={<AlertCircle size={16} />} title="O que precisa acontecer agora">
@@ -481,9 +481,9 @@ export function ClientDeliverablesPage() {
           </>}
         </div>}
 
-        <footer className="tw:flex tw:min-h-[4.462rem] tw:shrink-0 tw:items-center tw:justify-between tw:gap-[.923rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#efe4dc] tw:px-[2.077rem] tw:py-[1.154rem] tw:text-[.769rem] tw:text-[#9c897e] tw:max-[34.375rem]:flex-col tw:max-[34.375rem]:items-start">
+        <footer className="tw:flex tw:min-h-[4.462rem] tw:shrink-0 tw:items-center tw:justify-between tw:gap-3.5 tw:border-0 tw:border-t tw:border-solid tw:border-cali-line tw:px-8.5 tw:py-4.5 tw:text-xs tw:text-cali-sand-text tw:max-[34.375rem]:flex-col tw:max-[34.375rem]:items-start">
           <span>{statusLabel[selected.status]}{selected.updatedAt ? ` · atualizado em ${formatDateTime(selected.updatedAt)}` : ''}</span>
-          <div className="tw:ml-auto tw:flex tw:flex-wrap tw:items-center tw:gap-[.769rem]">
+          <div className="tw:ml-auto tw:flex tw:flex-wrap tw:items-center tw:gap-3">
             {selected.status === 'client_review' && <>
               <DeliveryActionButton onClick={(event) => {
                 detailActionTrigger.current = event.currentTarget;
@@ -514,12 +514,12 @@ export function ClientDeliverablesPage() {
           setAdjustmentOpen(false);
         }}>
           <Button variant="close" type="button" aria-label="Fechar ajuste" onClick={() => setAdjustmentOpen(false)}><X size={20} /></Button>
-          <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-[0.769rem]/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-[#a88b76]">SOLICITAR AJUSTE</span>
+          <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-xs/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-cali-muted">SOLICITAR AJUSTE</span>
           <h2 id="client-deliverable-adjustment-title">O que precisa ser revisto?</h2>
           <p>Descreva o ponto que precisa mudar. O pedido fica vinculado a <strong>{selected.protocol || selected.title}</strong>.</p>
           <textarea className="tw:box-border tw:w-full tw:resize-y tw:rounded-xl tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-input tw:px-4 tw:py-3 tw:font-[inherit]" aria-label="Descreva o ajuste" value={adjustmentText} onChange={(event) => setAdjustmentText(event.target.value)} placeholder="Ex.: precisamos separar este indicador por unidade antes da validação final." rows={5} maxLength={2000} autoFocus />
           {reviewErrorNotice}
-          <div className="tw:mt-[1.385rem] tw:flex tw:flex-wrap tw:justify-end tw:gap-[.769rem]">
+          <div className="tw:mt-5.5 tw:flex tw:flex-wrap tw:justify-end tw:gap-3">
             <Button type="button" variant="secondary" onClick={() => setAdjustmentOpen(false)}>Cancelar</Button>
             <Button type="button" variant="primary" disabled={saving || reviewError?.stale || adjustmentText.trim().length < 3} onClick={() => void submitAdjustment()}>{saving ? 'Registrando…' : 'Enviar ajuste'}</Button>
           </div>
@@ -531,17 +531,17 @@ export function ClientDeliverablesPage() {
       <WorkflowDialogOverlay>
         <WorkflowDialog create className="tw:relative" aria-labelledby="client-deliverable-rating-title">
           <Button variant="close" type="button" aria-label="Fechar avaliação" autoFocus onClick={() => setNpsOpen(false)}><X size={20} /></Button>
-          <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-[0.769rem]/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-[#a88b76]">APROVAÇÃO DA ENTREGA</span>
+          <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-xs/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-cali-muted">APROVAÇÃO DA ENTREGA</span>
           <h2 id="client-deliverable-rating-title">Como foi esta entrega?</h2>
           <p>Escolha sua nota, revise e só depois confirme.</p>
-          <div className="tw:my-[1.923rem] tw:flex tw:flex-wrap tw:justify-center tw:gap-[.923rem]">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className="tw:flex tw:cursor-pointer tw:flex-col tw:items-center tw:gap-[.385rem] tw:rounded-[.615rem] tw:border tw:border-solid tw:border-[var(--v2-line-e5d6ca,#e5d6ca)] tw:bg-[var(--v2-surface-fffaf5,#fffaf5)] tw:p-[.923rem] tw:text-[var(--v2-text-8a7366,#8a7366)] tw:aria-pressed:border-cali-brand tw:aria-pressed:bg-cali-brand tw:aria-pressed:text-white" aria-pressed={score === value} onClick={() => setScore(value)}><Star size={21} fill={score === value ? 'currentColor' : 'none'} /><span>{value}</span></button>)}</div>
-          {reaction && <div className="tw:my-[1.231rem] tw:flex tw:gap-[.923rem] tw:text-[.923rem]/[1.5]"><span className="tw:text-[2.308rem]" aria-hidden="true">{reaction.emoji}</span><div><strong>{reaction.title}</strong><p>{reaction.copy}</p></div></div>}
+          <div className="tw:my-7.5 tw:flex tw:flex-wrap tw:justify-center tw:gap-3.5">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className="tw:flex tw:cursor-pointer tw:flex-col tw:items-center tw:gap-1.5 tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-[var(--v2-line-e5d6ca,var(--cali-color-sand-line))] tw:bg-[var(--v2-surface-fffaf5,var(--cali-color-sand-surface))] tw:p-3.5 tw:text-[var(--v2-text-8a7366,var(--cali-color-neutral-accent))] tw:aria-pressed:border-cali-brand tw:aria-pressed:bg-cali-brand tw:aria-pressed:text-cali-neutral-surface" aria-pressed={score === value} onClick={() => setScore(value)}><Star size={21} fill={score === value ? 'currentColor' : 'none'} /><span>{value}</span></button>)}</div>
+          {reaction && <div className="tw:my-5 tw:flex tw:gap-3.5 tw:text-cali-body/[1.5]"><span className="tw:text-4xl" aria-hidden="true">{reaction.emoji}</span><div><strong>{reaction.title}</strong><p>{reaction.copy}</p></div></div>}
           {score > 0 && <FieldLabel>
             {npsCommentRequired ? 'O que podemos melhorar?' : 'Quer contar mais alguma coisa?'}
             <textarea value={npsComment} onChange={(event) => setNpsComment(event.target.value)} rows={4} maxLength={2000} placeholder={npsCommentRequired ? 'Sua justificativa ajuda a CALI a entender exatamente o que precisa melhorar.' : 'Opcional — deixe um comentário se quiser.'} />
           </FieldLabel>}
           {reviewErrorNotice}
-          <Button type="button" variant="primary" className="tw:mt-[1.538rem] tw:w-full" disabled={saving || reviewError?.stale || !feedbackValid} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</Button>
+          <Button type="button" variant="primary" className="tw:mt-6 tw:w-full" disabled={saving || reviewError?.stale || !feedbackValid} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</Button>
         </WorkflowDialog>
       </WorkflowDialogOverlay>
     </div>}

@@ -29,7 +29,7 @@ export function CreateProjectFrontDialog({ project, front, taken, duplicate, sta
             {staff
               ? <input value={front.name} onChange={(event) => onChange({ name: event.target.value })} placeholder="Ex.: Cultura & Clima"/>
               : <><FrontCatalogField name={front.name} taken={taken} onChange={(name) => onChange({ name })}/>
-                <small className="tw:mt-[.3846rem] tw:block tw:text-[.7308rem] tw:leading-[1.4] tw:font-medium tw:text-cali-muted">Frentes já usadas neste projeto ficam indisponíveis para evitar duplicidade.</small>
+                <small className="tw:mt-1.5 tw:block tw:text-xs tw:leading-[1.4] tw:font-medium tw:text-cali-muted">Frentes já usadas neste projeto ficam indisponíveis para evitar duplicidade.</small>
               </>}
           </WorkspaceFormDialogField>
           <WorkspaceFormDialogField wide>

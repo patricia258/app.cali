@@ -37,38 +37,38 @@ export function ClientDeliverySteps({ tasks, formatDate }: ClientDeliveryStepsPr
     <>
       <DeliveryProgress title={title} description={description} complete={complete} total={tasks.length} />
       {tasks.length > 0 && (
-        <ol className="tw:m-0 tw:list-none tw:overflow-hidden tw:rounded-[.769rem] tw:border tw:border-solid tw:border-[#eee1d8] tw:p-0">
+        <ol className="tw:m-0 tw:list-none tw:overflow-hidden tw:rounded-xl tw:border tw:border-solid tw:border-cali-sand-line tw:p-0">
           {tasks.map((task, index) => {
             const complete = isComplete(task);
             const active = task.id === current?.id;
             const markerTone = complete
-              ? 'tw:bg-[#e5f5eb] tw:text-[#24825a]'
+              ? 'tw:bg-cali-green-surface tw:text-cali-green-accent'
               : active
-                ? 'tw:bg-[#fff0cc] tw:text-[#92641f]'
-                : 'tw:bg-[#f2ede9] tw:text-[#8d7f73]';
+                ? 'tw:bg-cali-gold-soft tw:text-cali-gold-text'
+                : 'tw:bg-cali-neutral-soft tw:text-cali-sand-text';
 
             return (
               <li
                 key={task.id}
                 aria-current={active ? 'step' : undefined}
-                className={`tw:flex tw:items-center tw:gap-[1.077rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#f0e9e4] tw:px-[1.308rem] tw:py-[1.231rem] tw:last:border-0 tw:max-[34.375rem]:items-start ${active ? 'tw:bg-[#fffbf1]' : 'tw:bg-white'}`}
+                className={`tw:flex tw:items-center tw:gap-4.5 tw:border-0 tw:border-b tw:border-solid tw:border-cali-neutral-soft tw:px-5 tw:py-5 tw:last:border-0 tw:max-[34.375rem]:items-start ${active ? 'tw:bg-cali-gold-surface' : 'tw:bg-cali-neutral-surface'}`}
               >
                 <span
                   aria-hidden="true"
-                  className={`tw:grid tw:size-[2.462rem] tw:shrink-0 tw:place-items-center tw:rounded-[.615rem] tw:text-[.769rem] tw:font-bold ${markerTone}`}
+                  className={`tw:grid tw:size-10 tw:shrink-0 tw:place-items-center tw:rounded-cali-compact-control tw:text-xs tw:font-bold ${markerTone}`}
                 >
                   {complete ? <Check size={15} /> : String(index + 1).padStart(2, '0')}
                 </span>
                 <div className="tw:min-w-0 tw:flex-1">
-                  <strong className="tw:text-[.923rem] tw:text-[#413936]">{task.title}</strong>
-                  <p className="tw:mt-[.385rem] tw:mb-0 tw:text-[.769rem]/[1.5] tw:text-[#92847a]">
+                  <strong className="tw:text-cali-body tw:text-cali-neutral-strong">{task.title}</strong>
+                  <p className="tw:mt-1.5 tw:mb-0 tw:text-xs/[1.5] tw:text-cali-sand-text">
                     {[task.protocol, task.dueAt ? `prazo ${formatDate(task.dueAt)}` : '']
                       .filter(Boolean)
                       .join(' · ') || 'Etapa compartilhada pela CALI'}
                   </p>
                 </div>
                 <span
-                  className={`tw:text-[.769rem] tw:whitespace-nowrap tw:max-[34.375rem]:whitespace-normal ${active ? 'tw:rounded-[.538rem] tw:border tw:border-solid tw:border-[#efd8af] tw:bg-[#fff1d9] tw:p-[.538rem] tw:text-[#8e6227]' : 'tw:text-[#807c76]'}`}
+                  className={`tw:text-xs tw:whitespace-nowrap tw:max-[34.375rem]:whitespace-normal ${active ? 'tw:rounded-lg tw:border tw:border-solid tw:border-cali-gold-line tw:bg-cali-orange-surface tw:p-2 tw:text-cali-gold-text' : 'tw:text-cali-neutral-accent'}`}
                 >
                   {statusLabel[task.status] || task.status}
                 </span>

@@ -35,8 +35,8 @@ async function workspaceAccessRequest(body: AccessRequest) {
       return { data: null, error: { message: message || 'Não foi possível concluir o acesso.' } };
     }
     return { data: payload.data, error: null };
-  } catch (error) {
-    return { data: null, error: { message: error instanceof Error ? error.message : 'Não foi possível concluir o acesso.' } };
+  } catch {
+    return { data: null, error: { message: 'Não foi possível conectar ao Workspace. Tente novamente.' } };
   }
 }
 
@@ -49,13 +49,16 @@ export async function verifyAccessCode(email: string, code: string) {
   if (result.error || !result.data || !supabase) return result;
 
   const { session, token_hash, role } = result.data;
-  const verified = session
-    ? await supabase.auth.setSession(session)
-    : token_hash
-      ? await supabase.auth.verifyOtp({ token_hash, type: 'email' })
-      : null;
-  if (!verified?.data.session || verified.error) {
-    return { data: null, error: { message: verified?.error?.message || 'Não foi possível confirmar seu acesso.' } };
+  try {
+    const verified = session
+      ? await supabase.auth.setSession(session)
+      : token_hash
+        ? await supabase.auth.verifyOtp({ token_hash, type: 'email' })
+        : null;
+    if (!verified) return { data: null, error: { message: 'Não foi possível confirmar seu acesso.' } };
+    if (verified.data.session && !verified.error) return { data: { ok: true, role }, error: null };
+  } catch {
+    // Auth pode lançar mesmo depois de a Edge aceitar o código.
   }
-  return { data: { ok: true, role }, error: null };
+  return { data: null, error: { message: 'Código aceito. Não foi possível abrir a sessão. Peça outro código para tentar de novo.' } };
 }

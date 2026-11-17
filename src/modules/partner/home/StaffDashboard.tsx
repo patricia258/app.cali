@@ -24,7 +24,7 @@ type RecordRow = { id: string; company_id: string; title: string; workflow_statu
 
 const PLAN: Record<string, string> = { partner: 'CALI Partner', full: 'CALI Full', build: 'CALI Build' };
 const statusNames: Record<string, string> = { not_started: 'Não iniciado', in_progress: 'Em andamento', internal_review: 'Revisão interna', client_review: 'Com cliente', adjustment_requested: 'Ajuste solicitado', approved: 'Aprovados', done: 'Concluídos' };
-const tones = ['#5a1e2d', '#b58c52', '#8a6475', '#d8c7bd', '#7aafcd', '#4c9a76'];
+const tones = ['var(--cali-color-burgundy-accent)', 'var(--cali-color-gold-accent)', 'var(--cali-color-neutral-accent)', 'var(--cali-color-neutral-line)', 'var(--cali-color-blue-line)', 'var(--cali-color-teal-accent)'];
 const eventKind: Record<string, string> = { meeting: 'Reunião', visit: 'Visita', onsite: 'Visita', deadline: 'Prazo', delivery: 'Entrega', training: 'Treinamento' };
 const greeting = () => { const hour = new Date().getHours(); return hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite'; };
 const dateLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(new Date(iso)).replace('.', '');
@@ -68,25 +68,25 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
 
   return <WorkspaceAdminPage className="v2-staff-dashboard"><WorkspaceAdminContent>
     <WorkspacePageHeader eyebrow="EQUIPE CALI / VISÃO GERAL" title="Visão geral" description="Prioridades, agenda e consumo de horas.">
-      <Link className="tw:inline-flex tw:items-center tw:gap-[.538rem] tw:rounded-[.615rem] tw:border tw:border-solid tw:border-[#e5d9d1] tw:bg-white tw:px-4 tw:py-[.846rem] tw:font-bold tw:text-cali-brand" to="/equipe/aprovacoes"><Send size={15} /> Ver aprovações</Link>
+      <Link className="tw:inline-flex tw:items-center tw:gap-2 tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:px-4 tw:py-3.5 tw:font-bold tw:text-cali-brand" to="/equipe/aprovacoes"><Send size={15} /> Ver aprovações</Link>
     </WorkspacePageHeader>
 
     <WorkspaceOverviewIntro eyebrow="CALI · EQUIPE" title={`${greeting()}, ${me.name.split(' ')[0]}.`} description="Veja o que precisa de você hoje." />
     <WorkspaceMetricGrid label="Sinais do seu trabalho" metrics={metrics.map((metric) => ({ ...metric, value: loading ? '—' : metric.value }))} />
 
-    {(has('projects') || has('calendar')) && <div className="tw:mb-[1.23rem] tw:grid tw:grid-cols-2 tw:gap-[1.23rem] tw:max-[59.375rem]:grid-cols-1">
+    {(has('projects') || has('calendar')) && <div className="tw:mb-5 tw:grid tw:grid-cols-2 tw:gap-5 tw:max-[59.375rem]:grid-cols-1">
       {has('projects') && <WorkspaceOverviewPanel title="Prioridades de hoje" action={{ href: "/equipe/projetos", label: "Abrir projetos" }}>
-        {priorities.length ? priorities.map((item, index) => { const overdue = String(item.due_at) < today; return <OverviewActivityLink key={item.id} href="/equipe/projetos" title={item.title} detail={`${companyName.get(item.company_id) || 'Empresa'} · ${statusNames[item.status || ''] || item.status || 'Não iniciado'}`} leading={<span className="tw:text-[1.23rem]/[inherit] tw:text-[#bf9a75]">{String(index + 1).padStart(2, '0')}</span>} trailing={<><StatusBadge variant="admin" tone={overdue ? 'red' : 'amber'}>{overdue ? `Venceu ${dateLabel(String(item.due_at))}` : dateLabel(String(item.due_at))}</StatusBadge><ChevronRight size={14} /></>} />; }) : <EmptyState as="p" variant="admin">Nenhuma entrega com prazo em aberto nas suas empresas.</EmptyState>}
+        {priorities.length ? priorities.map((item, index) => { const overdue = String(item.due_at) < today; return <OverviewActivityLink key={item.id} href="/equipe/projetos" title={item.title} detail={`${companyName.get(item.company_id) || 'Empresa'} · ${statusNames[item.status || ''] || item.status || 'Não iniciado'}`} leading={<span className="tw:text-xl/[inherit] tw:text-cali-gold-accent">{String(index + 1).padStart(2, '0')}</span>} trailing={<><StatusBadge variant="admin" tone={overdue ? 'red' : 'amber'}>{overdue ? `Venceu ${dateLabel(String(item.due_at))}` : dateLabel(String(item.due_at))}</StatusBadge><ChevronRight size={14} /></>} />; }) : <EmptyState as="p" variant="admin">Nenhuma entrega com prazo em aberto nas suas empresas.</EmptyState>}
       </WorkspaceOverviewPanel>}
       {has('calendar') && <WorkspaceOverviewPanel title="Agenda das suas empresas" action={{ href: "/equipe/calendario", label: "Ver calendário" }}>
-        {events.length ? events.map((event) => <OverviewActivityLink key={event.id} href="/equipe/calendario" title={event.title} detail={<>{companyName.get(event.company_id || '') || 'CALI'} · {eventKind[event.event_type || ''] || 'Compromisso'}</>} leading={<><time className="tw:text-[.85rem]/[inherit] tw:font-bold tw:text-[#977669]">{dateLabel(event.starts_at)} · {timeLabel(event.starts_at)}</time><i className="tw:size-[.69rem] tw:shrink-0 tw:rounded-full tw:bg-[#a484d7]" /></>} trailing={<ChevronRight size={14} />} />) : <EmptyState as="p" variant="admin">Nenhum compromisso marcado nos próximos dias.</EmptyState>}
+        {events.length ? events.map((event) => <OverviewActivityLink key={event.id} href="/equipe/calendario" title={event.title} detail={<>{companyName.get(event.company_id || '') || 'CALI'} · {eventKind[event.event_type || ''] || 'Compromisso'}</>} leading={<><time className="tw:text-sm/[inherit] tw:font-bold tw:text-cali-sand-text">{dateLabel(event.starts_at)} · {timeLabel(event.starts_at)}</time><i className="tw:size-3 tw:shrink-0 tw:rounded-full tw:bg-cali-violet-accent" /></>} trailing={<ChevronRight size={14} />} />) : <EmptyState as="p" variant="admin">Nenhum compromisso marcado nos próximos dias.</EmptyState>}
       </WorkspaceOverviewPanel>}
       {has('projects') && !has('calendar') && <WorkspaceOverviewPanel title="Próximos prazos" action={{ href: "/equipe/projetos", label: "Ver entregas" }}>
         {deadlines.length ? deadlines.map((item) => <OverviewDeadlineLink key={item.id} href="/equipe/projetos" title={item.title} detail={<>{companyName.get(item.company_id) || 'Empresa'} · {statusNames[item.status || ''] || item.status}</>} date={dateLabel(String(item.due_at))} />) : <EmptyState as="p" variant="admin">Nenhum prazo à frente.</EmptyState>}
       </WorkspaceOverviewPanel>}
     </div>}
 
-    {(has('hours') || has('projects')) && <div className="tw:mb-[1.23rem] tw:grid tw:grid-cols-[1.35fr_1fr] tw:gap-[1.23rem] tw:max-[53.125rem]:grid-cols-1">
+    {(has('hours') || has('projects')) && <div className="tw:mb-5 tw:grid tw:grid-cols-[1.35fr_1fr] tw:gap-5 tw:max-[53.125rem]:grid-cols-1">
       {has('hours') && <WorkspaceOverviewPanel title="Consumo de horas por empresa" action={{ href: "/equipe/horas", label: "Lançar horas" }}>
         {me.companies.map((item) => { const used = minutes[item.id] || 0; const contracted = Number(item.monthly_hours_contracted || 0); const pct = contracted ? Math.round(used / 60 / contracted * 100) : 0; return <OverviewCompanyHours key={item.id} href="/equipe/horas" company={item.display_name}
           logo={logos[item.id] ? <img src={logos[item.id]} alt="" /> : mark(item.display_name)}
@@ -103,7 +103,7 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
     </div>}
 
     <WorkspaceOverviewPanel title="Suas empresas">
-      {me.companies.length ? <div className="tw:mt-[1.38rem] tw:grid tw:grid-cols-[repeat(auto-fill,minmax(min(100%,25.38rem),1fr))] tw:gap-[.92rem]">{me.companies.map((client) => { const mine = open.filter((item) => item.company_id === client.id); const talk = openRecords.filter((item) => item.company_id === client.id).length; const state = mine.some((item) => item.status === 'adjustment_requested') ? ['Ajuste solicitado', 'red'] : mine.some((item) => item.status === 'client_review') ? ['Aguardando cliente', 'red'] : talk ? [`${talk} ${talk === 1 ? 'ocorrência aberta' : 'ocorrências abertas'}`, 'amber'] : mine.length ? ['Em execução', 'amber'] : ['Em dia', 'green'];
+      {me.companies.length ? <div className="tw:mt-5.5 tw:grid tw:grid-cols-[repeat(auto-fill,minmax(min(100%,25.38rem),1fr))] tw:gap-3.5">{me.companies.map((client) => { const mine = open.filter((item) => item.company_id === client.id); const talk = openRecords.filter((item) => item.company_id === client.id).length; const state = mine.some((item) => item.status === 'adjustment_requested') ? ['Ajuste solicitado', 'red'] : mine.some((item) => item.status === 'client_review') ? ['Aguardando cliente', 'red'] : talk ? [`${talk} ${talk === 1 ? 'ocorrência aberta' : 'ocorrências abertas'}`, 'amber'] : mine.length ? ['Em execução', 'amber'] : ['Em dia', 'green'];
         return <OverviewCompanyLink key={client.id} href={has('projects') ? '/equipe/projetos' : '/equipe'} company={client.display_name}
           logo={logos[client.id] ? <img src={logos[client.id]} alt="" /> : mark(client.display_name)}
           detail={[PLAN[String(client.service_plan || '').toLowerCase()] || client.service_plan, client.monthly_hours_contracted ? `${client.monthly_hours_contracted}h por mês` : '', has('projects') ? `${mine.length} ${mine.length === 1 ? 'entrega em andamento' : 'entregas em andamento'}` : ''].filter(Boolean).join(' · ')}
@@ -111,7 +111,7 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
     </WorkspaceOverviewPanel>
 
     <WorkspaceOverviewPanel title="O que está liberado para você">
-      <div className="tw:flex tw:flex-wrap tw:gap-[.62rem] tw:pt-[.31rem]">{me.modules.map((key) => <StatusBadge variant="admin" tone="purple" key={key}>{({ records: 'Ocorrências', projects: 'Projetos e entregas', hours: 'Horas', calendar: 'Calendário', documents: 'Documentos', reports: 'Relatórios', notices: 'Avisos', team: 'Equipe do cliente', people_map: 'Mapa de People' } satisfies Record<string, string>)[key] || key}</StatusBadge>)}</div>
+      <div className="tw:flex tw:flex-wrap tw:gap-2.5 tw:pt-1">{me.modules.map((key) => <StatusBadge variant="admin" tone="purple" key={key}>{({ records: 'Ocorrências', projects: 'Projetos e entregas', hours: 'Horas', calendar: 'Calendário', documents: 'Documentos', reports: 'Relatórios', notices: 'Avisos', team: 'Equipe do cliente', people_map: 'Mapa de People' } satisfies Record<string, string>)[key] || key}</StatusBadge>)}</div>
     </WorkspaceOverviewPanel>
   </WorkspaceAdminContent></WorkspaceAdminPage>;
 }

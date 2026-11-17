@@ -9,9 +9,9 @@ export const noticeCategories = [
 ] satisfies [NoticeCategory, string][];
 
 const tones: Record<NoticeCategory, string> = {
-  feriado: 'tw:bg-[#fff4de] tw:text-[#9b6c21]',
-  atendimento: 'tw:bg-[#eaf5fa] tw:text-[#34799a]',
-  comunicado: 'tw:bg-[#f5effb] tw:text-[#7b56a0]',
+  feriado: 'tw:bg-cali-warning-surface tw:text-cali-warning',
+  atendimento: 'tw:bg-cali-blue-surface tw:text-cali-blue-accent',
+  comunicado: 'tw:bg-cali-violet-surface tw:text-cali-violet-text',
 };
 
 export function noticeCategoryLabel(category: NoticeCategory) {
@@ -28,11 +28,11 @@ export function NoticeBadge({ category, placement = 'normal', className = '', ..
     <span
       {...props}
       className={[
-        'tw:rounded-[0.385rem] tw:font-bold',
-        placement === 'normal' ? 'tw:px-[0.692rem] tw:py-[0.462rem] tw:text-[0.769rem]' : 'tw:text-[0.692rem]',
-        placement === 'feed' && 'tw:px-[0.462rem] tw:py-[0.308rem]',
+        'tw:rounded-md tw:font-bold',
+        placement === 'normal' ? 'tw:px-3 tw:py-2 tw:text-xs' : 'tw:text-cali-label',
+        placement === 'feed' && 'tw:px-2 tw:py-1',
         placement === 'cover' &&
-          'tw:absolute tw:bottom-[0.769rem] tw:left-[0.923rem] tw:z-1 tw:px-[0.615rem] tw:py-[0.385rem] tw:shadow-[0_0.154rem_0.615rem_#19070a2e]',
+          'tw:absolute tw:bottom-3 tw:left-3.5 tw:z-1 tw:px-2.5 tw:py-1.5 tw:shadow-[0_0.154rem_0.615rem_rgb(var(--cali-rgb-neutral-inverse)/0.1804)]',
         tones[category],
         className,
       ]

@@ -54,6 +54,6 @@ test('primitivas de diálogo mantêm região modal e envio nativo', () => {
 });
 
 test('AdminNotice preserva papel semântico com cores de resultado', () => {
-  assert.match(render(AdminNotice, { success: true, role: 'status' }, 'Salvo'), /role="status"[^>]*#f1f8f3[^>]*>Salvo<\/p>/);
-  assert.match(render(AdminNotice, { role: 'alert' }, 'Falhou'), /role="alert"[^>]*#fdf3f3[^>]*>Falhou<\/p>/);
+  assert.match(render(AdminNotice, { success: true, role: 'status' }, 'Salvo'), /role="status"[^>]*tw:bg-cali-success-surface[^>]*>Salvo<\/p>/);
+  assert.match(render(AdminNotice, { role: 'alert' }, 'Falhou'), /role="alert"[^>]*tw:bg-cali-danger-surface[^>]*>Falhou<\/p>/);
 });

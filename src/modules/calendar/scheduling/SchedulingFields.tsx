@@ -23,7 +23,7 @@ export function SlotFields({ position, minDate, required, visit }: {
 }) {
   return (
     <fieldset className="tw:m-0 tw:min-w-0 tw:border-0 tw:p-0">
-      <legend className="tw:mb-2 tw:text-[0.6875rem] tw:font-black tw:tracking-[.06em] tw:text-cali-muted tw:uppercase">
+      <legend className="tw:mb-2 tw:text-cali-label tw:font-black tw:tracking-[.06em] tw:text-cali-muted tw:uppercase">
         Opção {position}{position === 2 && (required ? ' (obrigatória)' : ' (opcional)')}
       </legend>
       <div className="tw:grid tw:grid-cols-[1fr_.7fr] tw:gap-3">
@@ -43,7 +43,7 @@ export function SchedulingNoteField({ label, placeholder, initialValue, minLengt
 }) {
   return (
     <label className="tw:col-span-full tw:flex tw:flex-col tw:gap-2">
-      <span className="tw:text-[0.6875rem] tw:font-black tw:tracking-[.06em] tw:text-cali-muted tw:uppercase">{label}</span>
+      <span className="tw:text-cali-label tw:font-black tw:tracking-[.06em] tw:text-cali-muted tw:uppercase">{label}</span>
       <textarea
         name="note"
         defaultValue={initialValue}

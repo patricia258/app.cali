@@ -33,7 +33,7 @@ const emptySatisfaction: Satisfaction = {
 const dashboardSources = ["Carteira", "Projetos", "Entregáveis", "Horas", "Agenda", "Satisfação"] as const;
 type DashboardSource = typeof dashboardSources[number];
 
-const tones = ["#5A1E2D", "#B58C52", "#8A6B73", "#D9C9BE", "#C98E62"];
+const tones = ["var(--cali-color-burgundy-accent)", "var(--cali-color-gold-accent)", "var(--cali-color-neutral-accent)", "var(--cali-color-neutral-line)", "var(--cali-color-gold-accent)"];
 
 function greeting() {
   const hour = new Date().getHours();
@@ -243,7 +243,7 @@ export function AdminDashboard() {
   const now = Date.now();
   const events = data.events.filter((event) => Date.parse(event.startsAt) >= now).slice(0, 5);
   const average = data.satisfaction.average == null ? null : data.satisfaction.average.toFixed(1).replace(".", ",");
-  const eventTone = { meeting: "tw:bg-[#ac89d4]", validation: "tw:bg-[#bd996a]", deadline: "tw:bg-[#72b2d6]" } as const;
+  const eventTone = { meeting: "tw:bg-cali-violet-accent", validation: "tw:bg-cali-gold-accent", deadline: "tw:bg-cali-blue-line" } as const;
   const eventKind = { meeting: "Reunião", validation: "Validação", deadline: "Prazo" } as const;
   const eventTime = (value: string) => new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
   const prioritiesUnavailable = unavailable("Entregáveis", "Projetos", "Carteira", "Horas");
@@ -263,13 +263,13 @@ export function AdminDashboard() {
       <WorkspaceAdminPage>
         <WorkspaceAdminContent>
           <WorkspacePageHeader eyebrow="BACKOFFICE / CALI RH" title="Visão geral" description="Onde estão as decisões, entregas e contas que precisam da CALI hoje.">
-            <Link className="tw:inline-flex tw:items-center tw:gap-[.62rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-[1rem] tw:py-[.77rem] tw:font-semibold tw:whitespace-nowrap tw:text-white" to="/admin/clientes"><Plus size={15} /> Cadastrar cliente</Link>
+            <Link className="tw:inline-flex tw:items-center tw:gap-2.5 tw:rounded-lg tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-4 tw:py-3 tw:font-semibold tw:whitespace-nowrap tw:text-cali-neutral-surface" to="/admin/clientes"><Plus size={15} /> Cadastrar cliente</Link>
           </WorkspacePageHeader>
 
-          <div className="tw:mb-[1.23rem] tw:flex tw:flex-wrap tw:items-center tw:gap-[.69rem] tw:[&_label]:flex tw:[&_label]:items-center tw:[&_label]:gap-[.46rem] tw:[&_label]:rounded-[.54rem] tw:[&_label]:border tw:[&_label]:border-solid tw:[&_label]:border-[#e7ddd5] tw:[&_label]:bg-white tw:[&_label]:px-[.77rem] tw:[&_select]:max-w-[14.62rem] tw:[&_select]:border-0 tw:[&_select]:bg-transparent tw:[&_select]:px-[.38rem] tw:[&_select]:py-[.77rem] tw:[&_select]:text-[.85rem]/[inherit] tw:[&_select]:text-[#67574c]">
+          <div className="tw:mb-5 tw:flex tw:flex-wrap tw:items-center tw:gap-3 tw:[&_label]:flex tw:[&_label]:items-center tw:[&_label]:gap-2 tw:[&_label]:rounded-lg tw:[&_label]:border tw:[&_label]:border-solid tw:[&_label]:border-cali-line tw:[&_label]:bg-cali-neutral-surface tw:[&_label]:px-3 tw:[&_select]:max-w-[14.62rem] tw:[&_select]:border-0 tw:[&_select]:bg-transparent tw:[&_select]:px-1.5 tw:[&_select]:py-3 tw:[&_select]:text-sm/[inherit] tw:[&_select]:text-cali-muted">
             <label><Building2 size={14} /><select aria-label="Conta" value={account} onChange={(event) => selectFilter("company", event.target.value === "all" ? "" : event.target.value)}><option value="all">Todas as contas</option>{loaded.companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
             <label><CalendarDays size={14} /><select aria-label="Mês das horas" value={monthOptions[monthOffset].key} onChange={(event) => selectFilter("month", event.target.value)}>{monthOptions.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label>
-            <span className="tw:ml-auto tw:text-[.77rem]/[inherit] tw:text-[#b09f91] tw:max-[40rem]:ml-0">O mês muda as horas; agenda e prazos mostram sempre o que vem pela frente.</span>
+            <span className="tw:ml-auto tw:text-xs/[inherit] tw:text-cali-sand-accent tw:max-[40rem]:ml-0">O mês muda as horas; agenda e prazos mostram sempre o que vem pela frente.</span>
           </div>
           {failedSources.length > 0 && <InlineNotice tone="danger">
             Falha ao atualizar {failedSources.join(", ")}. Os demais dados seguem disponíveis. Valores anteriores podem aparecer enquanto a fonte estiver indisponível.
@@ -286,16 +286,16 @@ export function AdminDashboard() {
             helper: loading ? "Carregando…" : metric.unavailable ? "Dados indisponíveis" : metric.helper,
           }))} />
 
-          <div className="tw:mb-[1.23rem] tw:grid tw:grid-cols-2 tw:gap-[1.23rem] tw:max-[59.375rem]:grid-cols-1">
+          <div className="tw:mb-5 tw:grid tw:grid-cols-2 tw:gap-5 tw:max-[59.375rem]:grid-cols-1">
             <WorkspaceOverviewPanel title="Prioridades de hoje" action={{ href: "/admin/projetos", label: "Abrir acompanhamento" }}>
-              {actions.length ? actions.map((action, index) => <OverviewActivityLink key={`${action.title}-${action.detail}`} href={action.href} title={action.title} detail={`${action.detail} · ${action.helper}`} leading={<span className="tw:text-[1.23rem]/[inherit] tw:text-[#bf9a75]">{String(index + 1).padStart(2, "0")}</span>} trailing={<>{action.date && <StatusBadge variant="admin" tone={action.overdue ? "red" : "amber"}>{action.overdue ? `Venceu ${action.date}` : action.date}</StatusBadge>}<ChevronRight size={14} /></>} />) : <EmptyState as="p" variant="admin">{blockStatus("A operação não tem pendências críticas no momento.", "Entregáveis", "Projetos", "Carteira", "Horas")}</EmptyState>}
+              {actions.length ? actions.map((action, index) => <OverviewActivityLink key={`${action.title}-${action.detail}`} href={action.href} title={action.title} detail={`${action.detail} · ${action.helper}`} leading={<span className="tw:text-xl/[inherit] tw:text-cali-gold-accent">{String(index + 1).padStart(2, "0")}</span>} trailing={<>{action.date && <StatusBadge variant="admin" tone={action.overdue ? "red" : "amber"}>{action.overdue ? `Venceu ${action.date}` : action.date}</StatusBadge>}<ChevronRight size={14} /></>} />) : <EmptyState as="p" variant="admin">{blockStatus("A operação não tem pendências críticas no momento.", "Entregáveis", "Projetos", "Carteira", "Horas")}</EmptyState>}
             </WorkspaceOverviewPanel>
             <WorkspaceOverviewPanel title="Agenda da CALI" action={{ href: "/admin/calendario", label: "Ver calendário" }}>
-              {events.length ? events.map((event) => <OverviewActivityLink key={event.id} href="/admin/calendario" title={event.title} detail={`${companyMap.get(event.companyId)?.name || "Cliente"} · ${eventKind[event.type]}`} leading={<><time className="tw:text-[.85rem]/[inherit] tw:font-bold tw:text-[#977669]">{dateLabel(event.startsAt)} · {eventTime(event.startsAt)}</time><i className={`tw:size-[.69rem] tw:shrink-0 tw:rounded-full ${eventTone[event.type]}`} /></>} trailing={<ChevronRight size={14} />} />) : <EmptyState as="p" variant="admin">{blockStatus("Nenhum compromisso nos próximos 15 dias.", "Agenda")}</EmptyState>}
+              {events.length ? events.map((event) => <OverviewActivityLink key={event.id} href="/admin/calendario" title={event.title} detail={`${companyMap.get(event.companyId)?.name || "Cliente"} · ${eventKind[event.type]}`} leading={<><time className="tw:text-sm/[inherit] tw:font-bold tw:text-cali-sand-text">{dateLabel(event.startsAt)} · {eventTime(event.startsAt)}</time><i className={`tw:size-3 tw:shrink-0 tw:rounded-full ${eventTone[event.type]}`} /></>} trailing={<ChevronRight size={14} />} />) : <EmptyState as="p" variant="admin">{blockStatus("Nenhum compromisso nos próximos 15 dias.", "Agenda")}</EmptyState>}
             </WorkspaceOverviewPanel>
           </div>
 
-          <div className="tw:mb-[1.23rem] tw:grid tw:grid-cols-[1.35fr_1fr] tw:gap-[1.23rem] tw:max-[53.125rem]:grid-cols-1">
+          <div className="tw:mb-5 tw:grid tw:grid-cols-[1.35fr_1fr] tw:gap-5 tw:max-[53.125rem]:grid-cols-1">
             <WorkspaceOverviewPanel title="Consumo de horas por cliente" action={{ href: "/admin/horas", label: "Detalhar horas" }}>
               {data.companies.length && !usageUnavailable ? data.companies.map((item) => {
                 const minutes = minutesByCompany.get(item.id) || 0;
@@ -316,10 +316,10 @@ export function AdminDashboard() {
             </WorkspaceOverviewPanel>
           </div>
 
-          <div className="tw:mb-[1.23rem] tw:grid tw:grid-cols-[1.35fr_1fr] tw:gap-[1.23rem] tw:max-[53.125rem]:grid-cols-1">
+          <div className="tw:mb-5 tw:grid tw:grid-cols-[1.35fr_1fr] tw:gap-5 tw:max-[53.125rem]:grid-cols-1">
             <WorkspaceOverviewPanel title="NPS e satisfação" action={{ href: "/admin/satisfacao", label: "Ver avaliações" }}>
-              <div className="tw:mx-[.31rem] tw:my-[1.77rem] tw:flex tw:items-center tw:gap-[1.62rem] tw:[&>strong]:text-[2.77rem]/[inherit] tw:[&>strong]:whitespace-nowrap tw:[&>strong]:text-cali-brand tw:[&>strong>span]:text-[1rem]/[inherit] tw:[&>strong>span]:text-[#ab9b90] tw:[&>div]:flex tw:[&>div]:flex-col tw:[&>div]:gap-[.38rem] tw:[&_small]:leading-[1.5] tw:[&_small]:text-[#93857a]"><strong>{average ?? "—"}<span>/5</span></strong><div><b>{data.satisfaction.total ? `${data.satisfaction.total} avaliações registradas` : blockStatus("Nenhuma avaliação registrada", "Satisfação")}</b><small>Escala de satisfação de 1 a 5 · evolução mensal da carteira.</small></div></div>
-              {npsMonths.length > 1 ? <div className="tw:mb-[1.69rem] tw:flex tw:h-[7.69rem] tw:items-end tw:justify-around tw:gap-[.69rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#eae2db] tw:px-[1.54rem] tw:pb-[.38rem] tw:max-[53.125rem]:h-[5.77rem] tw:[&>span]:relative tw:[&>span]:w-full tw:[&>span]:max-w-[2.62rem] tw:[&>span]:rounded-t-[.31rem] tw:[&>span]:bg-[#a76376] tw:[&_em]:absolute tw:[&_em]:top-full tw:[&_em]:left-1/2 tw:[&_em]:-translate-x-1/2 tw:[&_em]:pt-[.54rem] tw:[&_em]:text-[.69rem]/[inherit] tw:[&_em]:text-[#978980] tw:[&_em]:not-italic">{npsMonths.map((month) => <span key={month.id} style={{ height: `${Math.max(4, month.average * 16)}%` }} title={`${month.label}: ${month.average.toFixed(1).replace(".", ",")}/5`}><em>{month.label}</em></span>)}</div> : <EmptyState as="p" variant="admin">As avaliações reais aparecerão aqui conforme forem registradas.</EmptyState>}
+              <div className="tw:mx-1 tw:my-7 tw:flex tw:items-center tw:gap-6.5 tw:[&>strong]:text-cali-display-lg/[inherit] tw:[&>strong]:whitespace-nowrap tw:[&>strong]:text-cali-brand tw:[&>strong>span]:text-base/[inherit] tw:[&>strong>span]:text-cali-sand-text tw:[&>div]:flex tw:[&>div]:flex-col tw:[&>div]:gap-1.5 tw:[&_small]:leading-[1.5] tw:[&_small]:text-cali-sand-text"><strong>{average ?? "—"}<span>/5</span></strong><div><b>{data.satisfaction.total ? `${data.satisfaction.total} avaliações registradas` : blockStatus("Nenhuma avaliação registrada", "Satisfação")}</b><small>Escala de satisfação de 1 a 5 · evolução mensal da carteira.</small></div></div>
+              {npsMonths.length > 1 ? <div className="tw:mb-7 tw:flex tw:h-31 tw:items-end tw:justify-around tw:gap-3 tw:border-0 tw:border-b tw:border-solid tw:border-cali-sand-line tw:px-6 tw:pb-1.5 tw:max-[53.125rem]:h-23 tw:[&>span]:relative tw:[&>span]:w-full tw:[&>span]:max-w-[2.62rem] tw:[&>span]:rounded-t-sm tw:[&>span]:bg-cali-burgundy-line tw:[&_em]:absolute tw:[&_em]:top-full tw:[&_em]:left-1/2 tw:[&_em]:-translate-x-1/2 tw:[&_em]:pt-2 tw:[&_em]:text-cali-label/[inherit] tw:[&_em]:text-cali-muted tw:[&_em]:not-italic">{npsMonths.map((month) => <span key={month.id} style={{ height: `${Math.max(4, month.average * 16)}%` }} title={`${month.label}: ${month.average.toFixed(1).replace(".", ",")}/5`}><em>{month.label}</em></span>)}</div> : <EmptyState as="p" variant="admin">As avaliações reais aparecerão aqui conforme forem registradas.</EmptyState>}
             </WorkspaceOverviewPanel>
             <WorkspaceOverviewPanel title="Próximos prazos" action={{ href: "/admin/projetos", label: "Ver cronograma" }}>
               {deadlines.length ? deadlines.map((item) => <OverviewDeadlineLink key={item.id} href={`/admin/projetos?deliverable=${encodeURIComponent(item.id)}`} title={item.title} detail={`${companyMap.get(item.companyId)?.name || "Cliente"} · ${statusNames[item.status] || item.status}`} date={dateLabel(item.dueAt)} />) : <EmptyState as="p" variant="admin">{blockStatus("Nenhum prazo registrado.", "Entregáveis")}</EmptyState>}
@@ -327,7 +327,7 @@ export function AdminDashboard() {
           </div>
 
           <WorkspaceOverviewPanel title="Carteira de clientes" action={{ href: "/admin/clientes", label: "Todas as contas" }}>
-            {data.companies.length ? <div className="tw:mt-[1.38rem] tw:grid tw:grid-cols-3 tw:gap-[.92rem] tw:max-[59.375rem]:grid-cols-2 tw:max-[40rem]:grid-cols-1">
+            {data.companies.length ? <div className="tw:mt-5.5 tw:grid tw:grid-cols-3 tw:gap-3.5 tw:max-[59.375rem]:grid-cols-2 tw:max-[40rem]:grid-cols-1">
               {data.companies.map((client) => {
                 const minutes = minutesByCompany.get(client.id) || 0;
                 const projects = data.projects.filter((item) => item.companyId === client.id);

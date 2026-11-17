@@ -1,3 +1,4 @@
+import { emailColors } from '../_shared/email-colors.ts';
 import type { JsonValue } from '../_shared/json.ts';
 import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 // Acesso por código para Cliente, Admin e Partner.
@@ -63,27 +64,27 @@ async function hashCode(email: string, code: string) {
 }
 function shell(title: string, inner: string) {
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="color-scheme" content="light only"><title>${title}</title></head>
-<body bgcolor="#F7F3EE" style="margin:0;background:#F7F3EE;font-family:Arial,sans-serif;color:#2B2B2B">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#F7F3EE"><tr><td style="padding:28px 14px">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:auto;background:#fff;border:1px solid #EDE4DE;border-radius:16px;overflow:hidden">
-<tr><td bgcolor="#5A1E2D" style="padding:28px 32px;color:#F7F3EE;text-align:center"><div style="font-family:Georgia,serif;font-size:31px;letter-spacing:.16em">CALI</div><div style="font-size:10px;letter-spacing:.34em;margin-top:7px">WORKSPACE</div></td></tr>
+<body bgcolor="${emailColors.page}" style="margin:0;background:${emailColors.page};font-family:Arial,sans-serif;color:${emailColors.text}">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="${emailColors.page}"><tr><td style="padding:28px 14px">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:auto;background:${emailColors.surface};border:1px solid ${emailColors.lineSoft};border-radius:16px;overflow:hidden">
+<tr><td bgcolor="${emailColors.brand}" style="padding:28px 32px;color:${emailColors.onBrand};text-align:center"><div style="font-family:Georgia,serif;font-size:31px;letter-spacing:.16em">CALI</div><div style="font-size:10px;letter-spacing:.34em;margin-top:7px">WORKSPACE</div></td></tr>
 <tr><td style="padding:36px 34px">${inner}</td></tr>
-<tr><td bgcolor="#F7F3EE" style="padding:17px 28px;text-align:center;font-size:10px;color:#8D8184">CALI RH · HR for Business · calirh.com<br><span style="display:inline-block;padding-top:8px;font-size:11px;line-height:1.6">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_URL}" style="color:#5A1E2D;text-decoration:underline">Workspace</a>.</span></td></tr>
+<tr><td bgcolor="${emailColors.page}" style="padding:17px 28px;text-align:center;font-size:10px;color:${emailColors.textMuted}">CALI RH · HR for Business · calirh.com<br><span style="display:inline-block;padding-top:8px;font-size:11px;line-height:1.6">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_URL}" style="color:${emailColors.brand};text-decoration:underline">Workspace</a>.</span></td></tr>
 </table></td></tr></table></body></html>`;
 }
 function emailHtml(code: string, name: string | null | undefined) {
   return shell("Seu código CALI Workspace", `<p style="margin:0 0 16px;font-size:17px"><strong>${safeName(name)}, seu código de acesso chegou.</strong></p>
 <p style="line-height:1.7;margin:0 0 22px">Digite este código no CALI Workspace. Ele é pessoal, expira em 10 minutos e só pode ser usado uma vez.</p>
-<div style="font-family:Arial,sans-serif;font-size:34px;letter-spacing:.24em;font-weight:800;color:#5A1E2D;background:#F7F3EE;border:1px solid #E8DDD6;border-radius:12px;padding:18px 20px;text-align:center">${code}</div>
-<p style="font-size:11px;line-height:1.65;color:#7A6F72;margin:24px 0 0">Se você não solicitou este código, ignore esta mensagem.</p>`);
+<div style="font-family:Arial,sans-serif;font-size:34px;letter-spacing:.24em;font-weight:800;color:${emailColors.brand};background:${emailColors.page};border:1px solid ${emailColors.line};border-radius:12px;padding:18px 20px;text-align:center">${code}</div>
+<p style="font-size:11px;line-height:1.65;color:${emailColors.textMuted};margin:24px 0 0">Se você não solicitou este código, ignore esta mensagem.</p>`);
 }
 // PARTNER: boas-vindas à Equipe CALI, enviada uma única vez, no primeiro acesso confirmado.
 function staffWelcomeHtml(name: string | null | undefined) {
   return shell("Boas-vindas à Equipe CALI", `<p style="margin:0 0 16px;font-size:17px"><strong>${safeName(name)}, boas-vindas à Equipe CALI.</strong></p>
 <p style="line-height:1.7;margin:0 0 14px">O seu acesso ao CALI Workspace está ativo. É por lá que você acompanha as empresas atribuídas a você, responde ocorrências, registra horas e envia materiais para aprovação.</p>
 <p style="line-height:1.7;margin:0 0 22px">Tudo que vai para o cliente passa pela Patricia antes. Na dúvida, fale com ela.</p>
-<p style="margin:0"><a href="${APP_URL}/equipe" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-weight:700;font-size:13px;padding:13px 20px;border-radius:8px">Abrir o Workspace</a></p>
-<p style="font-size:11px;line-height:1.65;color:#7A6F72;margin:24px 0 0">Para entrar, informe este e-mail e use o código que enviamos a cada acesso.</p>`);
+<p style="margin:0"><a href="${APP_URL}/equipe" style="display:inline-block;background:${emailColors.brand};color:${emailColors.onBrand};text-decoration:none;font-weight:700;font-size:13px;padding:13px 20px;border-radius:8px">Abrir o Workspace</a></p>
+<p style="font-size:11px;line-height:1.65;color:${emailColors.textMuted};margin:24px 0 0">Para entrar, informe este e-mail e use o código que enviamos a cada acesso.</p>`);
 }
 
 Deno.serve(async (request) => {

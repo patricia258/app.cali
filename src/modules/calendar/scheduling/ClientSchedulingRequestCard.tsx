@@ -6,8 +6,8 @@ function ClientNote({ children }: { children: ReactNode }) {
   return (
     <div className="
       tw:mt-2.5 tw:rounded-r-xl tw:border-0 tw:border-l-2 tw:border-solid tw:border-l-cali-gold
-      tw:bg-[color-mix(in_srgb,var(--cali-color-gold)_6%,var(--theme-surface,#fff))] tw:px-3 tw:py-3
-      tw:text-sm/[1.4] tw:text-[color:var(--theme-muted,#857870)] tw:workspace-night:bg-[#2b231f]
+      tw:bg-[color-mix(in_srgb,var(--cali-color-gold)_6%,var(--theme-surface,var(--cali-color-neutral-surface)))] tw:px-3 tw:py-3
+      tw:text-sm/[1.4] tw:text-[color:var(--theme-muted,var(--cali-color-neutral-accent))] tw:workspace-night:bg-cali-burgundy-strong
     ">
       {children}
     </div>
@@ -48,9 +48,9 @@ export function ClientSchedulingRequestCard({ request, highlighted, needsAck, on
     >
       <div className="tw:min-w-0">
         <strong className="tw:mb-1.5 tw:block tw:text-lg/[inherit]">{request.title}</strong>
-        {request.purpose && <p className="tw:m-0 tw:text-sm/[1.45] tw:text-[color:var(--theme-muted,#857870)]">{request.purpose}</p>}
+        {request.purpose && <p className="tw:m-0 tw:text-sm/[1.45] tw:text-[color:var(--theme-muted,var(--cali-color-neutral-accent))]">{request.purpose}</p>}
         {request.location && request.request_mode === 'in_person' && (
-          <p className="tw:m-0 tw:text-sm/[1.45] tw:text-[color:var(--theme-muted,#857870)] tw:[&:not(:first-child)]:mt-1 tw:workspace-night:mt-0"><strong>Endereço:</strong> {request.location}</p>
+          <p className="tw:m-0 tw:text-sm/[1.45] tw:text-[color:var(--theme-muted,var(--cali-color-neutral-accent))] tw:[&:not(:first-child)]:mt-1 tw:workspace-night:mt-0"><strong>Endereço:</strong> {request.location}</p>
         )}
         {proposal && (
           <>
@@ -74,7 +74,7 @@ export function ClientSchedulingRequestCard({ request, highlighted, needsAck, on
             {request.online_extra_quote_cents ? (
               <>
                 <strong>Orçamento da reunião extra: {formatPrice(request.online_extra_quote_cents)}</strong>
-                {request.billing_notice && <p className="tw:m-0 tw:text-sm/[1.45] tw:text-[color:var(--theme-muted,#857870)]">{request.billing_notice}</p>}
+                {request.billing_notice && <p className="tw:m-0 tw:text-sm/[1.45] tw:text-[color:var(--theme-muted,var(--cali-color-neutral-accent))]">{request.billing_notice}</p>}
                 {request.online_extra_quote_accepted_at ? <span>Aceito por você.</span> : (
                   <SchedulingAction tone="primary" size="body" disabled={busy} onClick={onQuote} className="tw:px-4.5 tw:py-3 tw:font-semibold">
                     Aceitar orçamento

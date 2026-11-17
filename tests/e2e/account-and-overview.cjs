@@ -176,6 +176,15 @@ const cases = [
       assert.equal(await paper.textContent(), await preview.textContent());
       const size = await paper.evaluate((element) => parseFloat(getComputedStyle(element).width));
       assert.ok(Math.abs(size - 210 * 96 / 25.4) < 1);
+      const readBrand = (element) => getComputedStyle(element).getPropertyValue('--cali-palette-burgundy-base-rgb').trim().split(/\s+/);
+      const brand = await page.locator('html').evaluate(readBrand);
+      assert.equal(brand.length, 3);
+      assert.deepEqual(await popup.locator('html').evaluate(readBrand), brand);
+      assert.equal(
+        await paper.locator('.overview-export-document-head strong').evaluate((element) => getComputedStyle(element).color),
+        `rgb(${brand.join(', ')})`,
+        'A cor da marca deve estar disponível na janela independente de impressão',
+      );
       await popup.close();
     },
   },

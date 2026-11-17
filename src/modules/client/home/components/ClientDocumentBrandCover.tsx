@@ -16,10 +16,10 @@ export function ClientDocumentBrandCover({
   logoUrl?: string | null;
   compact?: boolean;
 }) {
-  const [visual, setVisual] = useState({ url: '', color: '#F7F3EE' });
+  const [visual, setVisual] = useState({ url: '', color: 'var(--cali-color-sand-soft)' });
   useEffect(() => {
     let active = true;
-    setVisual({ url: '', color: '#F7F3EE' });
+    setVisual({ url: '', color: 'var(--cali-color-sand-soft)' });
     async function load() {
       const url = await resolveCompanyAsset(logoUrl);
       if (!active) return;
@@ -43,7 +43,7 @@ export function ClientDocumentBrandCover({
   }, [companyId, companyName, logoUrl]);
   return (
     <div
-      className={`tw:grid tw:size-full tw:place-items-center tw:text-cali-brand ${compact ? 'tw:p-[0.615rem]' : 'tw:p-[0.923rem]'}`}
+      className={`tw:grid tw:size-full tw:place-items-center tw:text-cali-brand ${compact ? 'tw:p-2.5' : 'tw:p-3.5'}`}
       style={{ backgroundColor: visual.color }}
       aria-label={`Capa com a marca de ${companyName}`}
     >

@@ -23,9 +23,9 @@ type Props = {
 const dateTime = new Intl.DateTimeFormat('pt-BR', {
   timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short',
 });
-const sectionStyle = 'tw:grid tw:gap-[.923rem] tw:py-[1.077rem]';
-const dividedSectionStyle = `${sectionStyle} tw:[border-top:1px_solid_rgba(120,76,66,.2)]`;
-const linkRowStyle = 'tw:flex tw:flex-wrap tw:items-end tw:gap-[.923rem]';
+const sectionStyle = 'tw:grid tw:gap-3.5 tw:py-4.5';
+const dividedSectionStyle = `${sectionStyle} tw:[border-top:1px_solid_rgb(var(--cali-rgb-red-text)/0.2)]`;
+const linkRowStyle = 'tw:flex tw:flex-wrap tw:items-end tw:gap-3.5';
 const linkFieldStyle = 'tw:[--account-field-min-width:min(100%,15.385rem)]';
 
 export function CompanyOnboardingPanel({ companyId, isActive, onApplyPreRegistration, onAccessChanged, onUploadContract }: Props) {

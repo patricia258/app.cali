@@ -293,25 +293,25 @@ export function SubtaskModal({
   const options = subtaskStatusOptions(staff, task.status);
   return (
     <div
-      className="tw:fixed tw:inset-0 tw:z-1300 tw:grid tw:place-items-center tw:bg-[#2b181e75] tw:p-[1.538rem]"
+      className="tw:fixed tw:inset-0 tw:z-1300 tw:grid tw:place-items-center tw:bg-cali-red-inverse/46 tw:p-6"
       onMouseDown={onClose}
     >
       <DialogFrame
-        className="tw:flex tw:max-h-[min(88vh,58.462rem)] tw:w-full tw:max-w-[69.231rem] tw:flex-col tw:overflow-hidden tw:rounded-[1.077rem] tw:bg-white tw:font-cali-body tw:text-cali-ink tw:shadow-[0_2.154rem_5.385rem_#2b181e4d] tw:focus:outline-none"
+        className="tw:flex tw:max-h-[min(88vh,58.462rem)] tw:w-full tw:max-w-[69.231rem] tw:flex-col tw:overflow-hidden tw:rounded-[1.077rem] tw:bg-cali-neutral-surface tw:font-cali-body tw:text-cali-ink tw:shadow-[0_2.154rem_5.385rem_rgb(var(--cali-rgb-red-inverse)/0.302)] tw:focus:outline-none"
         aria-label={`Subtarefa ${task.title}`}
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <header className="tw:flex tw:flex-none tw:items-start tw:justify-between tw:gap-[1.385rem] tw:bg-[linear-gradient(120deg,#fdf6ee,#f8ece6)] tw:px-[2.154rem] tw:pt-[1.846rem] tw:pb-[1.692rem] tw:max-[45rem]:flex-col tw:max-[34rem]:px-[1.231rem] tw:[&_h2]:mt-0 tw:[&_h2]:mb-[0.462rem] tw:[&_h2]:text-[1.615rem] tw:[&_h2]:font-extrabold">
+        <header className="tw:flex tw:flex-none tw:items-start tw:justify-between tw:gap-5.5 tw:bg-[linear-gradient(120deg,var(--cali-color-gold-surface),var(--cali-color-neutral-soft))] tw:px-8.5 tw:pt-7.5 tw:pb-7 tw:max-[45rem]:flex-col tw:max-[34rem]:px-5 tw:[&_h2]:mt-0 tw:[&_h2]:mb-2 tw:[&_h2]:text-cali-title tw:[&_h2]:font-extrabold">
           <div>
             <button
               type="button"
-              className="tw:mb-[1.077rem] tw:inline-flex tw:h-[2.615rem] tw:cursor-pointer tw:items-center tw:gap-[0.462rem] tw:rounded-[0.692rem] tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-[1rem] tw:text-[0.923rem] tw:font-bold tw:text-cali-brand tw:hover:bg-[#fbf7f4]"
+              className="tw:mb-4.5 tw:inline-flex tw:h-10.5 tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-4 tw:text-cali-body tw:font-bold tw:text-cali-brand tw:hover:bg-cali-surface-soft"
               onClick={onClose}
             >
               <ArrowLeft size={14} /> Voltar para o entregável
             </button>
             <h2>{task.title}</h2>
-            <p className="tw:m-0 tw:flex tw:flex-wrap tw:items-center tw:gap-[1.077rem] tw:text-[0.962rem] tw:text-[#5f5650] tw:[&_small]:text-[0.808rem] tw:[&_small]:font-bold tw:[&_small]:tracking-[0.12em] tw:[&_small]:text-[#a8773f]">
+            <p className="tw:m-0 tw:flex tw:flex-wrap tw:items-center tw:gap-4.5 tw:text-cali-body tw:text-cali-muted tw:[&_small]:text-cali-detail tw:[&_small]:font-bold tw:[&_small]:tracking-[0.12em] tw:[&_small]:text-cali-gold-accent">
               <span>
                 Subtarefa de <strong>{deliverableTitle}</strong>
               </span>
@@ -319,14 +319,14 @@ export function SubtaskModal({
               {task.complexity && <ProjectComplexityBadge code={task.complexity} />}
             </p>
           </div>
-          <div className="tw:flex tw:min-w-0 tw:flex-none tw:flex-wrap tw:items-center tw:gap-[0.769rem]">
+          <div className="tw:flex tw:min-w-0 tw:flex-none tw:flex-wrap tw:items-center tw:gap-3">
             <label
-              className={`tw:order-1 tw:inline-flex tw:h-[3.077rem] tw:items-center tw:gap-[.615rem] tw:rounded-[.692rem] tw:pr-[.308rem] tw:pl-[.923rem] tw:text-white ${projectStatusColor[SUBTASK_STATUS[task.status]?.tone || 'purple'] ?? projectStatusColor.purple}`}
+              className={`tw:order-1 tw:inline-flex tw:h-12.5 tw:items-center tw:gap-2.5 tw:rounded-cali-panel tw:pr-1 tw:pl-3.5 tw:text-cali-neutral-surface ${projectStatusColor[SUBTASK_STATUS[task.status]?.tone || 'purple'] ?? projectStatusColor.purple}`}
               title="Situação da subtarefa — clique para alterar"
             >
-              <i aria-hidden="true" className="tw:size-[.538rem] tw:rounded-full tw:bg-white" />
+              <i aria-hidden="true" className="tw:size-2 tw:rounded-full tw:bg-cali-neutral-surface" />
               <select
-                className="tw:h-full tw:min-w-0 tw:cursor-pointer tw:border-0! tw:bg-transparent! tw:pr-[.462rem] tw:text-[.962rem] tw:font-extrabold tw:text-white! tw:disabled:cursor-default tw:disabled:opacity-100 tw:[&_option]:bg-white tw:[&_option]:text-cali-ink"
+                className="tw:h-full tw:min-w-0 tw:cursor-pointer tw:border-0! tw:bg-transparent! tw:pr-2 tw:text-cali-body tw:font-extrabold tw:text-cali-neutral-surface! tw:disabled:cursor-default tw:disabled:opacity-100 tw:[&_option]:bg-cali-neutral-surface tw:[&_option]:text-cali-ink"
                 aria-label="Situação da subtarefa"
                 value={task.status}
                 disabled={options.length === 1}
@@ -351,7 +351,7 @@ export function SubtaskModal({
             <Button
               type="button"
               variant="unstyled"
-              className="tw:order-3 tw:grid tw:size-[3.077rem] tw:cursor-pointer tw:place-items-center tw:rounded-[0.692rem] tw:border tw:border-solid tw:border-[#eadfd5] tw:bg-white tw:text-cali-ink"
+              className="tw:order-3 tw:grid tw:size-12.5 tw:cursor-pointer tw:place-items-center tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:text-cali-ink"
               aria-label="Fechar"
               onClick={onClose}
             >
@@ -359,7 +359,7 @@ export function SubtaskModal({
             </Button>
           </div>
         </header>
-        <nav className="tw:flex tw:flex-none tw:gap-[1.692rem] tw:overflow-x-auto tw:border-0 tw:border-b tw:border-solid tw:border-[#eee4dc] tw:px-[2.154rem] tw:max-[34rem]:px-[1.231rem] tw:[&_button]:cursor-pointer tw:[&_button]:border-0 tw:[&_button]:border-b-2 tw:[&_button]:border-solid tw:[&_button]:border-transparent tw:[&_button]:bg-transparent tw:[&_button]:px-0 tw:[&_button]:pt-[1.077rem] tw:[&_button]:pb-[0.923rem] tw:[&_button]:text-[0.962rem] tw:[&_button]:whitespace-nowrap tw:[&_button]:text-[#7d726b] tw:[&_button[aria-pressed=true]]:border-cali-brand tw:[&_button[aria-pressed=true]]:font-bold tw:[&_button[aria-pressed=true]]:text-cali-brand">
+        <nav className="tw:flex tw:flex-none tw:gap-7 tw:overflow-x-auto tw:border-0 tw:border-b tw:border-solid tw:border-cali-sand-line tw:px-8.5 tw:max-[34rem]:px-5 tw:[&_button]:cursor-pointer tw:[&_button]:border-0 tw:[&_button]:border-b-2 tw:[&_button]:border-solid tw:[&_button]:border-transparent tw:[&_button]:bg-transparent tw:[&_button]:px-0 tw:[&_button]:pt-4.5 tw:[&_button]:pb-3.5 tw:[&_button]:text-cali-body tw:[&_button]:whitespace-nowrap tw:[&_button]:text-cali-muted tw:[&_button[aria-pressed=true]]:border-cali-brand tw:[&_button[aria-pressed=true]]:font-bold tw:[&_button[aria-pressed=true]]:text-cali-brand">
           {(
             [
               ['overview', 'Visão geral'],
@@ -372,10 +372,10 @@ export function SubtaskModal({
             </button>
           ))}
         </nav>
-        <div className="tw:min-h-0 tw:overflow-y-auto tw:px-[2.154rem] tw:pt-[1.692rem] tw:pb-8 tw:[scrollbar-width:none] tw:max-[34rem]:px-[1.231rem]">
+        <div className="tw:min-h-0 tw:overflow-y-auto tw:px-8.5 tw:pt-7 tw:pb-8 tw:[scrollbar-width:none] tw:max-[34rem]:px-5">
           {tab === 'overview' && (
             <>
-              <div className="tw:grid tw:grid-cols-4 tw:overflow-hidden tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#eadfd5] tw:max-[45rem]:grid-cols-2 tw:[&_span]:flex tw:[&_span]:flex-col tw:[&_span]:gap-[0.462rem] tw:[&_span]:border-0 tw:[&_span]:border-l tw:[&_span]:border-solid tw:[&_span]:border-[#eadfd5] tw:[&_span]:px-[1.231rem] tw:[&_span]:py-[1.077rem] tw:[&_span]:text-[0.846rem] tw:[&_span]:text-[#8a7c74] tw:[&_span:first-child]:border-0 tw:[&_b]:text-[1.038rem] tw:[&_b]:text-cali-brand">
+              <div className="tw:grid tw:grid-cols-4 tw:overflow-hidden tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:max-[45rem]:grid-cols-2 tw:[&_span]:flex tw:[&_span]:flex-col tw:[&_span]:gap-2 tw:[&_span]:border-0 tw:[&_span]:border-l tw:[&_span]:border-solid tw:[&_span]:border-cali-line tw:[&_span]:px-5 tw:[&_span]:py-4.5 tw:[&_span]:text-sm tw:[&_span]:text-cali-muted tw:[&_span:first-child]:border-0 tw:[&_b]:text-base tw:[&_b]:text-cali-brand">
                 <span>
                   Prazo<b>{task.dueAt ? formatDate(task.dueAt) : 'Sem prazo'}</b>
                 </span>
@@ -389,7 +389,7 @@ export function SubtaskModal({
                   Tipo<b>{task.isDocument ? 'Entrega documental' : 'Atividade'}</b>
                 </span>
               </div>
-              <div className="tw:mt-[1.538rem] tw:[&_h3]:mt-0 tw:[&_h3]:mb-[0.462rem] tw:[&_h3]:text-[1.077rem] tw:[&_p]:m-0 tw:[&_p]:text-[1rem]/[1.55] tw:[&_p]:whitespace-pre-wrap tw:[&_p]:text-[#5f5650]">
+              <div className="tw:mt-6 tw:[&_h3]:mt-0 tw:[&_h3]:mb-2 tw:[&_h3]:text-lg tw:[&_p]:m-0 tw:[&_p]:text-base/[1.55] tw:[&_p]:whitespace-pre-wrap tw:[&_p]:text-cali-muted">
                 <h3>Sobre esta subtarefa</h3>
                 <p>{task.description || 'Sem descrição.'}</p>
               </div>
@@ -405,10 +405,10 @@ export function SubtaskModal({
             </>
           )}
           {tab === 'chat' && (
-            <section className="tw:flex tw:flex-col tw:gap-[0.923rem]">
-              <div className="tw:flex tw:min-h-[2.462rem] tw:items-center tw:justify-between tw:gap-[0.769rem]">
+            <section className="tw:flex tw:flex-col tw:gap-3.5">
+              <div className="tw:flex tw:min-h-[2.462rem] tw:items-center tw:justify-between tw:gap-3">
                 <span
-                  className="tw:inline-flex tw:rounded-[0.692rem] tw:border tw:border-solid tw:border-[#e6d9ce] tw:bg-white tw:p-[0.231rem] tw:[&_button]:h-[2.308rem] tw:[&_button]:cursor-pointer tw:[&_button]:rounded-[0.538rem] tw:[&_button]:border-0 tw:[&_button]:bg-transparent tw:[&_button]:px-[1rem] tw:[&_button]:text-[0.885rem] tw:[&_button]:font-bold tw:[&_button]:text-cali-brand tw:[&_button[aria-selected=true]]:bg-cali-brand tw:[&_button[aria-selected=true]]:text-white tw:[&_button:disabled]:cursor-default tw:[&_button:disabled]:opacity-40"
+                  className="tw:inline-flex tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-1 tw:[&_button]:h-9 tw:[&_button]:cursor-pointer tw:[&_button]:rounded-lg tw:[&_button]:border-0 tw:[&_button]:bg-transparent tw:[&_button]:px-4 tw:[&_button]:text-sm tw:[&_button]:font-bold tw:[&_button]:text-cali-brand tw:[&_button[aria-selected=true]]:bg-cali-brand tw:[&_button[aria-selected=true]]:text-cali-neutral-surface tw:[&_button:disabled]:cursor-default tw:[&_button:disabled]:opacity-40"
                   role="tablist"
                   aria-label="Com quem é a conversa"
                 >
@@ -434,7 +434,7 @@ export function SubtaskModal({
                 <small>{channel === 'client' ? 'O cliente vê estas mensagens' : 'Só a CALI vê'}</small>
               </div>
               <div
-                className="tw:flex tw:max-h-[24.615rem] tw:flex-col tw:gap-[0.615rem] tw:overflow-y-auto tw:px-[0.154rem] tw:py-[0.308rem] tw:[scrollbar-width:none]"
+                className="tw:flex tw:max-h-[24.615rem] tw:flex-col tw:gap-2.5 tw:overflow-y-auto tw:px-0.5 tw:py-1 tw:[scrollbar-width:none]"
                 aria-live="polite"
               >
                 {shown.length ? (
@@ -453,11 +453,11 @@ export function SubtaskModal({
                       >
                           {parsed.clean && <p>{withMentions(parsed.clean)}</p>}
                           {parsed.files.length > 0 && (
-                            <div className="tw:mt-[.62rem] tw:flex tw:flex-col tw:items-start tw:gap-[.46rem]">
+                            <div className="tw:mt-2.5 tw:flex tw:flex-col tw:items-start tw:gap-2">
                               {parsed.files.map((item) => (
                                 <ConversationAttachmentButton
                                   key={item.path}
-                                  className="tw:mt-[.62rem]"
+                                  className="tw:mt-2.5"
                                   name={item.name}
                                   size={item.size}
                                   onOpen={() => void openFile(item.path)}
@@ -469,12 +469,12 @@ export function SubtaskModal({
                     );
                   })
                 ) : (
-                  <p className="tw:m-0 tw:text-[0.923rem] tw:text-[#8a7c74]">
+                  <p className="tw:m-0 tw:text-cali-body tw:text-cali-muted">
                     Ainda não há mensagens nesta subtarefa.
                   </p>
                 )}
               </div>
-              <div className="tw:flex tw:flex-col tw:gap-[0.615rem]">
+              <div className="tw:flex tw:flex-col tw:gap-2.5">
                 <MentionTextarea
                   rows={2}
                   value={text}
@@ -487,7 +487,7 @@ export function SubtaskModal({
                     }
                   }}
                 />
-                <div className="tw:flex tw:items-center tw:justify-end tw:gap-[0.615rem]">
+                <div className="tw:flex tw:items-center tw:justify-end tw:gap-2.5">
                   <input
                     ref={fileInput}
                     type="file"
@@ -500,7 +500,7 @@ export function SubtaskModal({
                   />
                   <button
                     type="button"
-                    className="tw:inline-flex tw:h-[3.077rem] tw:max-w-[min(18.462rem,60%)] tw:cursor-pointer tw:items-center tw:gap-[0.538rem] tw:rounded-[0.692rem] tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-[1.077rem] tw:text-[0.923rem] tw:font-bold tw:text-cali-brand tw:[&_span]:truncate"
+                    className="tw:inline-flex tw:h-12.5 tw:max-w-[min(18.462rem,60%)] tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-4.5 tw:text-cali-body tw:font-bold tw:text-cali-brand tw:[&_span]:truncate"
                     title="PDF, imagem, Word, Excel ou PowerPoint, até 10 MB"
                     onClick={() => fileInput.current?.click()}
                   >
@@ -510,7 +510,7 @@ export function SubtaskModal({
                   <Button
                     type="button"
                     variant="unstyled"
-                    className="tw:inline-flex tw:h-[3.077rem] tw:cursor-pointer tw:items-center tw:gap-[0.462rem] tw:rounded-[0.692rem] tw:border-0 tw:bg-cali-brand tw:px-[1.231rem] tw:text-[0.923rem] tw:font-bold tw:text-white tw:disabled:cursor-default tw:disabled:opacity-45"
+                    className="tw:inline-flex tw:h-12.5 tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-cali-panel tw:border-0 tw:bg-cali-brand tw:px-5 tw:text-cali-body tw:font-bold tw:text-cali-neutral-surface tw:disabled:cursor-default tw:disabled:opacity-45"
                     disabled={sending || (!text.trim() && !file)}
                     onClick={() => void send()}
                   >
@@ -522,15 +522,15 @@ export function SubtaskModal({
             </section>
           )}
           {tab === 'files' && (
-            <section className="tw:[&_h3]:mt-0 tw:[&_h3]:mb-[0.462rem] tw:[&_h3]:text-[1.077rem]">
+            <section className="tw:[&_h3]:mt-0 tw:[&_h3]:mb-2 tw:[&_h3]:text-lg">
               <h3>Arquivos desta subtarefa</h3>
-              <p className="tw:mt-0 tw:mb-[0.923rem] tw:text-[0.923rem] tw:text-[#7d726b]">
+              <p className="tw:mt-0 tw:mb-3.5 tw:text-cali-body tw:text-cali-muted">
                 {staff
                   ? 'Escolha o arquivo que é a entrega final. A Patricia libera para o cliente.'
                   : 'Escolha o arquivo que é a entrega final. Ao liberar, ele aparece para o cliente na pasta do entregável, em Documentos.'}
               </p>
               {files.length ? (
-                <ul className="tw:m-0 tw:flex tw:list-none tw:flex-col tw:gap-[0.615rem] tw:p-0">
+                <ul className="tw:m-0 tw:flex tw:list-none tw:flex-col tw:gap-2.5 tw:p-0">
                   {files.map((item) => {
                     const final = finals.find((row) => row.storage_path === item.path);
                     const state = final?.status || 'none';
@@ -538,7 +538,7 @@ export function SubtaskModal({
                     return (
                       <li
                         key={item.path}
-                        className="tw:grid tw:grid-cols-[minmax(0,1fr)_auto_auto] tw:items-center tw:gap-[1.077rem] tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#eadfd5] tw:bg-white tw:px-[0.923rem] tw:py-[0.769rem] tw:max-[45rem]:grid-cols-1"
+                        className="tw:grid tw:grid-cols-[minmax(0,1fr)_auto_auto] tw:items-center tw:gap-4.5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:max-[45rem]:grid-cols-1"
                       >
                         <ConversationAttachmentButton
                           className="tw:m-0 tw:justify-self-start"
@@ -547,7 +547,7 @@ export function SubtaskModal({
                           onOpen={() => void openFile(item.path)}
                         />
                         <span
-                          className={`tw:text-[0.846rem] tw:font-bold tw:whitespace-nowrap ${state === 'published' ? 'tw:text-[#356448]' : state === 'draft' ? 'tw:text-[#8a5a12]' : state === 'archived' ? 'tw:text-[#a03535]' : 'tw:text-[#8a7c74]'}`}
+                          className={`tw:text-sm tw:font-bold tw:whitespace-nowrap ${state === 'published' ? 'tw:text-cali-success' : state === 'draft' ? 'tw:text-cali-warning' : state === 'archived' ? 'tw:text-cali-red-text' : 'tw:text-cali-muted'}`}
                         >
                           {state === 'published'
                             ? 'Liberado ao cliente'
@@ -557,7 +557,7 @@ export function SubtaskModal({
                                 ? 'Suspenso'
                                 : 'Arquivo de trabalho'}
                         </span>
-                        <span className="tw:flex tw:flex-wrap tw:gap-[0.615rem] tw:[&_button]:h-[2.462rem]! tw:[&_button]:cursor-pointer tw:[&_button]:rounded-[0.615rem]! tw:[&_button]:border! tw:[&_button]:border-solid tw:[&_button]:border-[#dfd3ca] tw:[&_button]:bg-white tw:[&_button]:px-[0.923rem]! tw:[&_button]:py-0! tw:[&_button]:text-[0.885rem]! tw:[&_button]:font-bold! tw:[&_button]:whitespace-nowrap tw:[&_button]:text-cali-brand tw:[&_button.primary]:border-cali-brand! tw:[&_button.primary]:bg-cali-brand! tw:[&_button.primary]:text-white! tw:[&_button:disabled]:cursor-default tw:[&_button:disabled]:opacity-50">
+                        <span className="tw:flex tw:flex-wrap tw:gap-2.5 tw:[&_button]:h-10! tw:[&_button]:cursor-pointer tw:[&_button]:rounded-cali-compact-control! tw:[&_button]:border! tw:[&_button]:border-solid tw:[&_button]:border-cali-input-line tw:[&_button]:bg-cali-neutral-surface tw:[&_button]:px-3.5! tw:[&_button]:py-0! tw:[&_button]:text-sm! tw:[&_button]:font-bold! tw:[&_button]:whitespace-nowrap tw:[&_button]:text-cali-brand tw:[&_button.primary]:border-cali-brand! tw:[&_button.primary]:bg-cali-brand! tw:[&_button.primary]:text-cali-neutral-surface! tw:[&_button:disabled]:cursor-default tw:[&_button:disabled]:opacity-50">
                           {staff ? (
                             (state === 'none' || state === 'archived') && (
                               <button
@@ -606,7 +606,7 @@ export function SubtaskModal({
                   })}
                 </ul>
               ) : (
-                <p className="tw:m-0 tw:text-[0.923rem] tw:text-[#8a7c74]">
+                <p className="tw:m-0 tw:text-cali-body tw:text-cali-muted">
                   Nenhum arquivo ainda. Anexe pela aba Conversas.
                 </p>
               )}

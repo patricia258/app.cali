@@ -36,17 +36,17 @@ export function ReportWorkflowConfirmation({ action, onCancel, onConfirm }: {
 
   return (
     <div
-      className="tw:fixed tw:inset-0 tw:z-[420] tw:grid tw:place-items-center tw:bg-[#140d0f]/50 tw:p-[1.375rem] tw:backdrop-blur-md"
+      className="tw:fixed tw:inset-0 tw:z-[420] tw:grid tw:place-items-center tw:bg-cali-neutral-inverse/50 tw:p-5.5 tw:backdrop-blur-md"
       onPointerDown={(event) => { if (event.currentTarget === event.target) onCancel(); }}
     >
       <DialogFrame
         aria-label={title}
-        className="tw:relative tw:box-border tw:w-[min(30rem,94vw)] tw:max-w-full tw:rounded-[0.875rem] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:p-6 tw:font-cali-body tw:text-cali-text tw:shadow-[0_1.5rem_4.375rem_rgba(39,24,28,.22)]"
+        className="tw:relative tw:box-border tw:w-[min(30rem,94vw)] tw:max-w-full tw:rounded-[0.875rem] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:p-6 tw:font-cali-body tw:text-cali-text tw:shadow-[0_1.5rem_4.375rem_rgb(var(--cali-rgb-burgundy-inverse)/0.22)]"
       >
         <Button type="button" variant="close" className="tw:absolute! tw:top-3.5! tw:right-3.5! tw:size-8!" onClick={onCancel}><X size={18} /></Button>
-        <span className="tw:mb-1.5 tw:block tw:text-[0.625rem] tw:font-bold tw:tracking-[0.12em] tw:text-cali-gold">CONFIRMAÇÃO</span>
-        <h2 className="tw:mt-0 tw:mr-9 tw:mb-2 tw:text-[1.125rem]! tw:leading-tight">{title}</h2>
-        <p className="tw:m-0 tw:text-[0.8125rem] tw:leading-[1.55] tw:text-cali-muted">{body}</p>
+        <span className="tw:mb-1.5 tw:block tw:text-cali-micro tw:font-bold tw:tracking-[0.12em] tw:text-cali-gold">CONFIRMAÇÃO</span>
+        <h2 className="tw:mt-0 tw:mr-9 tw:mb-2 tw:text-lg! tw:leading-tight">{title}</h2>
+        <p className="tw:m-0 tw:text-cali-detail tw:leading-[1.55] tw:text-cali-muted">{body}</p>
         <footer className="tw:mt-5 tw:flex tw:flex-wrap tw:justify-end tw:gap-2">
           <Button type="button" variant="secondary" className="tw:min-h-10 tw:px-4" autoFocus onClick={onCancel}>Cancelar</Button>
           <Button type="button" variant="primary" className="tw:min-h-10 tw:px-4" onClick={onConfirm}>{confirm}</Button>

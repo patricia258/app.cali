@@ -9,11 +9,11 @@ type AccountPaneHeadingProps = {
 
 export function AccountPaneHeading({ icon: Icon, title, description, className = '' }: AccountPaneHeadingProps) {
   return (
-    <div className={`tw:mb-[1.077rem] tw:flex tw:items-center tw:gap-[.923rem] tw:rounded-[.769rem] tw:border tw:border-solid tw:border-[#e9ddd4] tw:bg-[#fbf7f4] tw:px-[1.385rem] tw:py-[1.077rem] tw:text-cali-brand ${className}`}>
-      <Icon aria-hidden="true" className="tw:size-[1.385rem] tw:shrink-0" />
-      <div className="tw:flex tw:flex-col tw:gap-[.308rem]">
-        <strong className="tw:text-[1rem] tw:text-[#322f2c]">{title}</strong>
-        <span className="tw:text-[.846rem] tw:text-[#9a8c83]">{description}</span>
+    <div className={`tw:mb-4.5 tw:flex tw:items-center tw:gap-3.5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface-soft tw:px-5.5 tw:py-4.5 tw:text-cali-brand ${className}`}>
+      <Icon aria-hidden="true" className="tw:size-5.5 tw:shrink-0" />
+      <div className="tw:flex tw:flex-col tw:gap-1">
+        <strong className="tw:text-base tw:text-cali-text">{title}</strong>
+        <span className="tw:text-sm tw:text-cali-muted">{description}</span>
       </div>
     </div>
   );

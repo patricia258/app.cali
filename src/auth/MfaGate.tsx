@@ -115,18 +115,18 @@ function ActorMfaGate({ actorId, children }: { actorId: string; children: ReactN
         <Button type="button" variant="gatePrimary" onClick={retry}>Tentar novamente</Button>
       </>}
       {stage === 'enroll' && <>
-        <p className="tw:m-0 tw:text-base tw:leading-[1.55] tw:text-[#5f5650]">Proteção extra para o seu acesso. Você faz isso uma vez só.</p>
-        <ol className="tw:m-0 tw:flex tw:list-decimal tw:flex-col tw:gap-2 tw:pl-6 tw:text-base tw:leading-normal tw:text-[#3d3531]">
+        <p className="tw:m-0 tw:text-base tw:leading-[1.55] tw:text-cali-muted">Proteção extra para o seu acesso. Você faz isso uma vez só.</p>
+        <ol className="tw:m-0 tw:flex tw:list-decimal tw:flex-col tw:gap-2 tw:pl-6 tw:text-base tw:leading-normal tw:text-cali-text">
           <li>Instale no celular o <strong>Google Authenticator</strong> ou o <strong>Microsoft Authenticator</strong>.</li>
           <li>No aplicativo, toque em adicionar e leia este QR code.</li>
           <li>Digite abaixo o código de 6 dígitos que aparecer.</li>
         </ol>
-        <img className="tw:size-[13.875rem] tw:self-center tw:rounded-[.9375rem] tw:border tw:border-solid tw:border-[#e8ddd4] tw:bg-white tw:p-2.5" src={gate.qr} alt="QR code para cadastrar o CALI Workspace no aplicativo autenticador" />
-        <p className="tw:m-0 tw:text-[.885rem] tw:leading-[1.55] tw:text-[#5f5650]">Sem câmera? Digite esta chave no aplicativo: <code className="tw:mt-1 tw:inline-block tw:rounded-md tw:bg-[#f7f3ee] tw:px-2.5 tw:py-1 tw:text-[.923rem] tw:break-all tw:text-cali-ink">{gate.secret}</code></p>
+        <img className="tw:size-55.5 tw:self-center tw:rounded-2xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-2.5" src={gate.qr} alt="QR code para cadastrar o CALI Workspace no aplicativo autenticador" />
+        <p className="tw:m-0 tw:text-sm tw:leading-[1.55] tw:text-cali-muted">Sem câmera? Digite esta chave no aplicativo: <code className="tw:mt-1 tw:inline-block tw:rounded-md tw:bg-cali-day-canvas tw:px-2.5 tw:py-1 tw:text-cali-body tw:break-all tw:text-cali-ink">{gate.secret}</code></p>
       </>}
-      {stage === 'verify' && <p className="tw:m-0 tw:text-base tw:leading-[1.55] tw:text-[#5f5650]">Abra o aplicativo autenticador do seu celular e digite o código de 6 dígitos do CALI Workspace.</p>}
+      {stage === 'verify' && <p className="tw:m-0 tw:text-base tw:leading-[1.55] tw:text-cali-muted">Abra o aplicativo autenticador do seu celular e digite o código de 6 dígitos do CALI Workspace.</p>}
       {stage !== 'error' && <form onSubmit={(event) => void confirm(event)} className="tw:flex tw:flex-col tw:gap-3">
-        <label className="tw:flex tw:flex-col tw:gap-2 tw:text-[.923rem] tw:font-bold tw:text-[#5f5650]">Código do aplicativo<input className="tw:box-border tw:h-[3.5385rem] tw:rounded-[.75rem] tw:border tw:border-solid tw:border-[#dfd3ca] tw:px-[1.077rem] tw:text-center tw:text-[1.5385rem] tw:tracking-[.3em]" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} autoFocus /></label>
+        <label className="tw:flex tw:flex-col tw:gap-2 tw:text-cali-body tw:font-bold tw:text-cali-muted">Código do aplicativo<input className="tw:box-border tw:h-14 tw:rounded-xl tw:border tw:border-solid tw:border-cali-input-line tw:px-4.5 tw:text-center tw:text-2xl tw:tracking-[.3em]" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} autoFocus /></label>
         {message && <AccessGateError>{message}</AccessGateError>}
         <Button type="submit" variant="gatePrimary" disabled={busy || code.length !== 6}>{busy ? 'Conferindo…' : 'Confirmar'}</Button>
       </form>}

@@ -16,6 +16,22 @@ function sourceFiles(directory) {
   });
 }
 
+test('as primitivas do design system usam tokens de cor e tamanhos de texto da escala', () => {
+  const directColor = /#[\da-f]{3,8}\b|(?<![\w-])rgba?\(/i;
+  const directTextSize = /:text-\[(?:[\d.]+(?:px|em|rem)|clamp\()/;
+  const violations = sourceFiles(join(src, 'components/ds')).flatMap((file) => {
+    const source = readFileSync(file, 'utf8');
+    return directColor.test(source) || directTextSize.test(source) ? [basename(file)] : [];
+  });
+  assert.deepEqual(violations, []);
+});
+
+test('o texto de tamanho fixo usa a escala nas páginas, módulos e componentes', () => {
+  const directSize = /:text-\[(?:\d+(?:\.\d+)?|\.\d+)(?:px|rem)\]/;
+  const violations = sourceFiles(src).filter((file) => directSize.test(readFileSync(file, 'utf8')));
+  assert.deepEqual(violations, []);
+});
+
 test('application navigation and cross-role flows retain their documented owners', () => {
   assert.equal(existsSync(join(src, 'app/navigation')), false);
   assert.equal(existsSync(join(src, 'modules/shared')), false);

@@ -33,14 +33,14 @@ export function RecordMessageEditor({ messageId, text, attachments, onCancel, on
   }
 
   return (
-    <div className="records-inline-edit tw:mt-[.62rem] tw:mb-[.46rem] tw:flex tw:w-full tw:flex-col tw:gap-[.77rem]">
+    <div className="records-inline-edit tw:mt-2.5 tw:mb-2 tw:flex tw:w-full tw:flex-col tw:gap-3">
       <MentionTextarea
         ref={input}
         aria-label="Editar texto da mensagem"
         rows={Math.max(3, Math.min(7, text.split('\n').length + 1))}
         value={draft}
         onValueChange={setDraft}
-        className="tw:block tw:min-h-[7.38rem] tw:w-full tw:resize-y tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5d8d0] tw:bg-white tw:px-[.92rem] tw:py-[.77rem] tw:text-[.92rem] tw:leading-[1.55] tw:text-[#322f2c] tw:focus:border-cali-brand"
+        className="tw:block tw:min-h-[7.38rem] tw:w-full tw:resize-y tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body tw:leading-[1.55] tw:text-cali-text tw:focus:border-cali-brand"
       />
       <div className="tw:flex tw:justify-end tw:gap-2">
         <Button variant="secondary" type="button" disabled={isPending} onClick={onCancel}>Cancelar</Button>

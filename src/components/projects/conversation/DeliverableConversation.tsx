@@ -48,12 +48,12 @@ export function DeliverableConversation({ role, companyId, deliverableId, active
       onScroll={() => {
         const history = list.current;
         if (history) followLatest.current = history.scrollHeight - history.scrollTop - history.clientHeight <= 36;
-      }} className="tw:flex tw:min-h-0 tw:flex-1 tw:flex-col tw:gap-[1.46rem] tw:overflow-y-auto tw:overscroll-contain tw:px-[2.08rem] tw:py-[1.54rem] tw:[scrollbar-width:none]">
+      }} className="tw:flex tw:min-h-0 tw:flex-1 tw:flex-col tw:gap-6 tw:overflow-y-auto tw:overscroll-contain tw:px-8.5 tw:py-6 tw:[scrollbar-width:none]">
       {messages.isPending && actorId && <p role="status" className="tw:m-auto tw:text-sm tw:text-cali-muted">Carregando a conversa…</p>}
       {messages.isError && <InlineNotice role="alert" tone="danger">Não foi possível carregar a conversa.{' '}
         <button type="button" className="tw:cursor-pointer tw:border-0 tw:bg-transparent tw:text-current tw:underline" onClick={() => void messages.refetch()}>Tentar novamente</button>
       </InlineNotice>}
-      {messages.isSuccess && !rows.length && <p className="tw:m-auto tw:text-[.9231rem] tw:text-cali-muted">
+      {messages.isSuccess && !rows.length && <p className="tw:m-auto tw:text-cali-body tw:text-cali-muted">
         {visible ? 'A conversa começa aqui.' : 'Nenhuma nota interna neste entregável.'}
       </p>}
       {rows.map((message) => <DeliverableConversationMessage key={message.id} message={message} identity={identity(message)} visible={visible} arriving={message.id === arrivingId}

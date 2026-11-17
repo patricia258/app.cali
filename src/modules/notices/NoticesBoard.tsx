@@ -250,7 +250,7 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
   }
   const reactionBar = (item: Notice) => (
     <div
-      className="tw:flex tw:flex-wrap tw:items-center tw:gap-[0.615rem]"
+      className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.5"
       role="group"
       aria-label="Reagir ao comunicado"
     >
@@ -261,7 +261,7 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
           <button
             type="button"
             key={key}
-            className="tw:inline-flex tw:h-[2.462rem] tw:items-center tw:gap-[0.462rem] tw:rounded-full tw:border tw:border-solid tw:border-[#e7ddd5] tw:bg-white tw:px-[0.846rem] tw:text-[0.846rem] tw:text-[#67574c] tw:enabled:hover:border-[#d9c9c0] tw:motion-safe:enabled:hover:-translate-y-px tw:aria-pressed:border-cali-brand tw:aria-pressed:bg-[#f6edf0] tw:aria-pressed:font-bold tw:aria-pressed:text-cali-brand tw:[&_span]:text-[1.154rem]/none tw:[&_i]:not-italic"
+            className="tw:inline-flex tw:h-10 tw:items-center tw:gap-2 tw:rounded-full tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:text-sm tw:text-cali-muted tw:enabled:hover:border-cali-line-strong tw:motion-safe:enabled:hover:-translate-y-px tw:aria-pressed:border-cali-brand tw:aria-pressed:bg-cali-danger-surface tw:aria-pressed:font-bold tw:aria-pressed:text-cali-brand tw:[&_span]:text-lg/none tw:[&_i]:not-italic"
             aria-pressed={myReaction(item.id) === key}
             title={label}
             disabled={Boolean(staff)}
@@ -389,7 +389,7 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
     );
 
   const head = (
-    <div className="tw:mb-[1.538rem] tw:flex tw:items-center tw:justify-between tw:gap-[1.846rem] tw:max-[50rem]:flex-col tw:max-[50rem]:items-start tw:[&_small]:text-[0.769rem] tw:[&_small]:font-bold tw:[&_small]:tracking-[0.123rem] tw:[&_small]:text-[#ab8a6b] tw:[&_h1]:my-[0.385rem] tw:[&_h1]:text-[2rem]/[1.2] tw:[&_h1]:tracking-[-0.054rem] tw:[&_h1_span]:text-cali-gold tw:[&_p]:m-0 tw:[&_p]:text-[0.923rem] tw:[&_p]:text-[#8b8179]">
+    <div className="tw:mb-6 tw:flex tw:items-center tw:justify-between tw:gap-7.5 tw:max-[50rem]:flex-col tw:max-[50rem]:items-start tw:[&_small]:text-xs tw:[&_small]:font-bold tw:[&_small]:tracking-[0.123rem] tw:[&_small]:text-cali-gold-accent tw:[&_h1]:my-1.5 tw:[&_h1]:text-cali-display/[1.2] tw:[&_h1]:tracking-[-0.054rem] tw:[&_h1_span]:text-cali-gold tw:[&_p]:m-0 tw:[&_p]:text-cali-body tw:[&_p]:text-cali-sand-text">
       <div>
         <small>
           {admin
@@ -418,8 +418,8 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
   );
 
   const toolbar = (
-    <div className="tw:mt-[1.769rem] tw:mb-[1.077rem] tw:flex tw:items-center tw:justify-between tw:gap-[0.769rem] tw:text-[0.846rem] tw:text-[#8e8076]">
-      <div className="tw:flex tw:flex-wrap tw:gap-[0.385rem] tw:[&_button]:cursor-pointer tw:[&_button]:rounded-[0.538rem] tw:[&_button]:border tw:[&_button]:border-solid tw:[&_button]:border-[#eadfd7] tw:[&_button]:bg-white tw:[&_button]:px-4 tw:[&_button]:py-[0.692rem] tw:[&_button]:text-[0.846rem] tw:[&_button]:text-[#7a706a] tw:[&_button[aria-pressed=true]]:border-[#d6bcb5] tw:[&_button[aria-pressed=true]]:bg-[#f5efec] tw:[&_button[aria-pressed=true]]:font-bold tw:[&_button[aria-pressed=true]]:text-cali-brand">
+    <div className="tw:mt-7 tw:mb-4.5 tw:flex tw:items-center tw:justify-between tw:gap-3 tw:text-sm tw:text-cali-sand-text">
+      <div className="tw:flex tw:flex-wrap tw:gap-1.5 tw:[&_button]:cursor-pointer tw:[&_button]:rounded-lg tw:[&_button]:border tw:[&_button]:border-solid tw:[&_button]:border-cali-sand-line tw:[&_button]:bg-cali-neutral-surface tw:[&_button]:px-4 tw:[&_button]:py-3 tw:[&_button]:text-sm tw:[&_button]:text-cali-neutral-accent tw:[&_button[aria-pressed=true]]:border-cali-sand-accent tw:[&_button[aria-pressed=true]]:bg-cali-neutral-soft tw:[&_button[aria-pressed=true]]:font-bold tw:[&_button[aria-pressed=true]]:text-cali-brand">
         {admin && (
           <>
             <button type="button" aria-pressed={view === 'mural'} onClick={() => setView('mural')}>
@@ -428,7 +428,7 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
             <button type="button" aria-pressed={view === 'manage'} onClick={() => setView('manage')}>
               Gerenciar publicações
             </button>
-            <i className="tw:mx-[0.462rem] tw:inline-block tw:h-[1.692rem] tw:w-px tw:bg-[#e2d5cb] tw:align-middle" />
+            <i className="tw:mx-2 tw:inline-block tw:h-7 tw:w-px tw:bg-cali-sand-line tw:align-middle" />
           </>
         )}
         <button type="button" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>
@@ -533,7 +533,7 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
   );
 
   const empty = (
-    <div className="tw:text-[#9a8f88] tw:flex tw:flex-col tw:items-center tw:gap-[0.615rem] tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#e9e0d8] tw:bg-white tw:px-[1.923rem] tw:py-[3.538rem] tw:[&_strong]:text-base tw:[&_strong]:text-[#3e3533] tw:[&_p]:m-0 tw:[&_p]:text-[0.846rem]">
+    <div className="tw:text-cali-sand-text tw:flex tw:flex-col tw:items-center tw:gap-2.5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-7.5 tw:py-14 tw:[&_strong]:text-base tw:[&_strong]:text-cali-text tw:[&_p]:m-0 tw:[&_p]:text-sm">
       <Megaphone size={22} />
       <strong>
         {admin
@@ -552,7 +552,7 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
 
   const page = (
     <div
-      className={`tw:mx-auto tw:text-[#342d2b] ${admin || staff ? '' : 'tw:max-w-[110.769rem] tw:px-[2.692rem] tw:pt-[2.077rem] tw:pb-[4.615rem] tw:max-[50rem]:px-[1.154rem] tw:max-[50rem]:py-[1.692rem]'}`}
+      className={`tw:mx-auto tw:text-cali-neutral-strong ${admin || staff ? '' : 'tw:max-w-[110.769rem] tw:px-11 tw:pt-8.5 tw:pb-18.5 tw:max-[50rem]:px-4.5 tw:max-[50rem]:py-7'}`}
     >
       {head}
       {admin && <AdminNoticeReviews companies={companies} onPublish={load} />}
@@ -573,9 +573,9 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
             {reactionBar(active)}
             {admin && (
               <>
-                <h3 className="tw:mt-[0.308rem]! tw:mb-[-0.308rem]! tw:text-[0.923rem]">Ciências registradas</h3>
+                <h3 className="tw:mt-1! tw:-mb-1! tw:text-cali-body">Ciências registradas</h3>
                 {acksOf(active.id).length ? (
-                  <div className="tw:flex tw:flex-wrap tw:gap-[0.462rem] tw:[&>span]:inline-flex tw:[&>span]:items-center tw:[&>span]:gap-[0.462rem] tw:[&>span]:rounded-[0.385rem] tw:[&>span]:bg-[#e6f6ec] tw:[&>span]:px-[0.692rem] tw:[&>span]:py-[0.385rem] tw:[&>span]:text-[0.769rem] tw:[&>span]:font-semibold tw:[&>span]:text-[#31805a] tw:[&_small]:font-normal tw:[&_small]:text-[#5d9b7c]">
+                  <div className="tw:flex tw:flex-wrap tw:gap-2 tw:[&>span]:inline-flex tw:[&>span]:items-center tw:[&>span]:gap-2 tw:[&>span]:rounded-md tw:[&>span]:bg-cali-success-surface tw:[&>span]:px-3 tw:[&>span]:py-1.5 tw:[&>span]:text-xs tw:[&>span]:font-semibold tw:[&>span]:text-cali-success tw:[&_small]:font-normal tw:[&_small]:text-cali-teal-accent">
                     {acksOf(active.id).map((ack) => (
                       <span key={ack.userId}>
                         <Check size={12} />
@@ -586,17 +586,17 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
                     ))}
                   </div>
                 ) : (
-                  <p className="tw:text-[0.923rem]/[1.55] tw:text-[#a1948c]">Ninguém registrou ciência ainda.</p>
+                  <p className="tw:text-cali-body/[1.55] tw:text-cali-sand-text">Ninguém registrou ciência ainda.</p>
                 )}
               </>
             )}
-            <h3 className="tw:mt-[0.308rem]! tw:mb-[-0.308rem]! tw:text-[0.923rem]">Comentários</h3>
+            <h3 className="tw:mt-1! tw:-mb-1! tw:text-cali-body">Comentários</h3>
             {!commentsOf(active.id).length && (
-              <p className="tw:text-[0.923rem]/[1.55] tw:text-[#a1948c]">Nenhum comentário ainda.</p>
+              <p className="tw:text-cali-body/[1.55] tw:text-cali-sand-text">Nenhum comentário ainda.</p>
             )}
             {commentsOf(active.id).map((item) => (
               <div
-                className="tw:rounded-[0.538rem] tw:bg-[#f7f3ee] tw:px-[0.923rem] tw:py-[0.769rem] tw:[&_strong]:text-[0.846rem] tw:[&_p]:my-[0.308rem] tw:[&_p]:text-[0.923rem] tw:[&_small]:text-[#9a8e84]"
+                className="tw:rounded-lg tw:bg-cali-day-canvas tw:px-3.5 tw:py-3 tw:[&_strong]:text-sm tw:[&_p]:my-1 tw:[&_p]:text-cali-body tw:[&_small]:text-cali-sand-text"
                 key={item.id}
               >
                 <strong>{authorLabel(item)}</strong>
@@ -625,11 +625,11 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
                 </NoticeButton>
               )}
               {admin && !commentCompanies(active.id).length ? (
-                <span className="tw:flex-1 tw:text-[0.846rem] tw:text-[#a1948c]">
+                <span className="tw:flex-1 tw:text-sm tw:text-cali-sand-text">
                   A resposta fica disponível quando uma empresa comentar.
                 </span>
               ) : (
-                <div className="tw:flex tw:min-w-0 tw:flex-1 tw:rounded-[0.538rem] tw:border tw:border-solid tw:border-[#e4d8cf] tw:max-[23rem]:min-w-full tw:[&_input]:min-w-0 tw:[&_input]:flex-1 tw:[&_input]:border-0 tw:[&_input]:bg-transparent tw:[&_input]:px-[0.769rem] tw:[&_input]:py-[0.615rem] tw:[&_input]:text-[0.923rem] tw:[&_select]:h-[2.923rem] tw:[&_select]:max-w-[min(40%,13.077rem)] tw:[&_select]:flex-none tw:[&_select]:rounded-[0.538rem] tw:[&_select]:border tw:[&_select]:border-solid tw:[&_select]:border-[#e5d8d0] tw:[&_select]:bg-white tw:[&_select]:px-[0.615rem] tw:[&_select]:text-[0.846rem] tw:[&_select]:text-[#322f2c] tw:[&_button]:cursor-pointer tw:[&_button]:rounded-r-[0.462rem] tw:[&_button]:border-0 tw:[&_button]:bg-cali-brand tw:[&_button]:px-[1.077rem] tw:[&_button]:text-white tw:[&_button:disabled]:opacity-35">
+                <div className="tw:flex tw:min-w-0 tw:flex-1 tw:rounded-lg tw:border tw:border-solid tw:border-cali-sand-line tw:max-[23rem]:min-w-full tw:[&_input]:min-w-0 tw:[&_input]:flex-1 tw:[&_input]:border-0 tw:[&_input]:bg-transparent tw:[&_input]:px-3 tw:[&_input]:py-2.5 tw:[&_input]:text-cali-body tw:[&_select]:h-11.5 tw:[&_select]:max-w-[min(40%,13.077rem)] tw:[&_select]:flex-none tw:[&_select]:rounded-lg tw:[&_select]:border tw:[&_select]:border-solid tw:[&_select]:border-cali-input-line tw:[&_select]:bg-cali-neutral-surface tw:[&_select]:px-2.5 tw:[&_select]:text-sm tw:[&_select]:text-cali-text tw:[&_button]:cursor-pointer tw:[&_button]:rounded-r-lg tw:[&_button]:border-0 tw:[&_button]:bg-cali-brand tw:[&_button]:px-4.5 tw:[&_button]:text-cali-neutral-surface tw:[&_button:disabled]:opacity-35">
                   {admin && commentCompanies(active.id).length > 1 && (
                     <select
                       aria-label="Responder para"
@@ -704,7 +704,7 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
                   placeholder="Ex.: Feriado municipal"
                 />
               </label>
-              <div className="tw:grid tw:grid-cols-2 tw:gap-[0.923rem]">
+              <div className="tw:grid tw:grid-cols-2 tw:gap-3.5">
                 <label>
                   Data
                   <input
@@ -744,7 +744,7 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
                 </select>
               </label>
               {draft.audience === 'selected' && (
-                <div className="tw:grid tw:min-h-[3.538rem] tw:max-h-[13.077rem] tw:shrink-0 tw:grid-cols-2 tw:gap-x-[1.077rem] tw:gap-y-[0.462rem] tw:overflow-y-auto tw:rounded-[0.692rem] tw:border tw:border-solid tw:border-[#efe7df] tw:bg-[#fffdfb] tw:px-4 tw:py-[0.846rem] tw:[scrollbar-width:none] tw:max-[53.75rem]:grid-cols-1">
+                <div className="tw:grid tw:min-h-[3.538rem] tw:max-h-[13.077rem] tw:shrink-0 tw:grid-cols-2 tw:gap-x-4.5 tw:gap-y-2 tw:overflow-y-auto tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:px-4 tw:py-3.5 tw:[scrollbar-width:none] tw:max-[53.75rem]:grid-cols-1">
                   {companies.map((company) => (
                     <label key={company.id}>
                       <input
@@ -774,7 +774,7 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
               </label>
               {coverPreview && (
                 <img
-                  className="tw:max-h-[12.308rem] tw:w-full tw:rounded-[0.538rem] tw:object-cover"
+                  className="tw:max-h-[12.308rem] tw:w-full tw:rounded-lg tw:object-cover"
                   src={coverPreview}
                   alt="Prévia da capa"
                 />
@@ -888,7 +888,7 @@ export function NoticeCalendarCard({
         {notice ? (
           <NoticeContent notice={notice} calendar />
         ) : failed ? (
-          <p className="tw:text-[0.923rem]/[1.55] tw:text-[#a1948c]">
+          <p className="tw:text-cali-body/[1.55] tw:text-cali-sand-text">
             Não foi possível carregar este aviso agora. Abra o Quadro de Avisos para ver o comunicado.
           </p>
         ) : (

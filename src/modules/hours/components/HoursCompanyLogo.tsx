@@ -2,7 +2,7 @@ import { WorkspaceCompanyLogo } from '../../../components/workspace/WorkspaceCom
 
 export function HoursCompanyLogo({ name, logoUrl, logoFallbackUrl }: { name: string; logoUrl?: string | null; logoFallbackUrl?: string | null }) {
   return (
-    <span data-workspace-identity className="tw:grid tw:size-[2.77rem] tw:place-items-center tw:overflow-hidden tw:rounded-lg tw:border tw:border-solid tw:border-[#e9dad0] tw:bg-[#f5ebe5] tw:text-[.846rem] tw:leading-[inherit] tw:font-extrabold tw:text-cali-brand tw:has-[img]:border-[#e3d7ce] tw:has-[img]:bg-[#f7f3ee]">
+    <span data-workspace-identity className="tw:grid tw:size-11 tw:place-items-center tw:overflow-hidden tw:rounded-lg tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-soft tw:text-sm tw:leading-[inherit] tw:font-extrabold tw:text-cali-brand tw:has-[img]:border-cali-sand-line tw:has-[img]:bg-cali-day-canvas">
       <WorkspaceCompanyLogo
         original={logoUrl}
         derived={logoFallbackUrl}

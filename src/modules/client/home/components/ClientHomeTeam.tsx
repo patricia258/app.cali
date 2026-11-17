@@ -7,15 +7,15 @@ import type { ClientHomePerson } from '../../../../api/client/home/team';
 import { useWorkspaceAuth } from '../../../../auth/hooks/useWorkspaceAuth';
 
 const statusTone = {
-  ok: 'tw:bg-[#e6f5ee] tw:text-[#2c8e67]',
-  vacation: 'tw:bg-[#fff0d7] tw:text-[#996d2f]',
-  away: 'tw:bg-[#fce9ed] tw:text-[#b34c67]',
+  ok: 'tw:bg-cali-teal-surface tw:text-cali-green-accent',
+  vacation: 'tw:bg-cali-orange-surface tw:text-cali-gold-text',
+  away: 'tw:bg-cali-red-surface tw:text-cali-red-accent',
 };
 
 function TeamStatus({ tone, children }: { tone: keyof typeof statusTone; children: React.ReactNode }) {
   return (
     <span
-      className={`tw:rounded-[0.385rem] tw:px-[0.538rem] tw:py-[0.385rem] tw:text-[0.692rem] tw:whitespace-nowrap ${statusTone[tone]}`}
+      className={`tw:rounded-md tw:px-2 tw:py-1.5 tw:text-cali-label tw:whitespace-nowrap ${statusTone[tone]}`}
     >
       {children}
     </span>
@@ -54,10 +54,10 @@ export function ClientHomeTeam({ companyId }: { companyId?: string }) {
   });
   return (
     <section
-      className="tw:flex tw:min-w-0 tw:flex-col tw:rounded-[0.923rem] tw:border tw:border-solid tw:border-[#e9ded4] tw:bg-white tw:p-[1.385rem]"
+      className="tw:flex tw:min-w-0 tw:flex-col tw:rounded-[0.923rem] tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:p-5.5"
       aria-labelledby="home-team-title"
     >
-      <div className="tw:flex tw:items-start tw:justify-between tw:gap-[0.769rem] tw:[&_small]:text-[0.769rem] tw:[&_small]:font-extrabold tw:[&_small]:tracking-[0.092rem] tw:[&_small]:text-[#ab8151] tw:[&_h3]:my-[0.462rem] tw:[&_h3]:text-[1.308rem] tw:[&_p]:m-0 tw:[&_p]:text-[0.769rem] tw:[&_p]:text-[#95877d]">
+      <div className="tw:flex tw:items-start tw:justify-between tw:gap-3 tw:[&_small]:text-xs tw:[&_small]:font-extrabold tw:[&_small]:tracking-[0.092rem] tw:[&_small]:text-cali-gold-accent tw:[&_h3]:my-2 tw:[&_h3]:text-xl tw:[&_p]:m-0 tw:[&_p]:text-xs tw:[&_p]:text-cali-sand-text">
         <div>
           <small>
             EQUIPE ·{' '}
@@ -72,7 +72,7 @@ export function ClientHomeTeam({ companyId }: { companyId?: string }) {
           Ver equipe <ArrowRight size={13} />
         </ClientHomeLink>
       </div>
-      <div className="tw:mt-[0.615rem] tw:flex tw:flex-wrap tw:items-center tw:gap-[0.538rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#f0e8e2] tw:pt-4 tw:pb-[0.923rem] tw:[&>div]:mr-auto tw:[&>div]:flex tw:[&>div]:items-baseline tw:[&>div]:gap-[0.385rem] tw:[&_b]:text-[1.769rem] tw:[&_b]:text-cali-brand tw:[&>div>span]:text-[0.769rem] tw:[&>div>span]:text-[#8d8177]">
+      <div className="tw:mt-2.5 tw:flex tw:flex-wrap tw:items-center tw:gap-2 tw:border-0 tw:border-b tw:border-solid tw:border-cali-neutral-soft tw:pt-4 tw:pb-3.5 tw:[&>div]:mr-auto tw:[&>div]:flex tw:[&>div]:items-baseline tw:[&>div]:gap-1.5 tw:[&_b]:text-cali-title-lg tw:[&_b]:text-cali-brand tw:[&>div>span]:text-xs tw:[&>div>span]:text-cali-sand-text">
         <div>
           <b>{state === 'ready' ? people.length : '—'}</b>
           <span>colaboradores</span>
@@ -84,7 +84,7 @@ export function ClientHomeTeam({ companyId }: { companyId?: string }) {
           </TeamStatus>
         ))}
       </div>
-      <div className="tw:[&_strong]:text-[0.846rem] tw:[&_small]:text-[0.692rem] tw:[&_small]:text-[#92857b]">
+      <div className="tw:[&_strong]:text-sm tw:[&_small]:text-cali-label tw:[&_small]:text-cali-sand-text">
         {state !== 'ready' ? (
           <ClientHomeEmpty as="p">
             {state === 'loading' ? 'Consultando equipe…' : 'Equipe indisponível nesta sessão.'}
@@ -98,10 +98,10 @@ export function ClientHomeTeam({ companyId }: { companyId?: string }) {
               <Link
                 key={person.id}
                 to="/cliente/equipe"
-                className="tw:flex tw:w-full tw:items-center tw:gap-[0.692rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#f3ece8] tw:py-[0.615rem] tw:text-[#302b2b]"
+                className="tw:flex tw:w-full tw:items-center tw:gap-3 tw:border-0 tw:border-b tw:border-solid tw:border-cali-neutral-soft tw:py-2.5 tw:text-cali-neutral-strong"
               >
                 <span
-                  className={`tw:grid tw:size-[2.385rem] tw:shrink-0 tw:place-items-center tw:rounded-[0.538rem] tw:text-[0.769rem] tw:font-extrabold ${index === 1 ? 'tw:bg-[#dce9f6] tw:text-[#466b93]' : index === 2 ? 'tw:bg-[#f6e0e8] tw:text-[#95556b]' : 'tw:bg-[#e9d7d4] tw:text-cali-brand'}`}
+                  className={`tw:grid tw:size-9.5 tw:shrink-0 tw:place-items-center tw:rounded-lg tw:text-xs tw:font-extrabold ${index === 1 ? 'tw:bg-cali-blue-soft tw:text-cali-blue-text' : index === 2 ? 'tw:bg-cali-burgundy-surface tw:text-cali-burgundy-line' : 'tw:bg-cali-sand-line tw:text-cali-brand'}`}
                 >
                   {person.full_name
                     .split(' ')
@@ -110,7 +110,7 @@ export function ClientHomeTeam({ companyId }: { companyId?: string }) {
                     .map((name) => name[0])
                     .join('')}
                 </span>
-                <span className="tw:flex tw:min-w-0 tw:flex-1 tw:flex-col tw:gap-[0.308rem]">
+                <span className="tw:flex tw:min-w-0 tw:flex-1 tw:flex-col tw:gap-1">
                   <strong>{person.full_name}</strong>
                   <small>
                     {person.department || 'Área não informada'} · {status.label}
@@ -122,9 +122,9 @@ export function ClientHomeTeam({ companyId }: { companyId?: string }) {
           })
         )}
       </div>
-      <div className="tw:mt-4 tw:grid tw:grid-cols-2 tw:gap-[0.692rem] tw:max-[37.5rem]:grid-cols-1 tw:[&>div]:flex tw:[&>div]:min-w-0 tw:[&>div]:items-center tw:[&>div]:gap-[0.615rem] tw:[&>div]:rounded-[0.615rem] tw:[&>div]:bg-[#faf7f4] tw:[&>div]:p-[0.692rem] tw:[&>div>span:last-child]:flex tw:[&>div>span:last-child]:min-w-0 tw:[&>div>span:last-child]:flex-col tw:[&>div>span:last-child]:gap-[0.231rem] tw:[&_strong]:text-[0.769rem] tw:[&_small]:text-[0.692rem] tw:[&_small]:text-[#8c8076]">
+      <div className="tw:mt-4 tw:grid tw:grid-cols-2 tw:gap-3 tw:max-[37.5rem]:grid-cols-1 tw:[&>div]:flex tw:[&>div]:min-w-0 tw:[&>div]:items-center tw:[&>div]:gap-2.5 tw:[&>div]:rounded-cali-compact-control tw:[&>div]:bg-cali-surface-soft tw:[&>div]:p-3 tw:[&>div>span:last-child]:flex tw:[&>div>span:last-child]:min-w-0 tw:[&>div>span:last-child]:flex-col tw:[&>div>span:last-child]:gap-1 tw:[&_strong]:text-xs tw:[&_small]:text-cali-label tw:[&_small]:text-cali-sand-text">
         <div>
-          <span className="tw:grid tw:size-[2.154rem] tw:shrink-0 tw:place-items-center tw:rounded-[0.538rem] tw:bg-[#efeaf7] tw:text-[#8764a4]">
+          <span className="tw:grid tw:size-8.5 tw:shrink-0 tw:place-items-center tw:rounded-lg tw:bg-cali-violet-surface tw:text-cali-violet-text">
             <CalendarDays size={15} />
           </span>
           <span>
@@ -133,7 +133,7 @@ export function ClientHomeTeam({ companyId }: { companyId?: string }) {
           </span>
         </div>
         <div>
-          <span className="tw:grid tw:size-[2.154rem] tw:shrink-0 tw:place-items-center tw:rounded-[0.538rem] tw:bg-[#fff0d5] tw:text-[#ba8b32]">
+          <span className="tw:grid tw:size-8.5 tw:shrink-0 tw:place-items-center tw:rounded-lg tw:bg-cali-gold-soft tw:text-cali-gold-accent">
             <Star size={15} />
           </span>
           <span>

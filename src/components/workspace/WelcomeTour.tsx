@@ -57,41 +57,41 @@ export function WelcomeTour({ steps: custom, onHighlight }: {
   return (
     <div
       data-workspace-welcome
-      className="tw:fixed tw:inset-0 tw:z-995 tw:grid tw:place-items-center tw:bg-[#20151d73] tw:p-[1.385rem] tw:backdrop-blur-[.154rem] tw:motion-safe:animate-[workspace-dialog-fade_.22s_ease-out_backwards]"
+      className="tw:fixed tw:inset-0 tw:z-995 tw:grid tw:place-items-center tw:bg-cali-burgundy-inverse/45 tw:p-5.5 tw:backdrop-blur-[.154rem] tw:motion-safe:animate-[workspace-dialog-fade_.22s_ease-out_backwards]"
     >
       <DialogFrame
         aria-label="Apresentação do CALI Workspace"
         key={step.title}
-        className="tw:flex tw:max-h-full tw:w-full tw:max-w-[35.385rem] tw:flex-col tw:overflow-auto tw:rounded-[.923rem] tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-[#fffdfb] tw:shadow-[0_1.846rem_6.154rem_#28172440] tw:motion-safe:animate-[workspace-dialog-enter_.34s_cubic-bezier(.2,.7,.2,1)_backwards]"
+        className="tw:flex tw:max-h-full tw:w-full tw:max-w-[35.385rem] tw:flex-col tw:overflow-auto tw:rounded-[.923rem] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:shadow-[0_1.846rem_6.154rem_rgb(var(--cali-rgb-red-inverse)/0.251)] tw:motion-safe:animate-[workspace-dialog-enter_.34s_cubic-bezier(.2,.7,.2,1)_backwards]"
       >
-        <header className="tw:flex tw:items-center tw:justify-between tw:gap-[.923rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#eee2db] tw:px-[1.385rem] tw:py-[1.077rem]">
-          <span className="tw:text-[.769rem] tw:font-extrabold tw:tracking-[.108rem] tw:text-[#af8f72]">{step.label}</span>
-          <button type="button" onClick={close} aria-label="Fechar apresentação" className="tw:grid tw:size-[2.154rem] tw:place-items-center tw:rounded-[.538rem] tw:border tw:border-solid tw:border-[#ecded5] tw:bg-white tw:p-0 tw:text-[#322f2c]">
-            <X aria-hidden="true" className="tw:size-[1.231rem]" />
+        <header className="tw:flex tw:items-center tw:justify-between tw:gap-3.5 tw:border-0 tw:border-b tw:border-solid tw:border-cali-sand-line tw:px-5.5 tw:py-4.5">
+          <span className="tw:text-xs tw:font-extrabold tw:tracking-[.108rem] tw:text-cali-warning">{step.label}</span>
+          <button type="button" onClick={close} aria-label="Fechar apresentação" className="tw:grid tw:size-8.5 tw:place-items-center tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-0 tw:text-cali-text">
+            <X aria-hidden="true" className="tw:size-5" />
           </button>
         </header>
-        <div className="tw:flex tw:min-h-[9.846rem] tw:flex-col tw:gap-[.769rem] tw:p-[1.385rem]">
+        <div className="tw:flex tw:min-h-[9.846rem] tw:flex-col tw:gap-3 tw:p-5.5">
           {index === 0 && (
-            <div role="img" aria-label="Vídeo de boas-vindas (em breve)" className="tw:mb-[.308rem] tw:flex tw:aspect-video tw:flex-col tw:items-center tw:justify-center tw:gap-[.769rem] tw:rounded-[.692rem] tw:bg-[linear-gradient(135deg,#5a1e2d,#7a3346)]">
-              <span className="tw:grid tw:size-[4.154rem] tw:place-items-center tw:rounded-full tw:border tw:border-solid tw:border-[#ffffff59] tw:bg-[#ffffff26] tw:text-white">
-                <Play aria-hidden="true" className="tw:size-[1.692rem]" />
+            <div role="img" aria-label="Vídeo de boas-vindas (em breve)" className="tw:mb-1 tw:flex tw:aspect-video tw:flex-col tw:items-center tw:justify-center tw:gap-3 tw:rounded-cali-panel tw:bg-[linear-gradient(135deg,var(--cali-color-burgundy-accent),var(--cali-color-red-strong))]">
+              <span className="tw:grid tw:size-16.5 tw:place-items-center tw:rounded-full tw:border tw:border-solid tw:border-cali-neutral-surface/35 tw:bg-cali-neutral-surface/15 tw:text-cali-neutral-surface">
+                <Play aria-hidden="true" className="tw:size-7" />
               </span>
-              <small className="tw:text-[.846rem] tw:text-[#eadfd8]">Vídeo de boas-vindas · em breve</small>
+              <small className="tw:text-sm tw:text-cali-line">Vídeo de boas-vindas · em breve</small>
             </div>
           )}
-          <h2 className="tw:m-0 tw:text-[1.385rem] tw:leading-[1.3] tw:font-bold tw:text-[#322f2c]">{step.title}</h2>
-          <p className="tw:m-0 tw:text-[1rem] tw:leading-[1.6] tw:text-[#655a55]">{step.text}</p>
+          <h2 className="tw:m-0 tw:text-cali-title-sm tw:leading-[1.3] tw:font-bold tw:text-cali-text">{step.title}</h2>
+          <p className="tw:m-0 tw:text-base tw:leading-[1.6] tw:text-cali-muted">{step.text}</p>
         </div>
-        <footer className="tw:flex tw:items-center tw:gap-[.615rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#ece1da] tw:px-[1.385rem] tw:py-[.923rem] tw:max-[35rem]:flex-wrap">
-          <div role="img" aria-label={`Passo ${index + 1} de ${steps.length}`} className="tw:mr-auto tw:flex tw:items-center tw:gap-[.308rem] tw:max-[35rem]:mb-[.308rem] tw:max-[35rem]:w-full">
+        <footer className="tw:flex tw:items-center tw:gap-2.5 tw:border-0 tw:border-t tw:border-solid tw:border-cali-sand-line tw:px-5.5 tw:py-3.5 tw:max-[35rem]:flex-wrap">
+          <div role="img" aria-label={`Passo ${index + 1} de ${steps.length}`} className="tw:mr-auto tw:flex tw:items-center tw:gap-1 tw:max-[35rem]:mb-1 tw:max-[35rem]:w-full">
             {steps.map((item, position) => (
-              <span key={item.label} className={`tw:h-[.462rem] ${position === index ? 'tw:w-[1.231rem] tw:rounded-[.231rem] tw:bg-cali-brand' : 'tw:w-[.462rem] tw:rounded-full tw:bg-[#e6d9cf]'}`} />
+              <span key={item.label} className={`tw:h-2 ${position === index ? 'tw:w-5 tw:rounded-sm tw:bg-cali-brand' : 'tw:w-2 tw:rounded-full tw:bg-cali-line'}`} />
             ))}
           </div>
-          {!last && <button type="button" className="tw:cursor-pointer tw:border-0 tw:bg-transparent tw:px-[.462rem] tw:py-[.615rem] tw:text-[.846rem] tw:text-[#8c7e74]" onClick={close}>Pular</button>}
-          {index > 0 && <WelcomeAction onClick={() => setIndex(index - 1)}><ArrowLeft aria-hidden="true" className="tw:size-[1.077rem]" /> Voltar</WelcomeAction>}
+          {!last && <button type="button" className="tw:cursor-pointer tw:border-0 tw:bg-transparent tw:px-2 tw:py-2.5 tw:text-sm tw:text-cali-muted" onClick={close}>Pular</button>}
+          {index > 0 && <WelcomeAction onClick={() => setIndex(index - 1)}><ArrowLeft aria-hidden="true" className="tw:size-4.5" /> Voltar</WelcomeAction>}
           <WelcomeAction primary onClick={() => last ? close() : setIndex(index + 1)}>
-            {index === 0 ? 'Conhecer o Workspace' : last ? 'Começar' : 'Avançar'} <ArrowRight aria-hidden="true" className="tw:size-[1.077rem]" />
+            {index === 0 ? 'Conhecer o Workspace' : last ? 'Começar' : 'Avançar'} <ArrowRight aria-hidden="true" className="tw:size-4.5" />
           </WelcomeAction>
         </footer>
       </DialogFrame>
@@ -103,8 +103,8 @@ function WelcomeAction({ children, onClick, primary }: { children: ReactNode; on
   return <button
     type="button"
     onClick={onClick}
-    className={`tw:inline-flex tw:items-center tw:gap-[.462rem] tw:rounded-[.538rem] tw:border tw:border-solid tw:px-[1.077rem] tw:py-[.769rem] tw:text-[.846rem] tw:font-semibold tw:whitespace-nowrap ${primary
-      ? 'tw:border-cali-brand tw:bg-cali-brand tw:text-white'
-      : 'tw:border-[#e5dbd5] tw:bg-white tw:text-[#594e4b] tw:hover:border-cali-gold'}`}
+    className={`tw:inline-flex tw:items-center tw:gap-2 tw:rounded-lg tw:border tw:border-solid tw:px-4.5 tw:py-3 tw:text-sm tw:font-semibold tw:whitespace-nowrap ${primary
+      ? 'tw:border-cali-brand tw:bg-cali-brand tw:text-cali-neutral-surface'
+      : 'tw:border-cali-line tw:bg-cali-neutral-surface tw:text-cali-muted tw:hover:border-cali-gold'}`}
   >{children}</button>;
 }

@@ -5,10 +5,10 @@ import { useParams } from '../../../hooks/useParams';
 import { officialReportOrigin, useOfficialReportAuth } from './hooks/useOfficialReportAuth';
 
 const EMBED_TOOLBAR_HEIGHT = "3.125rem";
-const reportSurface = 'tw:[font-family:Inter,Arial,sans-serif] tw:bg-[#efe8df]';
-const toolbarAction = 'tw:inline-flex tw:min-h-[2.125rem] tw:cursor-pointer tw:items-center tw:gap-[0.4375rem] tw:rounded-[0.4375rem] tw:border tw:border-solid tw:px-[0.8125rem] tw:py-[0.5625rem] tw:whitespace-nowrap tw:text-[0.6875rem]/[1.2] tw:font-bold tw:no-underline';
-const secondaryAction = `${toolbarAction} tw:border-[#dec9c3] tw:bg-white tw:text-cali-brand`;
-const primaryAction = `${toolbarAction} tw:border-cali-brand tw:bg-cali-brand tw:text-white tw:disabled:cursor-wait tw:disabled:opacity-55`;
+const reportSurface = 'tw:[font-family:Inter,Arial,sans-serif] tw:bg-cali-neutral-soft';
+const toolbarAction = 'tw:inline-flex tw:min-h-8.5 tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-md tw:border tw:border-solid tw:px-3 tw:py-2 tw:whitespace-nowrap tw:text-cali-label/[1.2] tw:font-bold tw:no-underline';
+const secondaryAction = `${toolbarAction} tw:border-cali-line-strong tw:bg-cali-neutral-surface tw:text-cali-brand`;
+const primaryAction = `${toolbarAction} tw:border-cali-brand tw:bg-cali-brand tw:text-cali-neutral-surface tw:disabled:cursor-wait tw:disabled:opacity-55`;
 
 export function AdminPeopleMapReportPage() {
   const navigate = useNavigate();
@@ -44,9 +44,9 @@ export function AdminPeopleMapReportPage() {
 
   return (
     <div className={`${reportSurface} tw:flex tw:h-screen tw:flex-col tw:overflow-hidden tw:text-cali-day-canvas`}>
-      <header className="tw:relative tw:z-10 tw:flex tw:min-h-[3.625rem] tw:shrink-0 tw:items-center tw:justify-between tw:gap-[1.125rem] tw:border-b tw:border-solid tw:border-[#eadfd6] tw:bg-[linear-gradient(90deg,#fffaf6,#f8ecd9)] tw:px-6 tw:[@media(max-width:51.25rem)]:flex-col tw:[@media(max-width:51.25rem)]:items-start tw:[@media(max-width:51.25rem)]:gap-2 tw:[@media(max-width:51.25rem)]:px-4 tw:[@media(max-width:51.25rem)]:py-2">
+      <header className="tw:relative tw:z-10 tw:flex tw:min-h-14.5 tw:shrink-0 tw:items-center tw:justify-between tw:gap-4.5 tw:border-b tw:border-solid tw:border-cali-line tw:bg-[linear-gradient(90deg,var(--cali-color-sand-surface),var(--cali-color-orange-surface))] tw:px-6 tw:[@media(max-width:51.25rem)]:flex-col tw:[@media(max-width:51.25rem)]:items-start tw:[@media(max-width:51.25rem)]:gap-2 tw:[@media(max-width:51.25rem)]:px-4 tw:[@media(max-width:51.25rem)]:py-2">
         <div className="tw:min-w-0">
-          <strong className="tw:block tw:text-[0.5625rem] tw:font-extrabold tw:tracking-[.14em] tw:uppercase tw:text-cali-gold">Backoffice / Mapa de People</strong>
+          <strong className="tw:block tw:text-cali-micro tw:font-extrabold tw:tracking-[.14em] tw:uppercase tw:text-cali-gold">Backoffice / Mapa de People</strong>
           <span className="tw:mt-1 tw:block tw:text-sm tw:font-bold tw:text-cali-brand">Relatório oficial</span>
         </div>
         <div className="tw:flex tw:items-center tw:gap-2 tw:[@media(max-width:51.25rem)]:flex-wrap">
@@ -57,14 +57,14 @@ export function AdminPeopleMapReportPage() {
         </div>
       </header>
 
-      <div className="tw:relative tw:min-h-0 tw:flex-1 tw:overflow-hidden tw:bg-[#efe8df]">
+      <div className="tw:relative tw:min-h-0 tw:flex-1 tw:overflow-hidden tw:bg-cali-neutral-soft">
         {!loaded && (
-          <div className="tw:absolute tw:inset-0 tw:z-[2] tw:grid tw:place-items-center tw:bg-[#efe8df] tw:text-[0.8125rem] tw:font-bold tw:tracking-[.03em] tw:text-cali-brand" role="status">
+          <div className="tw:absolute tw:inset-0 tw:z-[2] tw:grid tw:place-items-center tw:bg-cali-neutral-soft tw:text-cali-detail tw:font-bold tw:tracking-[.03em] tw:text-cali-brand" role="status">
             Carregando a versão oficial do relatório…
           </div>
         )}
         <iframe
-          className="tw:block tw:w-full tw:border-0 tw:bg-[#efe8df]"
+          className="tw:block tw:w-full tw:border-0 tw:bg-cali-neutral-soft"
           key={reportUrl}
           ref={iframeRef}
           title="Mapa de People — Relatório oficial"

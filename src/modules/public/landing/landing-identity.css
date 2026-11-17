@@ -8,7 +8,7 @@
     overflow-y: auto;
     overscroll-behavior: none;
     scroll-behavior: smooth;
-    background: #f1ede8;
+    background: var(--cali-color-neutral-soft);
   }
 
   :where(html[data-workspace-surface='landing']) :where(body, #root) {
@@ -24,7 +24,7 @@
   }
 
   :where(html[data-workspace-surface='landing'][data-workspace-theme='night']) {
-    background: #160f12;
+    background: var(--cali-color-neutral-inverse);
   }
 
   :where(.cali-landing, .cali-landing *, .cali-landing *::before, .cali-landing *::after) {
@@ -50,14 +50,14 @@
 }
 
 .cali-landing {
-  --id-burgundy: #5a1e2d;
-  --id-canvas: #f7f3ee;
-  --id-gold: #b58c52;
-  --id-gold-soft: #e7c66f;
-  --id-ink: #2b2024;
-  --id-line: #e9e0d8;
+  --id-burgundy: var(--cali-color-burgundy-accent);
+  --id-canvas: var(--cali-color-sand-soft);
+  --id-gold: var(--cali-color-gold-accent);
+  --id-gold-soft: var(--cali-color-orange-line);
+  --id-ink: var(--cali-color-burgundy-strong);
+  --id-line: var(--cali-color-sand-line);
   --id-radius-card: .875rem;
   --id-radius-control: .5625rem;
-  --lp-gold: #b58c52;
-  --lp-line: rgb(90 30 45 / 11%);
+  --lp-gold: var(--cali-color-gold-accent);
+  --lp-line: rgb(var(--cali-rgb-burgundy-accent)/0.11);
 }

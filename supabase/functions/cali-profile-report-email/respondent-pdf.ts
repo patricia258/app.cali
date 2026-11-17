@@ -1,5 +1,6 @@
 // Composição do PDF individual da V2, restrita ao processo privado de entrega.
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'npm:pdf-lib@1.17.1';
+import { caliPalette } from '../_shared/cali-palette.ts';
 import { STYLE_CONTENT, combinationOf, profileName, type Style } from '../../../src/modules/disc/profileContent.ts';
 
 export type RespondentPdfInput = {
@@ -22,12 +23,20 @@ const LEFT = 48;
 const RIGHT = PAGE_WIDTH - LEFT;
 const TOP = PAGE_HEIGHT - 103;
 const BOTTOM = 67;
-const BURGUNDY = rgb(0.353, 0.118, 0.176);
-const GOLD = rgb(0.71, 0.549, 0.322);
-const INK = rgb(0.169, 0.169, 0.169);
-const MUTED = rgb(0.42, 0.38, 0.36);
-const PAPER = rgb(0.984, 0.976, 0.961);
-const RULE = rgb(0.89, 0.85, 0.81);
+
+function pdfColor(hex: string) {
+  const value = Number.parseInt(hex.slice(1), 16);
+  return rgb((value >>> 16) / 255, ((value >>> 8) & 255) / 255, (value & 255) / 255);
+}
+
+const BURGUNDY = pdfColor(caliPalette.burgundy.base);
+const GOLD = pdfColor(caliPalette.gold.base);
+const INK = pdfColor(caliPalette.neutral.darker);
+const MUTED = pdfColor(caliPalette.neutral.base);
+const PAPER = pdfColor(caliPalette.sand.lightest);
+const RULE = pdfColor(caliPalette.sand.light);
+const COVER_TITLE = pdfColor(caliPalette.neutral.lightest);
+const COVER_SUBTITLE = pdfColor(caliPalette.gold.lighter);
 
 type Fonts = { regular: PDFFont; bold: PDFFont; italic: PDFFont; title: PDFFont };
 
@@ -114,14 +123,14 @@ class DiscPdfWriter {
       y: PAGE_HEIGHT - 35,
       size: 16,
       font: this.fonts.bold,
-      color: rgb(1, 1, 1),
+      color: COVER_TITLE,
     });
     this.page.drawText('[TESTE V2] Homologação sintética', {
       x: LEFT,
       y: PAGE_HEIGHT - 53,
       size: 8,
       font: this.fonts.regular,
-      color: rgb(0.95, 0.87, 0.71),
+      color: COVER_SUBTITLE,
     });
     this.page.drawLine({
       start: { x: LEFT, y: 49 },

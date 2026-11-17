@@ -1,7 +1,7 @@
 /* Physical measures are shared by the on-screen document and the A4 output. */
 .report-agenda {
   padding-block: 4mm;
-  border-block-start: 1px solid #ddd4ce;
+  border-block-start: 1px solid var(--cali-color-neutral-line);
   font-family: Inter, Arial, sans-serif;
 
   > header {
@@ -9,7 +9,7 @@
     margin-block-end: 2.5mm;
 
     small {
-      color: #8a7150;
+      color: var(--cali-color-sand-strong);
       font-size: 5.8pt;
       font-weight: 700;
       letter-spacing: 0.1em;
@@ -19,12 +19,12 @@
 
     h2 {
       margin: 0.8mm 0 0;
-      color: #332d2a;
+      color: var(--cali-color-neutral-strong);
       font: 600 12pt/1.15 'Playfair Display', Georgia, serif;
     }
 
     span {
-      color: #6d625d;
+      color: var(--cali-color-neutral-accent);
       font-size: 6.4pt;
       font-weight: 600;
       line-height: 1.35;
@@ -36,13 +36,13 @@
 
     > div {
       padding: 2mm;
-      border: 1px solid #e5ddd7;
+      border: 1px solid var(--cali-color-sand-line);
       border-radius: 2mm;
-      background: #fbf8f5;
+      background: var(--cali-color-sand-surface);
     }
 
     dt {
-      color: #94867f;
+      color: var(--cali-color-sand-text);
       font-size: 5.4pt;
       font-weight: 700;
       line-height: 1.2;
@@ -59,12 +59,12 @@
 
   > p {
     margin: 2mm 0 0;
-    color: #665c57;
+    color: var(--cali-color-neutral-accent);
     font-size: 6.2pt;
     line-height: 1.45;
 
     b {
-      color: #4c433f;
+      color: var(--cali-color-neutral-text);
     }
   }
 }

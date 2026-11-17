@@ -25,21 +25,21 @@ export function ClientDeliveryRow({
 
   return (
     <>
-      <div className="tw:relative tw:col-span-full tw:grid tw:w-full tw:cursor-pointer tw:grid-cols-[2.77rem_minmax(0,1fr)_auto] tw:items-center tw:gap-2 tw:border-0 tw:border-b tw:border-solid tw:border-[#eee4dd] tw:bg-white tw:p-[.92rem] tw:text-left tw:text-[#554340] tw:hover:bg-[#fcf8f5] tw:@min-[56rem]:grid-cols-subgrid tw:@min-[56rem]:gap-x-[1.154rem] tw:@min-[56rem]:px-[1.46rem] tw:@min-[56rem]:py-[1.23rem]">
+      <div className="tw:relative tw:col-span-full tw:grid tw:w-full tw:cursor-pointer tw:grid-cols-[2.77rem_minmax(0,1fr)_auto] tw:items-center tw:gap-2 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-3.5 tw:text-left tw:text-cali-neutral-text tw:hover:bg-cali-sand-surface tw:@min-[56rem]:grid-cols-subgrid tw:@min-[56rem]:gap-x-4.5 tw:@min-[56rem]:px-6 tw:@min-[56rem]:py-5">
         <span
-          className="tw:grid tw:size-[2.77rem] tw:place-items-center tw:rounded-[.538rem] tw:bg-[#faf1ec] tw:text-cali-brand"
+          className="tw:grid tw:size-11 tw:place-items-center tw:rounded-lg tw:bg-cali-sand-soft tw:text-cali-brand"
           aria-hidden="true"
         >
           {item.isDocument ? <FileText size={16} /> : <FolderKanban size={16} />}
         </span>
         <button
           type="button"
-          className="tw:flex tw:min-w-0 tw:cursor-pointer tw:flex-col tw:gap-[.385rem] tw:border-0 tw:bg-transparent tw:p-0 tw:text-left tw:[color:inherit] tw:after:absolute tw:after:inset-0 tw:after:content-[''] tw:focus-visible:after:outline-2 tw:focus-visible:after:-outline-offset-2 tw:focus-visible:after:outline-cali-gold"
+          className="tw:flex tw:min-w-0 tw:cursor-pointer tw:flex-col tw:gap-1.5 tw:border-0 tw:bg-transparent tw:p-0 tw:text-left tw:[color:inherit] tw:after:absolute tw:after:inset-0 tw:after:content-[''] tw:focus-visible:after:outline-2 tw:focus-visible:after:-outline-offset-2 tw:focus-visible:after:outline-cali-gold"
           aria-label={`Abrir ${item.title}`}
           onClick={onOpen}
         >
-          <strong className="tw:text-[.923rem] tw:wrap-anywhere">{item.title}</strong>
-          <small className="tw:text-[.77rem] tw:wrap-anywhere tw:text-[#a18e81]">
+          <strong className="tw:text-cali-body tw:wrap-anywhere">{item.title}</strong>
+          <small className="tw:text-xs tw:wrap-anywhere tw:text-cali-sand-text">
             {item.protocol || item.code || 'ENTREGÁVEL'}
           </small>
         </button>
@@ -54,7 +54,7 @@ export function ClientDeliveryRow({
           {subtasks.length > 0 ? (
             <button
               type="button"
-              className="tw:relative tw:z-10 tw:inline-flex tw:w-fit tw:min-h-[2.15rem] tw:cursor-pointer tw:items-center tw:gap-[.46rem] tw:rounded-[.615rem] tw:border tw:border-solid tw:border-[#e6d9ce] tw:bg-white tw:px-[.77rem] tw:text-[.885rem] tw:font-bold tw:text-cali-brand tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-gold"
+              className="tw:relative tw:z-10 tw:inline-flex tw:w-fit tw:min-h-[2.15rem] tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3 tw:text-sm tw:font-bold tw:text-cali-brand tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-gold"
               aria-expanded={subtasksExpanded}
               title={subtasksExpanded ? 'Recolher subtarefas' : 'Mostrar subtarefas'}
               onClick={onToggleSubtasks}
@@ -67,7 +67,7 @@ export function ClientDeliveryRow({
               {subtasks.length} {subtasks.length === 1 ? 'subtarefa' : 'subtarefas'}
             </button>
           ) : (
-            <span className="tw:hidden tw:text-[#b5a79d] tw:@min-[56rem]:inline">—</span>
+            <span className="tw:hidden tw:text-cali-sand-accent tw:@min-[56rem]:inline">—</span>
           )}
         </ClientDeliveryRowMetadata>
       </div>
@@ -81,17 +81,17 @@ export function ClientDeliveryRow({
             <button
               type="button"
               key={task.id}
-              className="tw:col-span-full tw:grid tw:w-full tw:cursor-pointer tw:grid-cols-[2.77rem_minmax(0,1fr)_auto] tw:items-center tw:gap-2 tw:border-0 tw:border-b tw:border-dashed tw:border-[#eee4dd] tw:bg-transparent tw:px-[.92rem] tw:py-[.77rem] tw:text-left tw:text-[#554340] tw:hover:bg-[#fbf7f4] tw:focus-visible:outline-2 tw:focus-visible:-outline-offset-2 tw:focus-visible:outline-cali-gold tw:@min-[56rem]:grid-cols-subgrid tw:@min-[56rem]:gap-x-[1.154rem] tw:@min-[56rem]:px-[1.46rem]"
+              className="tw:col-span-full tw:grid tw:w-full tw:cursor-pointer tw:grid-cols-[2.77rem_minmax(0,1fr)_auto] tw:items-center tw:gap-2 tw:border-0 tw:border-b tw:border-dashed tw:border-cali-line tw:bg-transparent tw:px-3.5 tw:py-3 tw:text-left tw:text-cali-neutral-text tw:hover:bg-cali-surface-soft tw:focus-visible:outline-2 tw:focus-visible:-outline-offset-2 tw:focus-visible:outline-cali-gold tw:@min-[56rem]:grid-cols-subgrid tw:@min-[56rem]:gap-x-4.5 tw:@min-[56rem]:px-6"
               title="Abrir esta parte"
               onClick={() => onOpenSubtask(task)}
             >
               <span
                 aria-hidden="true"
-                className="tw:-mt-[1.38rem] tw:ml-[1.08rem] tw:h-[1.69rem] tw:rounded-bl-[.615rem] tw:border-b-[.115rem] tw:border-l-[.115rem] tw:border-solid tw:border-[#d9c7ba]"
+                className="tw:-mt-5.5 tw:ml-4.5 tw:h-7 tw:rounded-bl-cali-compact-control tw:border-b-[.115rem] tw:border-l-[.115rem] tw:border-solid tw:border-cali-line-strong"
               />
-              <span className="tw:flex tw:min-w-0 tw:flex-col tw:gap-[.385rem]">
-                <strong className="tw:text-[.96rem] tw:wrap-anywhere">{task.title}</strong>
-                <small className="tw:text-[.77rem] tw:wrap-anywhere tw:text-[#a18e81]">
+              <span className="tw:flex tw:min-w-0 tw:flex-col tw:gap-1.5">
+                <strong className="tw:text-cali-body tw:wrap-anywhere">{task.title}</strong>
+                <small className="tw:text-xs tw:wrap-anywhere tw:text-cali-sand-text">
                   {task.protocol || 'SUBTAREFA'}
                 </small>
               </span>

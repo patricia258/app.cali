@@ -41,11 +41,11 @@
   body.pa-printing,
   body.pa-printing #root {
     @apply tw:h-auto! tw:min-h-0! tw:overflow-visible!;
-    background: #fff !important;
+    background: var(--cali-color-neutral-surface) !important;
   }
   body.pa-printing :is(.app, .main, .content, .v2-client-module) {
     @apply tw:block! tw:static! tw:w-auto! tw:max-w-none! tw:h-auto! tw:min-h-0! tw:max-h-none! tw:overflow-visible! tw:m-0! tw:p-0!;
-    background: #fff !important;
+    background: var(--cali-color-neutral-surface) !important;
   }
   body.pa-printing * {
     -webkit-print-color-adjust: exact;
@@ -56,22 +56,22 @@
     @apply tw:block;
     margin: 0 0 14px;
     padding: 0 0 10px;
-    border-bottom: 2px solid #5a1e2d;
+    border-bottom: 2px solid var(--cali-color-burgundy-accent);
   }
   body.pa-printing .pa-print-head small {
     @apply tw:text-[8px];
     letter-spacing: 1.4px;
     font-weight: 700;
-    color: #a5866b;
+    color: var(--cali-color-sand-text);
   }
   body.pa-printing .pa-print-head h1 {
     @apply tw:text-[20px];
     margin: 4px 0 2px;
-    color: #2b2024;
+    color: var(--cali-color-burgundy-strong);
   }
   body.pa-printing .pa-print-head p {
     @apply tw:text-[10px] tw:m-0;
-    color: #6b5d63;
+    color: var(--cali-color-neutral-accent);
   }
   body.pa-printing .pa-print-ess {
     @apply tw:grid;
@@ -89,7 +89,7 @@
     grid-column: 1/-1;
     @apply tw:text-[15px];
     margin: 0 0 2px;
-    color: #2b2024;
+    color: var(--cali-color-burgundy-strong);
   }
   body.pa-printing .pa-print-ess .v2-ess-chart {
     padding: 12px 14px !important;

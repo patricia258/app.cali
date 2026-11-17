@@ -32,10 +32,10 @@ export function ClientFaqPage() {
   return <Shell role="client">
     <section className="v2-client-module">
       <CompactPageHeading eyebrow="AJUDA / CONTRATO E HORAS" title="Dúvidas frequentes" description="Como funcionam as horas contratadas, os avisos de consumo e os excedentes." />
-      <label className="tw:mb-[1.385rem] tw:flex tw:h-[3.23rem] tw:max-w-[35.385rem] tw:items-center tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-4 tw:focus-within:outline tw:focus-within:outline-cali-brand">
+      <label className="tw:mb-5.5 tw:flex tw:h-13 tw:max-w-[35.385rem] tw:items-center tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-4 tw:focus-within:outline tw:focus-within:outline-cali-brand">
         <Search size={15} />
         <input
-          className="tw:min-w-0 tw:flex-1 tw:border-0 tw:bg-transparent tw:font-[inherit] tw:text-[1rem] tw:leading-[inherit] tw:outline-none"
+          className="tw:min-w-0 tw:flex-1 tw:border-0 tw:bg-transparent tw:font-[inherit] tw:text-base tw:leading-[inherit] tw:outline-none"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar por palavra, por exemplo: excedente"
@@ -43,23 +43,23 @@ export function ClientFaqPage() {
         />
       </label>
       {groups.length === 0 ? (
-        <p className="tw:text-[1rem] tw:leading-[inherit] tw:text-[#8a7c74]">Nenhuma pergunta encontrada para “{query}”. Fale com a CALI pelas Ocorrências.</p>
+        <p className="tw:text-base tw:leading-[inherit] tw:text-cali-muted">Nenhuma pergunta encontrada para “{query}”. Fale com a CALI pelas Ocorrências.</p>
       ) : groups.map((group) => (
-        <section className="tw:mb-[1.385rem] tw:rounded-2xl tw:border tw:border-solid tw:border-[#eadfd5] tw:bg-white tw:px-[1.385rem] tw:py-[.462rem]" key={group.topic}>
-          <h2 className="tw:mt-[1.077rem] tw:mb-[.462rem] tw:text-[.846rem] tw:leading-[inherit] tw:tracking-[.1em] tw:text-[#a8773f] tw:uppercase">{group.topic}</h2>
+        <section className="tw:mb-5.5 tw:rounded-2xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-5.5 tw:py-2" key={group.topic}>
+          <h2 className="tw:mt-4.5 tw:mb-2 tw:text-sm tw:leading-[inherit] tw:tracking-[.1em] tw:text-cali-gold-accent tw:uppercase">{group.topic}</h2>
           {group.items.map(([question, answer]) => {
             const isOpen = open === question || Boolean(query.trim());
             return (
-              <div className="tw:border-0 tw:border-t tw:border-solid tw:border-[#f0e8e1] tw:first-of-type:border-t-0" key={question}>
+              <div className="tw:border-0 tw:border-t tw:border-solid tw:border-cali-line tw:first-of-type:border-t-0" key={question}>
                 <button
-                  className="tw:flex tw:w-full tw:cursor-pointer tw:items-center tw:justify-between tw:gap-[1.077rem] tw:border-0 tw:bg-transparent tw:px-0 tw:py-[1.077rem] tw:text-left tw:font-[inherit] tw:text-[1.038rem] tw:leading-[inherit] tw:font-bold tw:text-cali-ink"
+                  className="tw:flex tw:w-full tw:cursor-pointer tw:items-center tw:justify-between tw:gap-4.5 tw:border-0 tw:bg-transparent tw:px-0 tw:py-4.5 tw:text-left tw:font-[inherit] tw:text-base tw:leading-[inherit] tw:font-bold tw:text-cali-ink"
                   type="button"
                   aria-expanded={isOpen}
                   onClick={() => setOpen(open === question ? null : question)}
                 >
                   {question}{isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 </button>
-                {isOpen && <p className="tw:m-0 tw:mb-5 tw:max-w-[63.08rem] tw:text-[1rem] tw:leading-[1.6] tw:text-[#5f5650]">{answer}</p>}
+                {isOpen && <p className="tw:m-0 tw:mb-5 tw:max-w-[63.08rem] tw:text-base tw:leading-[1.6] tw:text-cali-muted">{answer}</p>}
               </div>
             );
           })}

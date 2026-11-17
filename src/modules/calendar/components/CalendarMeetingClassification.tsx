@@ -5,7 +5,7 @@ export function CalendarMeetingClassification({ value, onChange }: {
   onChange: (value: MeetingClassification) => void;
 }) {
   return (
-    <div className="tw:mt-3.5 tw:rounded-2xl tw:border tw:border-solid tw:border-cali-line tw:bg-[var(--theme-surface-soft,#faf7f5)] tw:p-4">
+    <div className="tw:mt-3.5 tw:rounded-2xl tw:border tw:border-solid tw:border-cali-line tw:bg-[var(--theme-surface-soft,var(--cali-color-sand-soft))] tw:p-4">
       <label htmlFor="calendar-meeting-classification" className="tw:mb-1.5 tw:block tw:text-lg/[inherit] tw:font-bold tw:text-cali-text">
         Agenda contratual
       </label>

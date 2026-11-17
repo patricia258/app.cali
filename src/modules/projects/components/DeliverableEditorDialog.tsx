@@ -50,18 +50,18 @@ export function DeliverableEditorDialog({ project, fronts, deliverable, editing,
           </WorkspaceFormDialogField>
           <WorkspaceFormDialogField>
             <span>Prazo</span><input type="date" value={deliverable.dueDate} onChange={(event) => onChange({ dueDate: event.target.value })}/>
-            <small className={`tw:mt-[.462rem] tw:flex tw:flex-wrap tw:items-center tw:gap-[.615rem] tw:text-[.846rem] ${outside ? 'tw:font-bold tw:text-[#8a5a12]' : 'tw:font-medium tw:text-[#6b5f58]'}`}>
+            <small className={`tw:mt-2 tw:flex tw:flex-wrap tw:items-center tw:gap-2.5 tw:text-sm ${outside ? 'tw:font-bold tw:text-cali-warning' : 'tw:font-medium tw:text-cali-neutral-accent'}`}>
               {outside
                 ? `Fora da faixa estimada para ${deliverable.complexity} (${formatProjectDate(first)} a ${formatProjectDate(last)}). Ajuste manual permitido.`
                 : `Faixa estimada para ${deliverable.complexity}: ${formatProjectDate(first)} a ${formatProjectDate(last)} (${complexityRange(deliverable.complexity)}).`}
-              {!deliverable.dueDate && <button type="button" className="tw:h-[2rem] tw:cursor-pointer tw:rounded-[.538rem] tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-[.77rem] tw:text-[.846rem] tw:font-bold tw:text-cali-brand" onClick={() => onChange({ dueDate: last })}>Usar {formatProjectDate(last)}</button>}
+              {!deliverable.dueDate && <button type="button" className="tw:h-8 tw:cursor-pointer tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3 tw:text-sm tw:font-bold tw:text-cali-brand" onClick={() => onChange({ dueDate: last })}>Usar {formatProjectDate(last)}</button>}
             </small>
           </WorkspaceFormDialogField>
           <WorkspaceFormDialogField wide><span>Descrição / resultado esperado</span><textarea rows={3} value={deliverable.description} onChange={(event) => onChange({ description: event.target.value })}/></WorkspaceFormDialogField>
           <WorkspaceFormDialogCheck><input type="checkbox" checked={deliverable.clientVisible} disabled={reviewed} onChange={(event) => onChange({ clientVisible: event.target.checked })}/> {reviewed ? 'Visibilidade definida ao liberar a revisão' : 'Visível para o cliente'}</WorkspaceFormDialogCheck>
           <WorkspaceFormDialogCheck><input type="checkbox" checked={deliverable.isDocument} onChange={(event) => onChange({ isDocument: event.target.checked })}/> Entrega documental</WorkspaceFormDialogCheck>
         </WorkspaceFormDialogFields>
-        <div className="tw:mt-[1.231rem] tw:mb-[1.385rem]"><ComplexityLegend current={deliverable.complexity}/></div>
+        <div className="tw:mt-5 tw:mb-5.5"><ComplexityLegend current={deliverable.complexity}/></div>
       </WorkspaceFormDialogBody>
       <WorkspaceFormDialogFooter onCancel={onClose} submitLabel={saving ? 'Salvando…' : editing ? 'Salvar alterações' : 'Adicionar entregável'} disabled={saving || !deliverable.title.trim() || !deliverable.frontId} />
     </WorkspaceFormDialog>

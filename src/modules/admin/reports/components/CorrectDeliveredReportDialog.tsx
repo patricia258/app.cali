@@ -32,11 +32,11 @@ export function CorrectDeliveredReportDialog({ report, onClose, onCorrected }: {
     }}>
       <CompactDialog aria-label="Corrigir fechamento" className="tw:w-[min(35rem,calc(100vw-2rem))]!">
         <Button variant="close" type="button" disabled={isPending} onClick={onClose}>×</Button>
-        <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-[0.769rem]/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-[#a88b76]">CORREÇÃO DE RELATÓRIO</span>
+        <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-xs/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-cali-muted">CORREÇÃO DE RELATÓRIO</span>
         <h2>Corrigir fechamento</h2>
         <p className="tw:mt-3 tw:mb-4 tw:leading-relaxed tw:text-cali-muted">A versão enviada sai da área do cliente até a próxima liberação. O conteúdo e a ciência anterior ficam no histórico da CALI.</p>
         <div className="tw:mb-4 tw:grid tw:gap-1 tw:rounded-xl tw:border tw:border-solid tw:border-cali-gold/40 tw:bg-cali-gold/10 tw:px-4 tw:py-3">
-          <strong className="tw:text-xs tw:tracking-wider tw:text-[#8a693b] tw:uppercase">Importante</strong>
+          <strong className="tw:text-xs tw:tracking-wider tw:text-cali-gold-text tw:uppercase">Importante</strong>
           <span className="tw:leading-normal tw:text-cali-muted">O cliente recebe a nova revisão após aprovação e envio.</span>
         </div>
         {(validation || error) && <InlineNotice>{validation || error?.message}</InlineNotice>}

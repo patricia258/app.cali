@@ -1,8 +1,8 @@
 import type { ComponentPropsWithoutRef } from 'react';
 
 const emptyClass = {
-  workflow: 'wf-empty tw:p-[1.85rem] tw:text-center tw:text-[#999]',
-  admin: 'v2-admin-empty tw:m-0 tw:px-[0.308rem] tw:pt-8 tw:pb-[0.615rem] tw:text-[0.923rem]/[inherit] tw:text-[#978980]',
+  workflow: 'wf-empty tw:p-7.5 tw:text-center tw:text-cali-muted',
+  admin: 'v2-admin-empty tw:m-0 tw:px-1 tw:pt-8 tw:pb-2.5 tw:text-cali-body/[inherit] tw:text-cali-muted',
 } as const;
 
 type EmptyStateProps = ComponentPropsWithoutRef<'div'> & {

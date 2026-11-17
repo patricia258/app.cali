@@ -47,6 +47,16 @@ test('OTP recusa erro de código, papel desconhecido e sucesso sem credencial', 
   assert.equal(await readWorkspaceSession(), null);
 });
 
+test('OTP aceito diferencia falha ao abrir a sessão de código recusado', async (t) => {
+  const http = await workspaceHttp(t);
+  const { verifyAccessCode } = await http.load('access/codes.ts');
+  http.respond(otp, { ok: true, role: 'admin', session: http.session });
+  http.respond('/auth/v1/user', { message: 'Auth indisponível' }, { method: 'GET', status: 503 });
+  const result = await verifyAccessCode('admin@example.test', '012345');
+  assert.equal(result.data, null);
+  assert.match(result.error.message, /Código aceito.*abrir a sessão/);
+});
+
 test('RPC público anônimo omite sessão e RPC administrativo preserva token e schema', async (t) => {
   const http = await workspaceHttp(t);
   const api = await http.load('supabase.ts');

@@ -45,12 +45,12 @@ export function ClientHoursPage() {
       <CompactPageHeading eyebrow="CONTA / ACOMPANHAMENTO EXECUTIVO" title="Horas" description="Onde a assessoria investiu tempo, o que foi realizado e o saldo do ciclo." />
       {error && <InlineNotice role="alert"><AlertTriangle size={18} />{error}</InlineNotice>}
       {summary && !summary.visible ? <EmptyState as="section" variant="workflow"><Clock3 size={24} /><strong>A visualização de horas não está habilitada para este mês.</strong><p>Os meses já liberados continuam disponíveis para consulta. Selecione outro mês abaixo.</p><label><span>Consultar mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label></EmptyState> : summary && <>
-        <div className="tw:mb-6 tw:flex tw:min-h-[3.31rem] tw:items-center tw:gap-4 tw:rounded-lg tw:border tw:border-solid tw:border-[#e9e0d8] tw:bg-white tw:px-[1.154rem] tw:py-4 tw:text-[.846rem] tw:leading-[inherit]">
+        <div className="tw:mb-6 tw:flex tw:min-h-[3.31rem] tw:items-center tw:gap-4 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-4.5 tw:py-4 tw:text-sm tw:leading-[inherit]">
           <span className="tw:font-bold tw:text-cali-brand">Período</span>
-          <input className="tw:rounded-lg tw:border tw:border-solid tw:border-[#eaded5] tw:bg-white tw:p-2.5 tw:text-[.846rem] tw:leading-[inherit] tw:text-[#672c40]" aria-label="Consultar mês" type="month" value={period} onChange={(event) => setPeriod(event.target.value)} />
-          <span className="tw:ml-auto tw:flex tw:items-center tw:gap-2 tw:text-[.77rem] tw:leading-[inherit] tw:whitespace-nowrap tw:text-[#99928d] tw:[@media(max-width:53.125rem)]:hidden"><Clock3 size={14} /> Visibilidade contratual habilitada</span>
+          <input className="tw:rounded-lg tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:p-2.5 tw:text-sm tw:leading-[inherit] tw:text-cali-red-strong" aria-label="Consultar mês" type="month" value={period} onChange={(event) => setPeriod(event.target.value)} />
+          <span className="tw:ml-auto tw:flex tw:items-center tw:gap-2 tw:text-xs tw:leading-[inherit] tw:whitespace-nowrap tw:text-cali-sand-text tw:[@media(max-width:53.125rem)]:hidden"><Clock3 size={14} /> Visibilidade contratual habilitada</span>
         </div>
-        <div className="tw:grid tw:grid-cols-[minmax(0,1fr)_21.54rem] tw:overflow-hidden tw:rounded-xl tw:border tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:[@media(max-width:53.125rem)]:grid-cols-1">
+        <div className="tw:grid tw:grid-cols-[minmax(0,1fr)_21.54rem] tw:overflow-hidden tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:[@media(max-width:53.125rem)]:grid-cols-1">
           <section className="tw:min-w-0 tw:px-7 tw:pb-8">
             <CapacityCard capacity={capacity} occurrence={status.occurrence} paused={status.paused} inLedger />
             <ClientHoursLedger rows={filteredRows} filter={contextFilter} onFilter={setContextFilter} toneOf={toneOf} />

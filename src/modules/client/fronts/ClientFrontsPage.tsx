@@ -60,13 +60,13 @@ export function ClientFrontsPage() {
           title="Frentes contratadas"
           description="Conheça os assuntos em que a CALI pode atuar com a sua empresa."
         >
-          <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]">
-            <span className="tw:inline-block tw:rounded-[.38rem] tw:border tw:border-solid tw:border-[#f3e7d0] tw:bg-[#fcf5e6] tw:px-[.54rem] tw:py-[.38rem] tw:text-[.69rem]/[inherit] tw:font-semibold tw:whitespace-nowrap tw:text-[#9c7243]">
+          <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-3">
+            <span className="tw:inline-block tw:rounded-md tw:border tw:border-solid tw:border-cali-orange-surface tw:bg-cali-orange-surface tw:px-2 tw:py-1.5 tw:text-cali-label/[inherit] tw:font-semibold tw:whitespace-nowrap tw:text-cali-gold-text">
               {plan ? planName[plan] : company?.service_type || 'Plano em definição'}
             </span>
             {plan && (
               <a
-                className="tw:inline-flex tw:items-center tw:gap-[.69rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5dbd5] tw:bg-white tw:px-[1.08rem] tw:py-[.77rem] tw:text-[.85rem]/[inherit] tw:font-semibold tw:whitespace-nowrap tw:text-[#594e4b] tw:hover:border-cali-gold"
+                className="tw:inline-flex tw:items-center tw:gap-3 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-4.5 tw:py-3 tw:text-sm/[inherit] tw:font-semibold tw:whitespace-nowrap tw:text-cali-muted tw:hover:border-cali-gold"
                 href={`https://wa.me/${PATI_WHATSAPP}?text=${encodeURIComponent(`Olá, Pati! Quero conversar sobre as frentes do meu ${planName[plan]}.`)}`}
                 target="_blank"
                 rel="noreferrer"
@@ -83,7 +83,7 @@ export function ClientFrontsPage() {
             {error}
           </p>
         ) : !plan ? (
-          <section className="tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#e9e0d8] tw:bg-white tw:p-[1.231rem] tw:text-[0.846rem] tw:text-[#82786f]">
+          <section className="tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-5 tw:text-sm tw:text-cali-muted">
             <p>
               Seu escopo está sendo organizado. Converse com a Pati se precisar confirmar uma frente do contrato.
             </p>
@@ -92,9 +92,9 @@ export function ClientFrontsPage() {
           <>
             {(plan === 'partner' || plan === 'full') && (
               <section className="tw:mb-8">
-                <div className="tw:mb-[0.923rem] tw:flex tw:items-center tw:justify-between tw:gap-[0.923rem] tw:[&_h2]:m-0 tw:[&_h2]:flex tw:[&_h2]:items-center tw:[&_h2]:gap-[0.615rem] tw:[&_h2]:text-[1.077rem] tw:[&_h2]:font-semibold tw:[&_h2]:text-[#322f2c] tw:[&>span]:text-[0.769rem] tw:[&>span]:text-[#998c83]">
+                <div className="tw:mb-3.5 tw:flex tw:items-center tw:justify-between tw:gap-3.5 tw:[&_h2]:m-0 tw:[&_h2]:flex tw:[&_h2]:items-center tw:[&_h2]:gap-2.5 tw:[&_h2]:text-lg tw:[&_h2]:font-semibold tw:[&_h2]:text-cali-text tw:[&>span]:text-xs tw:[&>span]:text-cali-sand-text">
                   <h2>
-                    <Check size={20} className="tw:size-[1.231rem] tw:shrink-0 tw:text-[#3f976e]" />
+                    <Check size={20} className="tw:size-5 tw:shrink-0 tw:text-cali-green-accent" />
                     Já faz parte do seu plano
                   </h2>
                   <span>
@@ -102,7 +102,7 @@ export function ClientFrontsPage() {
                   </span>
                 </div>
                 <div
-                  className="tw:grid tw:grid-cols-3 tw:gap-[1.077rem] tw:max-[68.75rem]:grid-cols-2 tw:max-[43.75rem]:grid-cols-1"
+                  className="tw:grid tw:grid-cols-3 tw:gap-4.5 tw:max-[68.75rem]:grid-cols-2 tw:max-[43.75rem]:grid-cols-1"
                   aria-label="Frentes incluídas no seu plano"
                 >
                   {grouped.included.map((front) => (
@@ -113,20 +113,20 @@ export function ClientFrontsPage() {
             )}
             {showContractedInline && (
               <section className="tw:mb-8">
-                <div className="tw:mb-[0.923rem] tw:flex tw:items-center tw:justify-between tw:gap-[0.923rem] tw:[&_h2]:m-0 tw:[&_h2]:flex tw:[&_h2]:items-center tw:[&_h2]:gap-[0.615rem] tw:[&_h2]:text-[1.077rem] tw:[&_h2]:font-semibold tw:[&_h2]:text-[#322f2c] tw:[&>span]:text-[0.769rem] tw:[&>span]:text-[#998c83]">
+                <div className="tw:mb-3.5 tw:flex tw:items-center tw:justify-between tw:gap-3.5 tw:[&_h2]:m-0 tw:[&_h2]:flex tw:[&_h2]:items-center tw:[&_h2]:gap-2.5 tw:[&_h2]:text-lg tw:[&_h2]:font-semibold tw:[&_h2]:text-cali-text tw:[&>span]:text-xs tw:[&>span]:text-cali-sand-text">
                   <h2>Em implantação</h2>
                   <span>
                     {grouped.contracted.length} {grouped.contracted.length === 1 ? 'frente' : 'frentes'}
                   </span>
                 </div>
                 {grouped.contracted.length ? (
-                  <div className="tw:grid tw:grid-cols-3 tw:gap-[1.154rem] tw:max-[53.125rem]:grid-cols-1">
+                  <div className="tw:grid tw:grid-cols-3 tw:gap-4.5 tw:max-[53.125rem]:grid-cols-1">
                     {grouped.contracted.map(({ item, front }) => (
                       <article
-                        className="tw:min-w-0 tw:rounded-[0.692rem] tw:border tw:border-t-[0.231rem] tw:border-solid tw:border-[var(--v2-line-e7d6c7,#e7d6c7)] tw:border-t-[#42b489] tw:bg-[var(--v2-surface-fff,#fff)] tw:p-[1.769rem] tw:[&_h3]:mt-[1.231rem] tw:[&_h3]:mb-[0.923rem] tw:[&_h3]:text-[1.462rem] tw:[&_h3]:text-[var(--v2-text-5a1e2d,#5a1e2d)] tw:[&_p]:text-[0.923rem]/[1.7] tw:[&_p]:text-[var(--v2-text-91806f,#91806f)]"
+                        className="tw:min-w-0 tw:rounded-cali-panel tw:border tw:border-t-[0.231rem] tw:border-solid tw:border-[var(--v2-line-e7d6c7,var(--cali-color-sand-line))] tw:border-t-cali-teal-accent tw:bg-[var(--v2-surface-fff,var(--cali-color-neutral-surface))] tw:p-7 tw:[&_h3]:mt-5 tw:[&_h3]:mb-3.5 tw:[&_h3]:text-2xl tw:[&_h3]:text-[var(--v2-text-5a1e2d,var(--cali-color-burgundy-accent))] tw:[&_p]:text-cali-body/[1.7] tw:[&_p]:text-[var(--v2-text-91806f,var(--cali-color-sand-text))]"
                         key={item.id}
                       >
-                        <span className="tw:flex tw:items-center tw:gap-[0.538rem] tw:text-[0.769rem] tw:text-[var(--v2-text-3f956e,#3f956e)]">
+                        <span className="tw:flex tw:items-center tw:gap-2 tw:text-xs tw:text-[var(--v2-text-3f956e,var(--cali-color-green-accent))]">
                           <Check size={15} />
                           Implantação assistida
                         </span>
@@ -136,7 +136,7 @@ export function ClientFrontsPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#e9e0d8] tw:bg-white tw:p-[1.231rem] tw:text-[0.846rem] tw:text-[#82786f]">
+                  <div className="tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-5 tw:text-sm tw:text-cali-muted">
                     A CALI ainda não registrou uma frente de implantação neste espaço.
                   </div>
                 )}
@@ -144,14 +144,14 @@ export function ClientFrontsPage() {
             )}
             {grouped.possible.length > 0 && (
               <section className="tw:mb-8">
-                <div className="tw:mb-[0.923rem] tw:flex tw:items-center tw:justify-between tw:gap-[0.923rem] tw:[&_h2]:m-0 tw:[&_h2]:flex tw:[&_h2]:items-center tw:[&_h2]:gap-[0.615rem] tw:[&_h2]:text-[1.077rem] tw:[&_h2]:font-semibold tw:[&_h2]:text-[#322f2c] tw:[&>span]:text-[0.769rem] tw:[&>span]:text-[#998c83]">
+                <div className="tw:mb-3.5 tw:flex tw:items-center tw:justify-between tw:gap-3.5 tw:[&_h2]:m-0 tw:[&_h2]:flex tw:[&_h2]:items-center tw:[&_h2]:gap-2.5 tw:[&_h2]:text-lg tw:[&_h2]:font-semibold tw:[&_h2]:text-cali-text tw:[&>span]:text-xs tw:[&>span]:text-cali-sand-text">
                   <h2>
-                    <MessagesSquare size={20} className="tw:size-[1.231rem] tw:shrink-0 tw:text-cali-gold" />
+                    <MessagesSquare size={20} className="tw:size-5 tw:shrink-0 tw:text-cali-gold" />
                     Outras possibilidades
                   </h2>
                   <span>Abra uma frente para ver exemplos</span>
                 </div>
-                <div className="tw:grid tw:grid-cols-2 tw:items-start tw:gap-x-[1.077rem] tw:gap-y-[0.769rem] tw:max-[43.75rem]:grid-cols-1">
+                <div className="tw:grid tw:grid-cols-2 tw:items-start tw:gap-x-4.5 tw:gap-y-3 tw:max-[43.75rem]:grid-cols-1">
                   {grouped.possible.map((front) => (
                     <PossibleFrontCard front={front} plan={plan} onChoose={setChosen} key={front.code} />
                   ))}
@@ -163,26 +163,26 @@ export function ClientFrontsPage() {
         {chosen &&
           createPortal(
             <div
-              className="tw:fixed tw:inset-0 tw:z-12100 tw:flex tw:items-center tw:justify-center tw:bg-[#241b216e] tw:p-[1.385rem] tw:motion-safe:animate-[v2-fade_.22s_ease-out_backwards]"
+              className="tw:fixed tw:inset-0 tw:z-12100 tw:flex tw:items-center tw:justify-center tw:bg-cali-burgundy-inverse/43 tw:p-5.5 tw:motion-safe:animate-[v2-fade_.22s_ease-out_backwards]"
               role="presentation"
               onMouseDown={(event) => {
                 if (event.target === event.currentTarget) setChosen(null);
               }}
             >
               <DialogFrame
-                className="tw:relative tw:max-h-[calc(100dvh-2.77rem)] tw:w-full tw:max-w-[45.385rem] tw:overflow-y-auto tw:rounded-[1rem] tw:bg-white tw:p-[1.923rem] tw:shadow-[0_1.154rem_4.615rem_#22172232] tw:focus:outline-none tw:motion-safe:animate-[v2-pop_.34s_cubic-bezier(.2,.7,.2,1)_backwards]"
+                className="tw:relative tw:max-h-[calc(100dvh-2.77rem)] tw:w-full tw:max-w-[45.385rem] tw:overflow-y-auto tw:rounded-2xl tw:bg-cali-neutral-surface tw:p-7.5 tw:shadow-[0_1.154rem_4.615rem_rgb(var(--cali-rgb-burgundy-inverse)/0.1961)] tw:focus:outline-none tw:motion-safe:animate-[v2-pop_.34s_cubic-bezier(.2,.7,.2,1)_backwards]"
                 aria-labelledby="front-dialog-title"
               >
                 <Button
                   type="button"
                   variant="unstyled"
-                  className="tw:absolute tw:top-[1.385rem] tw:right-[1.385rem] tw:grid tw:place-items-center tw:border-0 tw:bg-transparent tw:p-[0.538rem] tw:text-[var(--v2-text-6a5053,#6a5053)]"
+                  className="tw:absolute tw:top-5.5 tw:right-5.5 tw:grid tw:place-items-center tw:border-0 tw:bg-transparent tw:p-2 tw:text-[var(--v2-text-6a5053,var(--cali-color-neutral-text))]"
                   onClick={() => setChosen(null)}
                   aria-label="Fechar"
                 >
                   <X size={19} />
                 </Button>
-                <span className="tw:block tw:text-[0.769rem] tw:font-bold tw:tracking-[0.077rem] tw:text-[#a88b76]">
+                <span className="tw:block tw:text-xs tw:font-bold tw:tracking-[0.077rem] tw:text-cali-muted">
                   AVALIAR UMA NOVA FRENTE
                 </span>
                 <h2 id="front-dialog-title">{chosen.title}</h2>
@@ -191,7 +191,7 @@ export function ClientFrontsPage() {
                   antes de qualquer contratação.
                 </p>
                 <a
-                  className="tw:inline-flex tw:items-center tw:justify-center tw:gap-[0.538rem] tw:rounded-[0.538rem] tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-[1.077rem] tw:py-[0.769rem] tw:text-[0.846rem] tw:font-semibold tw:text-white tw:no-underline"
+                  className="tw:inline-flex tw:items-center tw:justify-center tw:gap-2 tw:rounded-lg tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-4.5 tw:py-3 tw:text-sm tw:font-semibold tw:text-cali-neutral-surface tw:no-underline"
                   href={`https://wa.me/${ADM_WHATSAPP}?text=${encodeURIComponent(contact)}`}
                   target="_blank"
                   rel="noreferrer"

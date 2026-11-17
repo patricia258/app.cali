@@ -1,3 +1,4 @@
+import { caliPalette } from '../../../supabase/functions/_shared/cali-palette';
 import { WorkspaceAdminPage } from '../../components/workspace/components/WorkspaceAdminPage';
 import { WorkspaceAdminContent } from '../../components/workspace/components/WorkspaceAdminContent';
 import { WorkspacePageHeader } from '../../components/workspace/WorkspacePageHeader';
@@ -91,13 +92,13 @@ function defaultForm(date = dateKey(new Date())): CreateEventForm {
 }
 
 function eventStyle(event: WorkspaceCalendarEvent) {
-  const hex = /^#[0-9a-f]{6}$/i.test(event.color) ? event.color : '#8D7354';
+  const hex = /^#[0-9a-f]{6}$/i.test(event.color) ? event.color : caliPalette.sand.darker;
   const [red, green, blue] = [1,3,5].map(index => parseInt(hex.slice(index,index+2),16));
   const luminance = [red, green, blue].map(channel => {
     const value = channel / 255;
     return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
   }).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
-  const foreground = luminance > .18 ? '#30232a' : '#ffffff';
+  const foreground = luminance > .18 ? caliPalette.burgundy.darker : caliPalette.neutral.lightest;
   const style: CSSProperties & Record<`--${string}`, string> = { '--event-color': hex, '--event-soft': `${hex}18`, '--event-foreground': foreground };
   return style;
 }
@@ -462,7 +463,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
         <WorkspacePageHeader eyebrow={staff ? 'EQUIPE CALI / CALENDÁRIO' : 'BACKOFFICE / CALI RH'} title={staff ? 'Calendário' : 'Agenda da CALI'} description={staff ? 'Reuniões, validações e prazos das empresas que você atende.' : 'Reuniões, validações, prazos e a sua agenda Google em uma visão única.'} actionClassName="tw:my-3! tw:flex! tw:flex-wrap tw:items-center tw:gap-2 tw:[&_button]:whitespace-nowrap">
           {!staff && <AgendaChangeInbox onDecision={()=>void loadCalendar()}/>}
           {!staff && <ExtraVisitExpenses placement="calendar" />}
-          {!staff && <Button variant="adminOutline" className="tw:inline-flex tw:min-h-[2.4375rem] tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-[0.625rem] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:px-3 tw:text-xs! tw:font-bold! tw:text-cali-text" type="button" onClick={()=>setHistoryOpenedAt(Date.now())}><FileText size={15}/> Histórico de reuniões</Button>}
+          {!staff && <Button variant="adminOutline" className="tw:inline-flex tw:min-h-[2.4375rem] tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:px-3 tw:text-xs! tw:font-bold! tw:text-cali-text" type="button" onClick={()=>setHistoryOpenedAt(Date.now())}><FileText size={15}/> Histórico de reuniões</Button>}
           <Button variant="adminPrimary" onClick={() => openCreateForDate()}><Plus size={15} /> Novo evento</Button>
         </WorkspacePageHeader>
         {!staff && <CalendarGoogleConnection readStatus={googleReadStatus} connected={calendarConnection === 'connected'}
@@ -476,10 +477,10 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
           onReset={() => { setCompanyFilter('all'); setActiveTypes(new Set(Object.keys(calendarTypeMeta) as CalendarEventType[])); }}
         />
 
-        <div className="tw:flex tw:flex-col tw:overflow-hidden tw:rounded-xl tw:border tw:border-solid tw:border-[#e9dbd0] tw:bg-white">
+        <div className="tw:flex tw:flex-col tw:overflow-hidden tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface">
           <CalendarLegend types={activeTypes} showGoogle={!staff}
             eventCount={view === 'week' ? weekDates.reduce((sum, date) => sum + (eventsByDate.get(dateKey(date)) ?? []).length, 0) : monthAgenda.length} />
-          <section className="tw:order-1 tw:m-0 tw:w-full tw:min-w-0 tw:overflow-hidden tw:border-0 tw:bg-white tw:p-0 tw:max-[56.25rem]:overflow-x-auto tw:workspace-night:bg-(--theme-surface-soft)">
+          <section className="tw:order-1 tw:m-0 tw:w-full tw:min-w-0 tw:overflow-hidden tw:border-0 tw:bg-cali-neutral-surface tw:p-0 tw:max-[56.25rem]:overflow-x-auto tw:workspace-night:bg-(--theme-surface-soft)">
             {view === 'month' && <>
               <div className={grid.monthHead}>{weekdays.map((day) => <span key={day} className={grid.monthWeekday}>{day}</span>)}</div>
               <div className={grid.monthGrid}>
@@ -493,8 +494,8 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
                       <button className={`${grid.monthDayNumber} ${isToday ? grid.todayNumber : ''}`} onClick={() => { setCursor(date); if (dayEvents.length === 0) openCreateForDate(date); }}>{date.getDate()}</button>
                       <div className={grid.monthEvents}>
                         {dayEvents.slice(0, 3).map((event) => (
-                          <button key={event.id} className={`${grid.monthChip} ${event.sourceType === 'google' ? grid.personalEventColors : 'tw:workspace-night:text-[#f3eeeb]!'} ${event.sourceType === 'request_preview' ? grid.previewEventColors : ''}`} style={eventStyle(event)} title={`${event.sourceType === 'request_preview' ? 'Prévia em análise' : event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${event.title}`} onClick={(click) => { click.stopPropagation(); setSelectedEvent(event); }}>
-                            <span className={`${grid.monthChipDot} ${event.sourceType === 'google' ? 'tw:bg-white!' : ''}`} />
+                          <button key={event.id} className={`${grid.monthChip} ${event.sourceType === 'google' ? grid.personalEventColors : 'tw:workspace-night:text-cali-text!'} ${event.sourceType === 'request_preview' ? grid.previewEventColors : ''}`} style={eventStyle(event)} title={`${event.sourceType === 'request_preview' ? 'Prévia em análise' : event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${event.title}`} onClick={(click) => { click.stopPropagation(); setSelectedEvent(event); }}>
+                            <span className={`${grid.monthChipDot} ${event.sourceType === 'google' ? 'tw:bg-cali-neutral-surface!' : ''}`} />
                             {!event.allDay && <time className={`${grid.monthChipTime} ${event.sourceType === 'google' || event.sourceType === 'request_preview' ? 'tw:text-inherit' : 'tw:text-cali-muted'}`}>{formatCalendarTime(event.startsAt)}</time>}
                             <strong className={grid.monthChipText}>{event.sourceType === 'request_preview' ? `Prévia ${event.previewOption} · ${event.title}` : event.title}</strong>
                           </button>
@@ -508,19 +509,19 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
               </div>
             </>}
 
-            {view === 'week' && <div className="tw:overflow-x-auto" onWheel={scrollWeeks}><div className="tw:grid tw:min-w-[62.5rem] tw:grid-cols-[3.625rem_repeat(7,minmax(7.8125rem,1fr))] tw:grid-rows-[3.875rem_auto_auto]">
+            {view === 'week' && <div className="tw:overflow-x-auto" onWheel={scrollWeeks}><div className="tw:grid tw:min-w-250 tw:grid-cols-[3.625rem_repeat(7,minmax(7.8125rem,1fr))] tw:grid-rows-[3.875rem_auto_auto]">
               <div className={grid.weekCorner} />
               {weekDates.map((date) => <div key={dateKey(date)} className={grid.weekDayHead}><span className={grid.weekDayLabel}>{weekdays[date.getDay()]}</span><strong className={`${grid.weekDayNumber} ${isSameDate(date, today) ? grid.todayNumber : ''}`}>{date.getDate()}</strong></div>)}
-              <div className={`${grid.weekAllDay} tw:flex tw:min-h-11! tw:items-center tw:justify-center tw:px-0.5 tw:text-center tw:text-[0.625rem]/[1.2] tw:font-bold tw:text-cali-muted`}>Dia inteiro</div>
+              <div className={`${grid.weekAllDay} tw:flex tw:min-h-11! tw:items-center tw:justify-center tw:px-0.5 tw:text-center tw:text-cali-micro/[1.2] tw:font-bold tw:text-cali-muted`}>Dia inteiro</div>
               {weekDates.map(date => <div key={`all-${dateKey(date)}`} className={grid.weekAllDay}>
                 {(eventsByDate.get(dateKey(date)) || []).filter(event => event.allDay).map(event => <button key={event.id} className={`${grid.weekAllDayEvent} ${event.sourceType === 'google' ? grid.personalEventColors : grid.weekWorkspaceEvent}`} style={eventStyle(event)} title={`${event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${event.title}`} onClick={() => setSelectedEvent(event)}>{event.title}</button>)}
               </div>)}
               <div className={grid.weekAxis} style={{ height: hours.length * HOUR_HEIGHT }}>
-                {hours.map(hour => <span key={hour} className="tw:absolute tw:right-2 tw:translate-y-2 tw:text-[0.6875rem] tw:font-bold tw:text-cali-muted" style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT }}>{String(hour).padStart(2, '0')}:00</span>)}
+                {hours.map(hour => <span key={hour} className="tw:absolute tw:right-2 tw:translate-y-2 tw:text-cali-label tw:font-bold tw:text-cali-muted" style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT }}>{String(hour).padStart(2, '0')}:00</span>)}
               </div>
               {weekDates.map(date => <div key={`lane-${dateKey(date)}`} className={`calendar-week-lane ${grid.weekLane}`} style={{ height: hours.length * HOUR_HEIGHT }}>
-                {hours.map(hour => <div key={hour} className={`${grid.weekHour} tw:cursor-crosshair tw:touch-pan-y tw:hover:bg-(--theme-accent-soft) tw:workspace-night:hover:bg-[#281e22]`} style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }} onPointerDown={event=>startWeekSelection(date,hour,event)} onPointerMove={moveWeekSelection} onPointerUp={finishWeekSelection} onPointerCancel={()=>{selectionStart.current=null;setSelectionPreview(null)}} title="Selecione um horário para criar um evento" />)}
-                {selectionPreview?.date===dateKey(date)&&<div className="tw:pointer-events-none tw:absolute tw:inset-x-[0.1875rem] tw:z-5 tw:grid tw:place-items-center tw:rounded-md tw:border tw:border-solid tw:border-[#ad803d] tw:bg-[#f4d88bbd] tw:text-[0.6875rem] tw:font-bold tw:text-[#4a2430] tw:workspace-night:bg-[#755724d6] tw:workspace-night:text-[#fff3dc]" style={{top:selectionPreview.top,height:selectionPreview.height}}>Novo evento</div>}
+                {hours.map(hour => <div key={hour} className={`${grid.weekHour} tw:cursor-crosshair tw:touch-pan-y tw:hover:bg-(--theme-accent-soft) tw:workspace-night:hover:bg-cali-burgundy-strong`} style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }} onPointerDown={event=>startWeekSelection(date,hour,event)} onPointerMove={moveWeekSelection} onPointerUp={finishWeekSelection} onPointerCancel={()=>{selectionStart.current=null;setSelectionPreview(null)}} title="Selecione um horário para criar um evento" />)}
+                {selectionPreview?.date===dateKey(date)&&<div className="tw:pointer-events-none tw:absolute tw:inset-x-1 tw:z-5 tw:grid tw:place-items-center tw:rounded-md tw:border tw:border-solid tw:border-cali-gold-accent tw:bg-cali-orange-soft/74 tw:text-cali-label tw:font-bold tw:text-cali-burgundy-text tw:workspace-night:bg-cali-gold-text/84 tw:workspace-night:text-cali-orange-surface" style={{top:selectionPreview.top,height:selectionPreview.height}}>Novo evento</div>}
                 {weekEventLayout(eventsByDate.get(dateKey(date)) || []).map(({ event, top, height, column, columns }) =>
                   <button key={event.id} className={`${grid.weekEvent} ${event.sourceType === 'google' ? grid.personalEventColors : grid.weekWorkspaceEvent} ${event.sourceType === 'request_preview' ? grid.previewEventColors : ''} ${height < 36 ? grid.weekEventCompact : ''}`} style={{ ...eventStyle(event), top, height: Math.max(3,height - 2), left: 3 + Math.min(column*11,33), width: `calc(100% - ${7 + Math.min(column*11,33)}px)`, zIndex: columns+column }} title={`${event.sourceType === 'request_preview' ? 'Prévia em análise' : event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${formatCalendarTime(event.startsAt)}–${formatCalendarTime(event.endsAt)} · ${event.title}`} onClick={() => setSelectedEvent(event)}>
                     <strong className={grid.weekEventTitle}>{event.title}</strong><time className={grid.weekEventCopy}>{formatCalendarTime(event.startsAt)}{event.endsAt ? `–${formatCalendarTime(event.endsAt)}` : ''}</time><small className={grid.weekEventCopy}>{event.sourceType === 'request_preview' ? `Prévia ${event.previewOption} · não confirmado` : event.sourceType === 'google' ? 'Google' : 'Workspace'}</small>
@@ -532,18 +533,18 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
             {view === 'agenda' && <div className="calendar-agenda-view tw:px-4 tw:py-2.5">
               {monthAgenda.map((event) => {
                 const [, month, day] = eventDateKey(event).split('-');
-                return <button key={event.id} className={`tw:grid tw:min-h-[5.125rem] tw:w-full tw:cursor-pointer tw:grid-cols-[3.25rem_0.25rem_minmax(0,1fr)_auto] tw:items-center tw:gap-3.5 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:bg-transparent tw:px-1 tw:py-2.5 tw:text-left tw:text-cali-text tw:last:border-b-0 tw:hover:bg-(--theme-accent-soft) ${event.sourceType === 'request_preview' ? 'tw:rounded-[0.625rem] tw:border! tw:border-dashed tw:border-[#ba8a51] tw:bg-[#fff8ea] tw:px-3 tw:workspace-night:border-[#c4a16a] tw:workspace-night:bg-[#3b3023] tw:workspace-night:text-[#fff2d8] tw:workspace-night:[&_*]:text-inherit' : ''}`} onClick={() => setSelectedEvent(event)}>
-                  <div className="tw:grid tw:h-13 tw:w-12 tw:content-center tw:place-items-center tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface"><strong className="tw:text-base/none">{Number(day)}</strong><span className="tw:text-[0.5rem] tw:font-extrabold tw:text-cali-muted">{months[Number(month) - 1].slice(0, 3).toUpperCase()}</span></div>
-                  <span className="tw:h-[2.625rem] tw:w-1 tw:rounded-full" style={{ background: event.color }} />
-                  <div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-[0.1875rem]">
-                    <span className="tw:text-[0.59375rem] tw:font-extrabold tw:tracking-widest tw:uppercase tw:text-cali-accent">{event.sourceType === 'request_preview' ? `Prévia ${event.previewOption} · solicitação em análise` : calendarTypeMeta[event.type].label} · {formatCalendarTime(event.startsAt)}</span>
-                    <strong className="tw:text-[0.8125rem]/[1.3]">{event.title}</strong>
-                    <small className="tw:text-[0.6875rem]/[1.35] tw:text-cali-muted">{event.company || 'CALI'}{event.sourceType === 'request_preview' ? ' · ainda não confirmado' : event.visibility === 'client' ? ' · cliente vê' : ' · interno'}{eventProtocol(event) ? ` · ${eventProtocol(event)}` : ''}</small>
+                return <button key={event.id} className={`tw:grid tw:min-h-20.5 tw:w-full tw:cursor-pointer tw:grid-cols-[3.25rem_0.25rem_minmax(0,1fr)_auto] tw:items-center tw:gap-3.5 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:bg-transparent tw:px-1 tw:py-2.5 tw:text-left tw:text-cali-text tw:last:border-b-0 tw:hover:bg-(--theme-accent-soft) ${event.sourceType === 'request_preview' ? 'tw:rounded-cali-panel tw:border! tw:border-dashed tw:border-cali-gold-accent tw:bg-cali-gold-surface tw:px-3 tw:workspace-night:border-cali-gold-accent tw:workspace-night:bg-cali-sand-inverse tw:workspace-night:text-cali-orange-surface tw:workspace-night:[&_*]:text-inherit' : ''}`} onClick={() => setSelectedEvent(event)}>
+                  <div className="tw:grid tw:h-13 tw:w-12 tw:content-center tw:place-items-center tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface"><strong className="tw:text-base/none">{Number(day)}</strong><span className="tw:text-cali-micro tw:font-extrabold tw:text-cali-muted">{months[Number(month) - 1].slice(0, 3).toUpperCase()}</span></div>
+                  <span className="tw:h-10.5 tw:w-1 tw:rounded-full" style={{ background: event.color }} />
+                  <div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-1">
+                    <span className="tw:text-cali-micro tw:font-extrabold tw:tracking-widest tw:uppercase tw:text-cali-accent">{event.sourceType === 'request_preview' ? `Prévia ${event.previewOption} · solicitação em análise` : calendarTypeMeta[event.type].label} · {formatCalendarTime(event.startsAt)}</span>
+                    <strong className="tw:text-cali-detail/[1.3]">{event.title}</strong>
+                    <small className="tw:text-cali-label/[1.35] tw:text-cali-muted">{event.company || 'CALI'}{event.sourceType === 'request_preview' ? ' · ainda não confirmado' : event.visibility === 'client' ? ' · cliente vê' : ' · interno'}{eventProtocol(event) ? ` · ${eventProtocol(event)}` : ''}</small>
                   </div>
-                  <span className="tw:inline-flex tw:items-center tw:gap-1.5 tw:text-[0.6875rem] tw:font-bold tw:whitespace-nowrap tw:text-cali-muted">{event.mode === 'in_person' ? <MapPin size={15} /> : <Video size={15} />}{event.mode === 'in_person' ? 'Presencial' : event.mode === 'remote' ? 'Remoto' : 'Prazo'}</span>
+                  <span className="tw:inline-flex tw:items-center tw:gap-1.5 tw:text-cali-label tw:font-bold tw:whitespace-nowrap tw:text-cali-muted">{event.mode === 'in_person' ? <MapPin size={15} /> : <Video size={15} />}{event.mode === 'in_person' ? 'Presencial' : event.mode === 'remote' ? 'Remoto' : 'Prazo'}</span>
                 </button>;
               })}
-              {!monthAgenda.length && <div className="tw:px-4 tw:py-9 tw:text-center tw:text-[0.71875rem] tw:text-cali-muted">Nenhum evento neste mês com os filtros atuais.</div>}
+              {!monthAgenda.length && <div className="tw:px-4 tw:py-9 tw:text-center tw:text-cali-label tw:text-cali-muted">Nenhum evento neste mês com os filtros atuais.</div>}
             </div>}
           </section>
 

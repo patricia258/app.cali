@@ -16,6 +16,7 @@ import { ReportClientHistory } from './components/ReportClientHistory';
 import { ReportVersionHistory } from './components/ReportVersionHistory';
 import { ReportSectionHeading } from './components/ReportSectionHeading';
 import { ReportReviewSection } from './components/ReportReviewSection';
+import { ReportFacts, ReportIdentification } from './components/ReportSummaryGrids';
 import { ReportReviewAlerts } from './components/ReportReviewAlerts';
 import { ReportWorkflowConfirmation, type ReportWorkflowAction } from './components/ReportWorkflowConfirmation';
 import { useOfficialTrackedReport } from './hooks/useOfficialTrackedReport';
@@ -129,13 +130,13 @@ function matchesPeriod(report: Report, companyId: string, type: ReportType, star
 }
 
 function EditorialField({ title, value, onChange, helper, rows = 5, locked }: { title: string; value: string; onChange: (value: string) => void; helper: string; rows?: number; locked: boolean }) {
-  return <div className="reports-v16-editor-field tw:grid tw:grid-cols-[16.25rem_minmax(0,1fr)] tw:gap-[1.84615rem] tw:border-t
-    tw:border-solid tw:border-[#eee7e2] tw:py-[1.30769rem] tw:first-of-type:border-t-0 tw:first-of-type:pt-0
-    tw:max-[680px]:grid-cols-1 tw:workspace-night:border-[#3d3034]"><div><h3 className="tw:mx-0 tw:mt-0 tw:mb-[0.3125rem] tw:text-[0.8125rem] tw:workspace-night:text-[#f5efec]">{title}</h3><p className="tw:m-0 tw:text-[0.625rem] tw:leading-normal tw:text-[#8a7d76] tw:workspace-night:text-[#b6a8a3]">{helper}</p></div><textarea className="tw:w-full tw:resize-y tw:rounded-[0.625rem] tw:border tw:border-solid tw:border-[#e2d9d3] tw:bg-white
-    tw:px-[0.8125rem] tw:py-3 tw:text-[0.71875rem] tw:leading-[1.55] tw:text-cali-ink tw:outline-none
-    tw:focus:border-[#9e6875] tw:focus:shadow-[0_0_0_0.1875rem_#5a1e2d0f] tw:read-only:bg-[#f7f4f1]
-    tw:read-only:text-[#6d625c] tw:workspace-night:border-[#4b3940] tw:workspace-night:bg-[#2a2024]
-    tw:workspace-night:text-[#f3ece9] tw:workspace-night:read-only:bg-[#241c1f] tw:workspace-night:read-only:text-[#b8aaa5]" rows={rows} value={value} readOnly={locked} onChange={(event) => onChange(event.target.value)} /></div>;
+  return <div className="reports-v16-editor-field tw:grid tw:grid-cols-[16.25rem_minmax(0,1fr)] tw:gap-7.5 tw:border-t
+    tw:border-solid tw:border-cali-line tw:py-5 tw:first-of-type:border-t-0 tw:first-of-type:pt-0
+    tw:max-[680px]:grid-cols-1 tw:workspace-night:border-cali-line-strong"><div><h3 className="tw:mx-0 tw:mt-0 tw:mb-1 tw:text-cali-detail tw:workspace-night:text-cali-text">{title}</h3><p className="tw:m-0 tw:text-cali-micro tw:leading-normal tw:text-cali-muted tw:workspace-night:text-cali-sand-accent">{helper}</p></div><textarea className="tw:w-full tw:resize-y tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface
+    tw:px-3 tw:py-3 tw:text-cali-label tw:leading-[1.55] tw:text-cali-ink tw:outline-none
+    tw:focus:border-cali-burgundy-line tw:focus:shadow-[0_0_0_0.1875rem_rgb(var(--cali-rgb-burgundy-accent)/0.05882)] tw:read-only:bg-cali-sand-soft
+    tw:read-only:text-cali-neutral-accent tw:workspace-night:border-cali-neutral-text tw:workspace-night:bg-cali-surface-muted
+    tw:workspace-night:text-cali-neutral-soft tw:workspace-night:read-only:bg-cali-surface tw:workspace-night:read-only:text-cali-sand-accent" rows={rows} value={value} readOnly={locked} onChange={(event) => onChange(event.target.value)} /></div>;
 }
 
 export function AdminReportsPage() {
@@ -547,21 +548,21 @@ export function AdminReportsPage() {
 
   const previewEditorial = <>
     {changes.length ? <ReportReviewSection><ReportSectionHeading number="03" title={reportType === 'quarterly' ? 'Evolução dentro do trimestre' : 'O que mudou'} description={'Só existe comparativo quando há base real nos dois períodos.'} /><ReportPeriodChanges changes={changes} /></ReportReviewSection> : null}
-    <ReportReviewSection><ReportSectionHeading number="04" title={'Curadoria de demandas e decisões'} description={'Você pode preparar a curadoria agora. Nada é gravado até criar o fechamento oficial.'} /><div className="reports-v16-selection-grid tw:grid tw:grid-cols-2 tw:gap-[2.61538rem] tw:max-[1050px]:grid-cols-1
-      tw:[&_h3]:mt-0! tw:[&_h3]:text-[#3a322e] tw:workspace-night:[&_h3]:text-[#f5efec]"><div><h3>Demandas para leitura interna</h3>{demandChoices.length ? <ReportReviewChecklist>{demandChoices.map((item) => <label key={item}><input type="checkbox" checked={selectedDemands.has(item)} onChange={() => toggleSelection(item, 'movements')} /><span>{item}</span></label>)}</ReportReviewChecklist> : <p className="reports-v16-empty tw:m-0 tw:text-[0.82055rem] tw:text-[#8a7d76]">Nenhuma demanda estruturada foi registrada.</p>}</div><div><h3>Decisões registradas</h3>{decisionOptions.length ? <ReportReviewChecklist>{decisionOptions.map((item) => <label key={item}><input type="checkbox" checked={selectedDecisions.has(item)} onChange={() => toggleSelection(item, 'decisions')} /><span>{item}</span></label>)}</ReportReviewChecklist> : <p className="reports-v16-empty tw:m-0 tw:text-[0.82055rem] tw:text-[#8a7d76]">Nenhuma decisão estruturada foi registrada.</p>}</div></div></ReportReviewSection>
+    <ReportReviewSection><ReportSectionHeading number="04" title={'Curadoria de demandas e decisões'} description={'Você pode preparar a curadoria agora. Nada é gravado até criar o fechamento oficial.'} /><div className="reports-v16-selection-grid tw:grid tw:grid-cols-2 tw:gap-10.5 tw:max-[1050px]:grid-cols-1
+      tw:[&_h3]:mt-0! tw:[&_h3]:text-cali-text tw:workspace-night:[&_h3]:text-cali-text"><div><h3>Demandas para leitura interna</h3>{demandChoices.length ? <ReportReviewChecklist>{demandChoices.map((item) => <label key={item}><input type="checkbox" checked={selectedDemands.has(item)} onChange={() => toggleSelection(item, 'movements')} /><span>{item}</span></label>)}</ReportReviewChecklist> : <p className="reports-v16-empty tw:m-0 tw:text-cali-detail tw:text-cali-muted">Nenhuma demanda estruturada foi registrada.</p>}</div><div><h3>Decisões registradas</h3>{decisionOptions.length ? <ReportReviewChecklist>{decisionOptions.map((item) => <label key={item}><input type="checkbox" checked={selectedDecisions.has(item)} onChange={() => toggleSelection(item, 'decisions')} /><span>{item}</span></label>)}</ReportReviewChecklist> : <p className="reports-v16-empty tw:m-0 tw:text-cali-detail tw:text-cali-muted">Nenhuma decisão estruturada foi registrada.</p>}</div></div></ReportReviewSection>
     <ReportReviewAlerts alerts={unresolvedAlerts} />
     <ReportReviewSection surface="editorial"><ReportSectionHeading number="06" title={'Leitura executiva CALI'} description={'Estes campos continuam editáveis antes do fechamento. O conteúdo será levado para a versão oficial quando você criá-la.'} /><EditorialField title={reportType === 'quarterly' ? 'Leitura executiva do trimestre' : 'Leitura executiva do mês'} value={editor.summary} onChange={(value) => setEditor((current) => ({ ...current, summary: value }))} helper="3–5 linhas. Explique o que o período revela; não copie logs, dúvidas ou tabelas." rows={7} locked={false} /><EditorialField title="Pontos de atenção para o cliente" value={editor.risks} onChange={(value) => setEditor((current) => ({ ...current, risks: value }))} helper="Até 3 pontos. Traga risco + recomendação + dependência, sem repetir o texto da leitura executiva." rows={5} locked={false} /></ReportReviewSection>
     <ReportReviewSection surface="editorial"><ReportSectionHeading number="07" title={reportType === 'quarterly' ? 'Prioridades do próximo trimestre' : 'Prioridades do próximo ciclo'} description={'Feche olhando para frente. Prioridade não repete ponto de atenção.'} /><EditorialField title="Prioridades" value={editor.nextSteps} onChange={(value) => setEditor((current) => ({ ...current, nextSteps: value }))} helper="1–3 movimentos. Inclua prazo, responsável ou dependência quando isso mudar a leitura." rows={5} locked={false} /></ReportReviewSection>
-    <details className="reports-v16-internal tw:group tw:border-t tw:border-solid tw:border-[#ece5df] tw:bg-[#faf7f4]
-      tw:px-[2.46154rem] tw:py-[1.38462rem] tw:max-[680px]:px-[1.38462rem] tw:workspace-night:border-[#3b2d32]
-      tw:workspace-night:bg-[#1d1719]"><summary className="tw:cursor-pointer tw:list-none tw:text-[0.84615rem] tw:font-extrabold tw:text-cali-brand tw:before:mr-[0.61538rem]
-      tw:before:inline-block tw:before:text-[1.23077rem] tw:before:leading-[1.5] tw:before:font-normal
+    <details className="reports-v16-internal tw:group tw:border-t tw:border-solid tw:border-cali-sand-line tw:bg-cali-surface-soft
+      tw:px-10 tw:py-5.5 tw:max-[680px]:px-5.5 tw:workspace-night:border-cali-neutral-strong
+      tw:workspace-night:bg-cali-burgundy-inverse"><summary className="tw:cursor-pointer tw:list-none tw:text-sm tw:font-extrabold tw:text-cali-brand tw:before:mr-2.5
+      tw:before:inline-block tw:before:text-xl tw:before:leading-[1.5] tw:before:font-normal
       tw:before:content-['+'] tw:group-open:before:content-['−'] tw:[&::-webkit-details-marker]:hidden
-      tw:workspace-night:text-[#e4b9c3]">Adicionar nota interna</summary><p className="tw:mt-2 tw:mb-2.5 tw:text-[0.625rem] tw:text-[#887b75]">Visível somente para você. A nota só passa a ser gravada quando o fechamento oficial for criado.</p><textarea className="tw:w-full tw:resize-y tw:rounded-[0.625rem] tw:border tw:border-solid tw:border-[#e2d9d3] tw:bg-white
-      tw:px-[0.8125rem] tw:py-3 tw:text-[0.71875rem] tw:leading-[1.55] tw:text-cali-ink tw:outline-none
-      tw:focus:border-[#9e6875] tw:focus:shadow-[0_0_0_0.1875rem_#5a1e2d0f] tw:read-only:bg-[#f7f4f1]
-      tw:read-only:text-[#6d625c] tw:workspace-night:border-[#4b3940] tw:workspace-night:bg-[#2a2024]
-      tw:workspace-night:text-[#f3ece9] tw:workspace-night:read-only:bg-[#241c1f] tw:workspace-night:read-only:text-[#b8aaa5]" rows={4} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Anotação para a conversa ou para o próximo fechamento." /></details>
+      tw:workspace-night:text-cali-burgundy-soft">Adicionar nota interna</summary><p className="tw:mt-2 tw:mb-2.5 tw:text-cali-micro tw:text-cali-sand-text">Visível somente para você. A nota só passa a ser gravada quando o fechamento oficial for criado.</p><textarea className="tw:w-full tw:resize-y tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface
+      tw:px-3 tw:py-3 tw:text-cali-label tw:leading-[1.55] tw:text-cali-ink tw:outline-none
+      tw:focus:border-cali-burgundy-line tw:focus:shadow-[0_0_0_0.1875rem_rgb(var(--cali-rgb-burgundy-accent)/0.05882)] tw:read-only:bg-cali-sand-soft
+      tw:read-only:text-cali-neutral-accent tw:workspace-night:border-cali-neutral-text tw:workspace-night:bg-cali-surface-muted
+      tw:workspace-night:text-cali-neutral-soft tw:workspace-night:read-only:bg-cali-surface tw:workspace-night:read-only:text-cali-sand-accent" rows={4} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Anotação para a conversa ou para o próximo fechamento." /></details>
   </>;
 
   // Trilha do fechamento: mostra em que etapa o relatório do período está.
@@ -572,28 +573,28 @@ export function AdminReportsPage() {
     ? `Fechamento oficial liberado ${readiness.available_on ? `em ${formatDate(readiness.available_on)}` : `após ${readiness.required_days} dias de coleta`}`
     : null;
 
-  return <Shell role="admin"><WorkspaceAdminPage className="v2-admin-reports v2-client-module"><WorkspaceAdminContent><WorkflowPage as="section" className="reports-admin-v16 tw:mx-auto tw:max-w-[98.46154rem] tw:pb-[5.84615rem] tw:[&>.inline-notice:not(.success)]:border!
-    tw:[&>.inline-notice:not(.success)]:border-solid! tw:[&>.inline-notice:not(.success)]:border-[#d7c6bd]!
+  return <Shell role="admin"><WorkspaceAdminPage className="v2-admin-reports v2-client-module"><WorkspaceAdminContent><WorkflowPage as="section" className="reports-admin-v16 tw:mx-auto tw:max-w-[98.46154rem] tw:pb-23.5 tw:[&>.inline-notice:not(.success)]:border!
+    tw:[&>.inline-notice:not(.success)]:border-solid! tw:[&>.inline-notice:not(.success)]:border-cali-neutral-line!
     tw:[&>.inline-notice:not(.success)]:bg-cali-day-canvas! tw:[&>.inline-notice:not(.success)]:text-cali-brand!
-    tw:[&>.inline-notice:not(.success)_svg]:text-[#8b4855]! tw:max-[680px]:px-0 tw:[&_:is(strong,b,span,h1,h2,h3,dd,dt,small,p,td,th,button,label,input,select,textarea)]:[font-family:Inter,system-ui,sans-serif]!">
+    tw:[&>.inline-notice:not(.success)_svg]:text-cali-red-text! tw:max-[680px]:px-0 tw:[&_:is(strong,b,span,h1,h2,h3,dd,dt,small,p,td,th,button,label,input,select,textarea)]:[font-family:Inter,system-ui,sans-serif]!">
     {activeReport && isDraft(activeReport) && !isSimulation && <AdminMaterialReview kind="report" entityId={activeReport.id} companyId={activeReport.companyId} onApproved={refreshReportViews} />}
     <WorkflowHeading className="tw:items-start"><div><small>BACKOFFICE / CALI RH</small><h1>Relatórios</h1><p>Fechamento executivo de cada conta: fatos do período, curadoria, leitura da CALI, aprovação e envio ao cliente.</p></div></WorkflowHeading>
-    <WorkflowControls className="v2-report-controls tw:mb-[1.23077rem] tw:flex tw:flex-wrap! tw:items-center tw:justify-between tw:gap-x-[1.23077rem] tw:gap-y-[0.92308rem]"><ol className="v2-report-stages tw:m-0 tw:flex tw:min-w-0 tw:flex-none tw:list-none tw:items-center tw:gap-0 tw:p-0 tw:max-[1180px]:flex-wrap tw:max-[1180px]:gap-y-[0.61538rem]" aria-label="Etapa do fechamento">{stages.map((label, index) => <li key={label} className={`tw:inline-flex tw:items-center tw:gap-[0.61538rem] tw:text-[0.84615rem] tw:whitespace-nowrap tw:text-[#a8938f] tw:[&+li]:before:mx-[0.61538rem] tw:[&+li]:before:h-px tw:[&+li]:before:w-[1.38462rem] tw:[&+li]:before:bg-[#e2d5cb] tw:[&+li]:before:content-[''] ${index < stageIndex ? 'done tw:text-[#31805a]' : index === stageIndex ? 'current tw:font-bold tw:text-[#322f2c]' : ''}`}>
-      <b className={`tw:grid tw:size-[1.375rem] tw:place-items-center tw:rounded-md tw:border tw:border-solid tw:text-[0.625rem] tw:font-bold ${index < stageIndex ? 'tw:border-[#cfe9da] tw:bg-[#e6f6ec] tw:text-[#31805a]' : index === stageIndex ? 'tw:border-cali-brand tw:bg-cali-brand tw:text-white' : 'tw:border-[#e2d5cb] tw:bg-white tw:text-[#a8938f]'}`}>{index + 1}</b><span>{label}</span></li>)}</ol><div className="reports-v16-filters tw:my-0! tw:ml-auto! tw:flex! tw:flex-none tw:flex-wrap tw:items-center tw:justify-end
-        tw:gap-[0.76923rem] tw:p-0! tw:max-[1050px]:justify-start tw:max-[680px]:w-full tw:[&_label]:m-0!
-        tw:[&_label]:inline-flex! tw:[&_label]:flex-row! tw:[&_label]:items-center tw:[&_label]:gap-[0.53846rem]
-        tw:[&_label]:text-[0.76923rem]! tw:[&_label]:font-bold! tw:[&_label]:tracking-normal! tw:[&_label]:text-[#6f625c]
-        tw:[&_label]:normal-case! tw:[&_:is(select,input)]:h-[2.76923rem]! tw:[&_:is(select,input)]:min-h-0!
+    <WorkflowControls className="v2-report-controls tw:mb-5 tw:flex tw:flex-wrap! tw:items-center tw:justify-between tw:gap-x-5 tw:gap-y-3.5"><ol className="v2-report-stages tw:m-0 tw:flex tw:min-w-0 tw:flex-none tw:list-none tw:items-center tw:gap-0 tw:p-0 tw:max-[1180px]:flex-wrap tw:max-[1180px]:gap-y-2.5" aria-label="Etapa do fechamento">{stages.map((label, index) => <li key={label} className={`tw:inline-flex tw:items-center tw:gap-2.5 tw:text-sm tw:whitespace-nowrap tw:text-cali-sand-text tw:[&+li]:before:mx-2.5 tw:[&+li]:before:h-px tw:[&+li]:before:w-5.5 tw:[&+li]:before:bg-cali-sand-line tw:[&+li]:before:content-[''] ${index < stageIndex ? 'done tw:text-cali-success' : index === stageIndex ? 'current tw:font-bold tw:text-cali-text' : ''}`}>
+      <b className={`tw:grid tw:size-5.5 tw:place-items-center tw:rounded-md tw:border tw:border-solid tw:text-cali-micro tw:font-bold ${index < stageIndex ? 'tw:border-cali-green-soft tw:bg-cali-success-surface tw:text-cali-success' : index === stageIndex ? 'tw:border-cali-brand tw:bg-cali-brand tw:text-cali-neutral-surface' : 'tw:border-cali-sand-line tw:bg-cali-neutral-surface tw:text-cali-sand-text'}`}>{index + 1}</b><span>{label}</span></li>)}</ol><div className="reports-v16-filters tw:my-0! tw:ml-auto! tw:flex! tw:flex-none tw:flex-wrap tw:items-center tw:justify-end
+        tw:gap-3 tw:p-0! tw:max-[1050px]:justify-start tw:max-[680px]:w-full tw:[&_label]:m-0!
+        tw:[&_label]:inline-flex! tw:[&_label]:flex-row! tw:[&_label]:items-center tw:[&_label]:gap-2
+        tw:[&_label]:text-xs! tw:[&_label]:font-bold! tw:[&_label]:tracking-normal! tw:[&_label]:text-cali-neutral-accent
+        tw:[&_label]:normal-case! tw:[&_:is(select,input)]:h-11! tw:[&_:is(select,input)]:min-h-0!
         tw:[&_:is(select,input)]:w-auto tw:[&_:is(select,input)]:min-w-[11.38462rem] tw:[&_:is(select,input)]:max-w-[16.92308rem]
-        tw:[&_:is(select,input)]:rounded-[0.53846rem]! tw:[&_:is(select,input)]:border! tw:[&_:is(select,input)]:border-solid!
-        tw:[&_:is(select,input)]:border-[#e5d9d0]! tw:[&_:is(select,input)]:bg-white! tw:[&_:is(select,input)]:px-[0.76923rem]!
-        tw:[&_:is(select,input)]:py-0! tw:[&_:is(select,input)]:text-[0.84615rem]! tw:[&_:is(select,input)]:font-semibold!
-        tw:[&_:is(select,input)]:text-[#322f2c]! tw:[&_:is(select,input)]:normal-case tw:[&_label:first-child_select]:min-w-[17.69231rem]"><label>Empresa<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label><label>Tipo<select value={reportType} onChange={(event) => changeType(event.target.value as ReportType)}><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option></select></label>{reportType === 'monthly' ? <label>Período<input type="month" value={periodStart.slice(0, 7)} onChange={(event) => changeMonth(event.target.value)} /></label> : <label>Período<select value={quarterKey(periodStart)} onChange={(event) => changeQuarter(event.target.value)}>{quarters.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>}</div></WorkflowControls>
+        tw:[&_:is(select,input)]:rounded-lg! tw:[&_:is(select,input)]:border! tw:[&_:is(select,input)]:border-solid!
+        tw:[&_:is(select,input)]:border-cali-line! tw:[&_:is(select,input)]:bg-cali-neutral-surface! tw:[&_:is(select,input)]:px-3!
+        tw:[&_:is(select,input)]:py-0! tw:[&_:is(select,input)]:text-sm! tw:[&_:is(select,input)]:font-semibold!
+        tw:[&_:is(select,input)]:text-cali-text! tw:[&_:is(select,input)]:normal-case tw:[&_label:first-child_select]:min-w-[17.69231rem]"><label>Empresa<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label><label>Tipo<select value={reportType} onChange={(event) => changeType(event.target.value as ReportType)}><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option></select></label>{reportType === 'monthly' ? <label>Período<input type="month" value={periodStart.slice(0, 7)} onChange={(event) => changeMonth(event.target.value)} /></label> : <label>Período<select value={quarterKey(periodStart)} onChange={(event) => changeQuarter(event.target.value)}>{quarters.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>}</div></WorkflowControls>
     {notice ? <InlineNotice tone="success"><CheckCircle2 size={18} />{notice}</InlineNotice> : null}{error ? <InlineNotice><AlertTriangle size={18} />{error}</InlineNotice> : null}
 
-    {loadingPeriod ? <div className="data-loading tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#eae3dd] tw:bg-white"><Loader2 className="spin" size={20} />Lendo {periodName}…</div> : snapshot && selectedCompany ? <>
+    {loadingPeriod ? <div className="data-loading tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface"><Loader2 className="spin" size={20} />Lendo {periodName}…</div> : snapshot && selectedCompany ? <>
       {!activeReport ? <>
-        <ReportEditorToolbar><div><strong>Prévia interna</strong><span>Sem registro persistente</span><span>{readiness?.required_days ? `${Math.max(0, readiness.collected_days)} de ${readiness.required_days} dias de coleta` : 'Dados lidos em tempo real'}</span>{collectionWait && <span className="reports-v17-official-wait tw:font-semibold tw:text-[#9a6b1f]!">{collectionWait}</span>}{error ? <span className="reports-v17-toolbar-error tw:font-semibold tw:text-[#b42318]!" role="alert">{error}</span> : null}</div><div><Button variant="secondary" type="button" disabled={saving} onClick={() => setWorkflowAction('refresh-preview')}><RefreshCw size={15} />Atualizar prévia</Button><Button variant="secondary" type="button" onClick={() => setPreviewOpen(true)}><FileText size={15} />Visualizar prévia</Button><Button variant="primary" type="button" disabled={saving || Boolean(readiness && !readiness.can_generate_official)} onClick={() => void createOfficialClosing()}><CheckCircle2 size={15} />Criar fechamento oficial</Button></div></ReportEditorToolbar>
+        <ReportEditorToolbar><div><strong>Prévia interna</strong><span>Sem registro persistente</span><span>{readiness?.required_days ? `${Math.max(0, readiness.collected_days)} de ${readiness.required_days} dias de coleta` : 'Dados lidos em tempo real'}</span>{collectionWait && <span className="reports-v17-official-wait tw:font-semibold tw:text-cali-gold-text!">{collectionWait}</span>}{error ? <span className="reports-v17-toolbar-error tw:font-semibold tw:text-cali-danger!" role="alert">{error}</span> : null}</div><div><Button variant="secondary" type="button" disabled={saving} onClick={() => setWorkflowAction('refresh-preview')}><RefreshCw size={15} />Atualizar prévia</Button><Button variant="secondary" type="button" onClick={() => setPreviewOpen(true)}><FileText size={15} />Visualizar prévia</Button><Button variant="primary" type="button" disabled={saving || Boolean(readiness && !readiness.can_generate_official)} onClick={() => void createOfficialClosing()}><CheckCircle2 size={15} />Criar fechamento oficial</Button></div></ReportEditorToolbar>
         <ReportReviewOverview
           label="PRÉVIA SEM PERSISTÊNCIA"
           title="Navegar pelo período não cria mais rascunho."
@@ -607,31 +608,17 @@ export function AdminReportsPage() {
           ]}
         />
         <ReportEditorWorkspace>
-          <ReportReviewSection><ReportSectionHeading number="01" title={'Base da prévia'} description={'Identificação e fatos são lidos da origem, sem gravar relatório.'} /><dl className="reports-v16-identification tw:m-0 tw:grid tw:grid-cols-4 tw:border-y tw:border-solid tw:border-[#eee7e2]
-            tw:max-[680px]:grid-cols-2 tw:workspace-night:border-[#433339] tw:[&>div]:mr-[1.38462rem] tw:[&>div]:border-r
-            tw:[&>div]:border-solid tw:[&>div]:border-[#eee7e2] tw:[&>div]:pt-[1.15385rem] tw:[&>div]:pr-[1.38462rem]
-            tw:[&>div]:pb-[1.07692rem] tw:[&>div:last-child]:mr-0 tw:[&>div:last-child]:border-r-0 tw:[&_dt]:mb-[0.38462rem]
-            tw:[&_dt]:text-[0.69231rem] tw:[&_dt]:font-extrabold tw:[&_dt]:tracking-[0.1em] tw:[&_dt]:text-[#978982]
-            tw:[&_dt]:uppercase tw:[&_dd]:m-0 tw:[&_dd]:text-[1.07692rem] tw:[&_dd]:leading-[calc(1.25/0.875)]
-            tw:[&_dd]:leading-[1.35] tw:[&_dd]:font-bold tw:[&_dd]:text-[#312c29] tw:workspace-night:[&>div]:border-[#433339]
-            tw:workspace-night:[&_dt]:text-[#aa9994] tw:workspace-night:[&_dd]:text-[#f5efec]"><div><dt>Cliente</dt><dd>{selectedCompany.name}</dd></div><div><dt>Período</dt><dd>{periodName}</dd></div><div><dt>Projeto / ciclo</dt><dd>{snapshot.cycleContext?.projectName || kpis?.cycleLabel || snapshot.projects[0]?.name || '—'}</dd></div><div><dt>Protocolo</dt><dd>Será gerado no fechamento</dd></div></dl></ReportReviewSection>
-          <ReportReviewSection><ReportSectionHeading number="02" title={'Fatos disponíveis'} description={'Só aparece o que possui base real no período.'} /><div className="reports-v16-fact-grid tw:grid tw:grid-cols-5 tw:border-y tw:border-solid tw:border-[#eee7e2] tw:max-[1050px]:grid-cols-3
-            tw:max-[680px]:grid-cols-2 tw:workspace-night:border-[#433339] tw:[&_article]:mr-[1.38462rem]
-            tw:[&_article]:border-r tw:[&_article]:border-solid tw:[&_article]:border-[#eee7e2] tw:[&_article]:pt-[1.23077rem]
-            tw:[&_article]:pr-[1.38462rem] tw:[&_article]:pb-[1.15385rem] tw:[&_article:last-child]:mr-0 tw:[&_article:last-child]:border-r-0
-            tw:[&_small]:block tw:[&_small]:text-[0.65385rem] tw:[&_small]:font-extrabold tw:[&_small]:tracking-[0.09em]
-            tw:[&_small]:text-[#95867f] tw:[&_small]:uppercase tw:[&_strong]:mt-[0.38462rem] tw:[&_strong]:block
-            tw:[&_strong]:text-[1.69231rem]! tw:[&_strong]:font-semibold! tw:[&_strong]:text-cali-brand! tw:workspace-night:[&_article]:border-[#433339]
-            tw:workspace-night:[&_small]:text-[#aa9994]">{hasCapacity ? <article><small>Capacidade utilizada</small><strong>{usagePercent === null ? formatHoursV14(usedMinutes) : `${usagePercent}%`}</strong></article> : null}{hasPlanned ? <article><small>Entregas previstas</small><strong>{kpis?.completedDeliveries}/{kpis?.plannedDeliveries}</strong></article> : null}{hasAdherence ? <article><small>Aderência ao prazo</small><strong>{kpis?.deliveryAdherence}%</strong></article> : null}</div>{periodDeliveries.length ? <div><h3>Planejado x realizado</h3><table className="reports-v16-table deliveries tw:w-full tw:border-collapse tw:[&_th]:border-b tw:[&_th]:border-solid
-            tw:[&_th]:border-[#d9d0ca] tw:[&_th]:py-[0.53846rem] tw:[&_th]:pr-[0.69231rem] tw:[&_th]:text-left
-            tw:[&_th]:text-[0.65385rem] tw:[&_th]:font-extrabold tw:[&_th]:tracking-[0.08em] tw:[&_th]:text-[#8a7d76]
-            tw:[&_th]:uppercase tw:[&_td]:border-b tw:[&_td]:border-solid tw:[&_td]:border-[#eee7e2] tw:[&_td]:py-[0.69231rem]
-            tw:[&_td]:pr-[0.69231rem] tw:[&_td]:align-top tw:[&_td]:text-[0.84615rem] tw:[&_td]:text-[#3a3430]
+          <ReportReviewSection><ReportSectionHeading number="01" title={'Base da prévia'} description={'Identificação e fatos são lidos da origem, sem gravar relatório.'} /><ReportIdentification><div><dt>Cliente</dt><dd>{selectedCompany.name}</dd></div><div><dt>Período</dt><dd>{periodName}</dd></div><div><dt>Projeto / ciclo</dt><dd>{snapshot.cycleContext?.projectName || kpis?.cycleLabel || snapshot.projects[0]?.name || '—'}</dd></div><div><dt>Protocolo</dt><dd>Será gerado no fechamento</dd></div></ReportIdentification></ReportReviewSection>
+          <ReportReviewSection><ReportSectionHeading number="02" title={'Fatos disponíveis'} description={'Só aparece o que possui base real no período.'} /><ReportFacts>{hasCapacity ? <article><small>Capacidade utilizada</small><strong>{usagePercent === null ? formatHoursV14(usedMinutes) : `${usagePercent}%`}</strong></article> : null}{hasPlanned ? <article><small>Entregas previstas</small><strong>{kpis?.completedDeliveries}/{kpis?.plannedDeliveries}</strong></article> : null}{hasAdherence ? <article><small>Aderência ao prazo</small><strong>{kpis?.deliveryAdherence}%</strong></article> : null}</ReportFacts>{periodDeliveries.length ? <div><h3>Planejado x realizado</h3><table className="reports-v16-table deliveries tw:w-full tw:border-collapse tw:[&_th]:border-b tw:[&_th]:border-solid
+            tw:[&_th]:border-cali-neutral-line tw:[&_th]:py-2 tw:[&_th]:pr-3 tw:[&_th]:text-left
+            tw:[&_th]:text-cali-micro tw:[&_th]:font-extrabold tw:[&_th]:tracking-[0.08em] tw:[&_th]:text-cali-muted
+            tw:[&_th]:uppercase tw:[&_td]:border-b tw:[&_td]:border-solid tw:[&_td]:border-cali-line tw:[&_td]:py-3
+            tw:[&_td]:pr-3 tw:[&_td]:align-top tw:[&_td]:text-sm tw:[&_td]:text-cali-text
             tw:[&_tr:last-child_td]:border-b-0 tw:[&_th:last-child]:pr-0 tw:[&_td:last-child]:pr-0 tw:[&_td:last-child]:text-left
-            tw:[&_td_strong]:block tw:[&_td_strong]:text-[0.84615rem] tw:[&_td_small]:mt-[0.15385rem] tw:[&_td_small]:block
-            tw:[&_td_small]:text-[0.69231rem] tw:[&_td_small]:text-[#8c7e77] tw:workspace-night:[&_th]:border-[#3d3034]
-            tw:workspace-night:[&_td]:border-[#3d3034] tw:workspace-night:[&_th]:text-[#a99a95] tw:workspace-night:[&_td]:text-[#e8dfdc]
-            tw:workspace-night:[&_td_small]:text-[#a99a95]"><thead><tr><th>Entregável</th><th>Previsto</th><th>Realizado</th><th>Situação</th></tr></thead><tbody>{periodDeliveries.map((item) => <tr key={item.deliverable_id}><td><strong>{item.title}</strong>{item.workstream ? <small>{item.workstream}</small> : null}</td><td>{formatDate(item.effective_due_at)}</td><td>{formatDate(item.completion_at)}</td><td>{deliveryTimingLabelV14(item)}</td></tr>)}</tbody></table></div> : <p className="reports-v16-empty tw:m-0 tw:text-[0.82055rem] tw:text-[#8a7d76]">Nenhum entregável movimentado neste período.</p>}</ReportReviewSection>
+            tw:[&_td_strong]:block tw:[&_td_strong]:text-sm tw:[&_td_small]:mt-0.5 tw:[&_td_small]:block
+            tw:[&_td_small]:text-cali-label tw:[&_td_small]:text-cali-sand-text tw:workspace-night:[&_th]:border-cali-line-strong
+            tw:workspace-night:[&_td]:border-cali-line-strong tw:workspace-night:[&_th]:text-cali-muted tw:workspace-night:[&_td]:text-cali-sand-line
+            tw:workspace-night:[&_td_small]:text-cali-muted"><thead><tr><th>Entregável</th><th>Previsto</th><th>Realizado</th><th>Situação</th></tr></thead><tbody>{periodDeliveries.map((item) => <tr key={item.deliverable_id}><td><strong>{item.title}</strong>{item.workstream ? <small>{item.workstream}</small> : null}</td><td>{formatDate(item.effective_due_at)}</td><td>{formatDate(item.completion_at)}</td><td>{deliveryTimingLabelV14(item)}</td></tr>)}</tbody></table></div> : <p className="reports-v16-empty tw:m-0 tw:text-cali-detail tw:text-cali-muted">Nenhum entregável movimentado neste período.</p>}</ReportReviewSection>
           <ReportManualComplementsPanel value={manualComplements} onChange={setManualComplements} />
           {previewEditorial}
           {history}
@@ -642,7 +629,7 @@ export function AdminReportsPage() {
             {!isSimulation && <strong>{isCollectionPreview ? 'Prévia interna' : statusLabel[lifecycleStatus]}</strong>}
             {!isSimulation && !isCollectionPreview && <span>v{activeReport.version}</span>}
             <span>{autosaveState === 'saving' ? 'Salvando…' : autosaveState === 'error' ? 'Falha no autosave' : `Salvo ${formatDateTime(lastSavedAt || activeReport.updatedAt)}`}</span>
-            {isCollectionPreview && collectionWait && <span className="reports-v17-official-wait tw:font-semibold tw:text-[#9a6b1f]!">{collectionWait}</span>}
+            {isCollectionPreview && collectionWait && <span className="reports-v17-official-wait tw:font-semibold tw:text-cali-gold-text!">{collectionWait}</span>}
           </div>
           <div>
             {canEdit && <Button variant="secondary" type="button" disabled={saving} onClick={() => setWorkflowAction(isSimulation ? 'refresh-simulation' : isCollectionPreview ? 'refresh-preview' : 'refresh-facts')}>
@@ -675,43 +662,29 @@ export function AdminReportsPage() {
         />
 
         <ReportEditorWorkspace>
-          <ReportReviewSection><ReportSectionHeading number="01" title={'Base do fechamento'} description={'Identificação automática. Nada aqui deve ser digitado no relatório.'} /><dl className="reports-v16-identification tw:m-0 tw:grid tw:grid-cols-4 tw:border-y tw:border-solid tw:border-[#eee7e2]
-            tw:max-[680px]:grid-cols-2 tw:workspace-night:border-[#433339] tw:[&>div]:mr-[1.38462rem] tw:[&>div]:border-r
-            tw:[&>div]:border-solid tw:[&>div]:border-[#eee7e2] tw:[&>div]:pt-[1.15385rem] tw:[&>div]:pr-[1.38462rem]
-            tw:[&>div]:pb-[1.07692rem] tw:[&>div:last-child]:mr-0 tw:[&>div:last-child]:border-r-0 tw:[&_dt]:mb-[0.38462rem]
-            tw:[&_dt]:text-[0.69231rem] tw:[&_dt]:font-extrabold tw:[&_dt]:tracking-[0.1em] tw:[&_dt]:text-[#978982]
-            tw:[&_dt]:uppercase tw:[&_dd]:m-0 tw:[&_dd]:text-[1.07692rem] tw:[&_dd]:leading-[calc(1.25/0.875)]
-            tw:[&_dd]:leading-[1.35] tw:[&_dd]:font-bold tw:[&_dd]:text-[#312c29] tw:workspace-night:[&>div]:border-[#433339]
-            tw:workspace-night:[&_dt]:text-[#aa9994] tw:workspace-night:[&_dd]:text-[#f5efec]"><div><dt>Cliente</dt><dd>{selectedCompany.name}</dd></div><div><dt>Período</dt><dd>{periodName}</dd></div><div><dt>Projeto / ciclo</dt><dd>{snapshot.cycleContext?.projectName || kpis?.cycleLabel || snapshot.projects[0]?.name || '—'}</dd></div><div><dt>Protocolo</dt><dd>{activeReport.protocol}</dd></div></dl></ReportReviewSection>
+          <ReportReviewSection><ReportSectionHeading number="01" title={'Base do fechamento'} description={'Identificação automática. Nada aqui deve ser digitado no relatório.'} /><ReportIdentification><div><dt>Cliente</dt><dd>{selectedCompany.name}</dd></div><div><dt>Período</dt><dd>{periodName}</dd></div><div><dt>Projeto / ciclo</dt><dd>{snapshot.cycleContext?.projectName || kpis?.cycleLabel || snapshot.projects[0]?.name || '—'}</dd></div><div><dt>Protocolo</dt><dd>{activeReport.protocol}</dd></div></ReportIdentification></ReportReviewSection>
 
-          <ReportReviewSection><ReportSectionHeading number="02" title={'Fatos do período'} description={'Indicadores sem base deixam de ocupar espaço.'} /><div className="reports-v16-fact-grid tw:grid tw:grid-cols-5 tw:border-y tw:border-solid tw:border-[#eee7e2] tw:max-[1050px]:grid-cols-3
-            tw:max-[680px]:grid-cols-2 tw:workspace-night:border-[#433339] tw:[&_article]:mr-[1.38462rem]
-            tw:[&_article]:border-r tw:[&_article]:border-solid tw:[&_article]:border-[#eee7e2] tw:[&_article]:pt-[1.23077rem]
-            tw:[&_article]:pr-[1.38462rem] tw:[&_article]:pb-[1.15385rem] tw:[&_article:last-child]:mr-0 tw:[&_article:last-child]:border-r-0
-            tw:[&_small]:block tw:[&_small]:text-[0.65385rem] tw:[&_small]:font-extrabold tw:[&_small]:tracking-[0.09em]
-            tw:[&_small]:text-[#95867f] tw:[&_small]:uppercase tw:[&_strong]:mt-[0.38462rem] tw:[&_strong]:block
-            tw:[&_strong]:text-[1.69231rem]! tw:[&_strong]:font-semibold! tw:[&_strong]:text-cali-brand! tw:workspace-night:[&_article]:border-[#433339]
-            tw:workspace-night:[&_small]:text-[#aa9994]">{hasCapacity ? <article><small>{extraMinutes > 0 ? 'Consumo no período' : 'Capacidade utilizada'}</small><strong>{usagePercent === null ? formatHoursV14(usedMinutes) : `${usagePercent}%`}</strong></article> : null}{hasPlanned ? <article><small>Entregas previstas</small><strong>{kpis?.completedDeliveries}/{kpis?.plannedDeliveries}</strong></article> : null}{hasAdherence ? <article><small>Aderência ao prazo</small><strong>{kpis?.deliveryAdherence}%</strong></article> : null}</div>{contractedMinutes > 0 ? <div className="reports-v16-usage-track tw:mt-[1.15385rem] tw:mb-[0.61538rem] tw:h-[0.46154rem] tw:overflow-hidden
-            tw:rounded-full tw:bg-[#eee7e2] tw:workspace-night:bg-[#3b2e32] tw:[&>span]:block tw:[&>span]:h-full
-            tw:[&>span]:rounded-[inherit] tw:[&>span]:bg-cali-gold"><span style={{ width: `${Math.min(100, Math.max(0, usagePercent || 0))}%` }} /></div> : null}{extraMinutes > 0 && capacitySignal?.message ? <p className="reports-v16-capacity-signal tw:mt-[0.76923rem] tw:mb-[1.23077rem] tw:border-l-[0.23077rem] tw:border-solid
-            tw:border-cali-gold tw:py-[0.76923rem] tw:pl-[1.07692rem] tw:text-[0.84615rem] tw:leading-normal
-            tw:text-[#5f554f] tw:workspace-night:text-[#b8aaa5]">{capacitySignal.message}</p> : null}<div className="reports-v16-facts-split tw:mt-[1.38462rem] tw:grid tw:grid-cols-1 tw:gap-[2.30769rem] tw:[&_h3]:text-[#3a322e] tw:workspace-night:[&_h3]:text-[#f5efec]"><div><h3>Entregas e andamento</h3>{periodDeliveries.length ? <table className="reports-v16-table deliveries tw:w-full tw:border-collapse tw:[&_th]:border-b tw:[&_th]:border-solid
-            tw:[&_th]:border-[#d9d0ca] tw:[&_th]:py-[0.53846rem] tw:[&_th]:pr-[0.69231rem] tw:[&_th]:text-left
-            tw:[&_th]:text-[0.65385rem] tw:[&_th]:font-extrabold tw:[&_th]:tracking-[0.08em] tw:[&_th]:text-[#8a7d76]
-            tw:[&_th]:uppercase tw:[&_td]:border-b tw:[&_td]:border-solid tw:[&_td]:border-[#eee7e2] tw:[&_td]:py-[0.69231rem]
-            tw:[&_td]:pr-[0.69231rem] tw:[&_td]:align-top tw:[&_td]:text-[0.84615rem] tw:[&_td]:text-[#3a3430]
+          <ReportReviewSection><ReportSectionHeading number="02" title={'Fatos do período'} description={'Indicadores sem base deixam de ocupar espaço.'} /><ReportFacts>{hasCapacity ? <article><small>{extraMinutes > 0 ? 'Consumo no período' : 'Capacidade utilizada'}</small><strong>{usagePercent === null ? formatHoursV14(usedMinutes) : `${usagePercent}%`}</strong></article> : null}{hasPlanned ? <article><small>Entregas previstas</small><strong>{kpis?.completedDeliveries}/{kpis?.plannedDeliveries}</strong></article> : null}{hasAdherence ? <article><small>Aderência ao prazo</small><strong>{kpis?.deliveryAdherence}%</strong></article> : null}</ReportFacts>{contractedMinutes > 0 ? <div className="reports-v16-usage-track tw:mt-4.5 tw:mb-2.5 tw:h-2 tw:overflow-hidden
+            tw:rounded-full tw:bg-cali-line tw:workspace-night:bg-cali-neutral-strong tw:[&>span]:block tw:[&>span]:h-full
+            tw:[&>span]:rounded-[inherit] tw:[&>span]:bg-cali-gold"><span style={{ width: `${Math.min(100, Math.max(0, usagePercent || 0))}%` }} /></div> : null}{extraMinutes > 0 && capacitySignal?.message ? <p className="reports-v16-capacity-signal tw:mt-3 tw:mb-5 tw:border-l-[0.23077rem] tw:border-solid
+            tw:border-cali-gold tw:py-3 tw:pl-4.5 tw:text-sm tw:leading-normal
+            tw:text-cali-neutral-text tw:workspace-night:text-cali-sand-accent">{capacitySignal.message}</p> : null}<div className="reports-v16-facts-split tw:mt-5.5 tw:grid tw:grid-cols-1 tw:gap-9 tw:[&_h3]:text-cali-text tw:workspace-night:[&_h3]:text-cali-text"><div><h3>Entregas e andamento</h3>{periodDeliveries.length ? <table className="reports-v16-table deliveries tw:w-full tw:border-collapse tw:[&_th]:border-b tw:[&_th]:border-solid
+            tw:[&_th]:border-cali-neutral-line tw:[&_th]:py-2 tw:[&_th]:pr-3 tw:[&_th]:text-left
+            tw:[&_th]:text-cali-micro tw:[&_th]:font-extrabold tw:[&_th]:tracking-[0.08em] tw:[&_th]:text-cali-muted
+            tw:[&_th]:uppercase tw:[&_td]:border-b tw:[&_td]:border-solid tw:[&_td]:border-cali-line tw:[&_td]:py-3
+            tw:[&_td]:pr-3 tw:[&_td]:align-top tw:[&_td]:text-sm tw:[&_td]:text-cali-text
             tw:[&_tr:last-child_td]:border-b-0 tw:[&_th:last-child]:pr-0 tw:[&_td:last-child]:pr-0 tw:[&_td:last-child]:text-left
-            tw:[&_td_strong]:block tw:[&_td_strong]:text-[0.84615rem] tw:[&_td_small]:mt-[0.15385rem] tw:[&_td_small]:block
-            tw:[&_td_small]:text-[0.69231rem] tw:[&_td_small]:text-[#8c7e77] tw:workspace-night:[&_th]:border-[#3d3034]
-            tw:workspace-night:[&_td]:border-[#3d3034] tw:workspace-night:[&_th]:text-[#a99a95] tw:workspace-night:[&_td]:text-[#e8dfdc]
-            tw:workspace-night:[&_td_small]:text-[#a99a95]"><thead><tr><th>Entregável</th><th>Previsto</th><th>Realizado</th><th>Situação</th></tr></thead><tbody>{periodDeliveries.map((item) => <tr key={item.deliverable_id}><td><strong>{item.title}</strong>{item.workstream ? <small>{item.workstream}</small> : null}</td><td>{formatDate(item.effective_due_at)}</td><td>{formatDate(item.completion_at)}</td><td>{deliveryTimingLabelV14(item)}</td></tr>)}</tbody></table> : <p className="reports-v16-empty tw:m-0 tw:text-[0.82055rem] tw:text-[#8a7d76]">Nenhum entregável movimentado neste período.</p>}</div></div></ReportReviewSection>
+            tw:[&_td_strong]:block tw:[&_td_strong]:text-sm tw:[&_td_small]:mt-0.5 tw:[&_td_small]:block
+            tw:[&_td_small]:text-cali-label tw:[&_td_small]:text-cali-sand-text tw:workspace-night:[&_th]:border-cali-line-strong
+            tw:workspace-night:[&_td]:border-cali-line-strong tw:workspace-night:[&_th]:text-cali-muted tw:workspace-night:[&_td]:text-cali-sand-line
+            tw:workspace-night:[&_td_small]:text-cali-muted"><thead><tr><th>Entregável</th><th>Previsto</th><th>Realizado</th><th>Situação</th></tr></thead><tbody>{periodDeliveries.map((item) => <tr key={item.deliverable_id}><td><strong>{item.title}</strong>{item.workstream ? <small>{item.workstream}</small> : null}</td><td>{formatDate(item.effective_due_at)}</td><td>{formatDate(item.completion_at)}</td><td>{deliveryTimingLabelV14(item)}</td></tr>)}</tbody></table> : <p className="reports-v16-empty tw:m-0 tw:text-cali-detail tw:text-cali-muted">Nenhum entregável movimentado neste período.</p>}</div></div></ReportReviewSection>
 
           <ReportManualComplementsPanel value={manualComplements} onChange={setManualComplements} locked={!canEdit} />
 
           {changes.length ? <ReportReviewSection><ReportSectionHeading number="03" title={reportType === 'quarterly' ? 'Evolução dentro do trimestre' : 'O que mudou'} description={'Só existe comparativo quando há base real nos dois períodos.'} /><ReportPeriodChanges changes={changes} /></ReportReviewSection> : null}
 
-          <ReportReviewSection><ReportSectionHeading number="04" title={'Curadoria de demandas e decisões'} description={'O Workspace sugere candidatos; nada é selecionado automaticamente para o documento.'} /><div className="reports-v16-selection-grid tw:grid tw:grid-cols-2 tw:gap-[2.61538rem] tw:max-[1050px]:grid-cols-1
-            tw:[&_h3]:mt-0! tw:[&_h3]:text-[#3a322e] tw:workspace-night:[&_h3]:text-[#f5efec]"><div><h3>Demandas para leitura interna</h3>{demandChoices.length ? <ReportReviewChecklist>{demandChoices.map((item) => <label key={item}><input type="checkbox" disabled={!canEdit} checked={selectedDemands.has(item)} onChange={() => toggleSelection(item, 'movements')} /><span>{item}</span></label>)}</ReportReviewChecklist> : <p className="reports-v16-empty tw:m-0 tw:text-[0.82055rem] tw:text-[#8a7d76]">Nenhuma demanda estruturada foi registrada.</p>}</div><div><h3>Decisões registradas</h3>{decisionOptions.length ? <ReportReviewChecklist>{decisionOptions.map((item) => <label key={item}><input type="checkbox" disabled={!canEdit} checked={selectedDecisions.has(item)} onChange={() => toggleSelection(item, 'decisions')} /><span>{item}</span></label>)}</ReportReviewChecklist> : <p className="reports-v16-empty tw:m-0 tw:text-[0.82055rem] tw:text-[#8a7d76]">Nenhuma decisão estruturada foi registrada.</p>}</div></div></ReportReviewSection>
+          <ReportReviewSection><ReportSectionHeading number="04" title={'Curadoria de demandas e decisões'} description={'O Workspace sugere candidatos; nada é selecionado automaticamente para o documento.'} /><div className="reports-v16-selection-grid tw:grid tw:grid-cols-2 tw:gap-10.5 tw:max-[1050px]:grid-cols-1
+            tw:[&_h3]:mt-0! tw:[&_h3]:text-cali-text tw:workspace-night:[&_h3]:text-cali-text"><div><h3>Demandas para leitura interna</h3>{demandChoices.length ? <ReportReviewChecklist>{demandChoices.map((item) => <label key={item}><input type="checkbox" disabled={!canEdit} checked={selectedDemands.has(item)} onChange={() => toggleSelection(item, 'movements')} /><span>{item}</span></label>)}</ReportReviewChecklist> : <p className="reports-v16-empty tw:m-0 tw:text-cali-detail tw:text-cali-muted">Nenhuma demanda estruturada foi registrada.</p>}</div><div><h3>Decisões registradas</h3>{decisionOptions.length ? <ReportReviewChecklist>{decisionOptions.map((item) => <label key={item}><input type="checkbox" disabled={!canEdit} checked={selectedDecisions.has(item)} onChange={() => toggleSelection(item, 'decisions')} /><span>{item}</span></label>)}</ReportReviewChecklist> : <p className="reports-v16-empty tw:m-0 tw:text-cali-detail tw:text-cali-muted">Nenhuma decisão estruturada foi registrada.</p>}</div></div></ReportReviewSection>
 
           <ReportReviewAlerts
             alerts={unresolvedAlerts}
@@ -725,65 +698,65 @@ export function AdminReportsPage() {
 
           <ReportReviewSection surface="editorial"><ReportSectionHeading number="07" title={reportType === 'quarterly' ? 'Prioridades do próximo trimestre' : 'Prioridades do próximo ciclo'} description={'Feche olhando para frente. Prioridade não repete ponto de atenção.'} /><EditorialField title="Prioridades" value={editor.nextSteps} onChange={(value) => setEditor((current) => ({ ...current, nextSteps: value }))} helper="1–3 movimentos. Inclua prazo, responsável ou dependência quando isso mudar a leitura." rows={5} locked={!canEdit} /></ReportReviewSection>
 
-          <details className="reports-v16-internal tw:group tw:border-t tw:border-solid tw:border-[#ece5df] tw:bg-[#faf7f4]
-            tw:px-[2.46154rem] tw:py-[1.38462rem] tw:max-[680px]:px-[1.38462rem] tw:workspace-night:border-[#3b2d32]
-            tw:workspace-night:bg-[#1d1719]"><summary className="tw:cursor-pointer tw:list-none tw:text-[0.84615rem] tw:font-extrabold tw:text-cali-brand tw:before:mr-[0.61538rem]
-            tw:before:inline-block tw:before:text-[1.23077rem] tw:before:leading-[1.5] tw:before:font-normal
+          <details className="reports-v16-internal tw:group tw:border-t tw:border-solid tw:border-cali-sand-line tw:bg-cali-surface-soft
+            tw:px-10 tw:py-5.5 tw:max-[680px]:px-5.5 tw:workspace-night:border-cali-neutral-strong
+            tw:workspace-night:bg-cali-burgundy-inverse"><summary className="tw:cursor-pointer tw:list-none tw:text-sm tw:font-extrabold tw:text-cali-brand tw:before:mr-2.5
+            tw:before:inline-block tw:before:text-xl tw:before:leading-[1.5] tw:before:font-normal
             tw:before:content-['+'] tw:group-open:before:content-['−'] tw:[&::-webkit-details-marker]:hidden
-            tw:workspace-night:text-[#e4b9c3]">Adicionar nota interna</summary><p className="tw:mt-2 tw:mb-2.5 tw:text-[0.625rem] tw:text-[#887b75]">Visível somente para você. Não aparece no PDF, Workspace ou e-mail do cliente.</p><textarea className="tw:w-full tw:resize-y tw:rounded-[0.625rem] tw:border tw:border-solid tw:border-[#e2d9d3] tw:bg-white
-            tw:px-[0.8125rem] tw:py-3 tw:text-[0.71875rem] tw:leading-[1.55] tw:text-cali-ink tw:outline-none
-            tw:focus:border-[#9e6875] tw:focus:shadow-[0_0_0_0.1875rem_#5a1e2d0f] tw:read-only:bg-[#f7f4f1]
-            tw:read-only:text-[#6d625c] tw:workspace-night:border-[#4b3940] tw:workspace-night:bg-[#2a2024]
-            tw:workspace-night:text-[#f3ece9] tw:workspace-night:read-only:bg-[#241c1f] tw:workspace-night:read-only:text-[#b8aaa5]" rows={4} readOnly={!canEdit} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Anotação para a conversa ou para o próximo fechamento." /></details>
+            tw:workspace-night:text-cali-burgundy-soft">Adicionar nota interna</summary><p className="tw:mt-2 tw:mb-2.5 tw:text-cali-micro tw:text-cali-sand-text">Visível somente para você. Não aparece no PDF, Workspace ou e-mail do cliente.</p><textarea className="tw:w-full tw:resize-y tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-sand-line tw:bg-cali-neutral-surface
+            tw:px-3 tw:py-3 tw:text-cali-label tw:leading-[1.55] tw:text-cali-ink tw:outline-none
+            tw:focus:border-cali-burgundy-line tw:focus:shadow-[0_0_0_0.1875rem_rgb(var(--cali-rgb-burgundy-accent)/0.05882)] tw:read-only:bg-cali-sand-soft
+            tw:read-only:text-cali-neutral-accent tw:workspace-night:border-cali-neutral-text tw:workspace-night:bg-cali-surface-muted
+            tw:workspace-night:text-cali-neutral-soft tw:workspace-night:read-only:bg-cali-surface tw:workspace-night:read-only:text-cali-sand-accent" rows={4} readOnly={!canEdit} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Anotação para a conversa ou para o próximo fechamento." /></details>
           {history}
         </ReportEditorWorkspace>
       </>}
     </> : null}
 
     {dismissTarget ? <div className="modal-backdrop workspace-modal-backdrop tw:workspace-compact:motion-safe:animate-[v2-fade_.22s_ease-out_backwards] tw:workspace-compact:motion-safe:[&>*]:animate-[v2-pop_.34s_cubic-bezier(.2,.7,.2,1)_backwards] reports-v16-modal-backdrop tw:fixed tw:inset-0 tw:z-980
-      tw:grid tw:place-items-center tw:bg-[#171017a8] tw:p-[1.38462rem] tw:backdrop-blur-sm"><DialogFrame className="modal-card reports-v16-small-modal tw:relative tw:flex tw:max-h-[92dvh] tw:w-[min(41.53846rem,100%)]
-      tw:max-w-[43.84615rem] tw:flex-col tw:gap-[1rem] tw:overflow-y-auto tw:rounded-[1.07692rem] tw:border
-      tw:border-solid tw:border-[#eadfd6] tw:bg-[#fffdfb] tw:p-[2rem] tw:text-[#322f2c] tw:[&_h2]:m-0
-      tw:[&_h2]:text-[1.61538rem] tw:[&_h2]:leading-tight tw:[&_h2]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[0.92308rem]
-      tw:[&_p]:leading-[calc(1/0.75)] tw:[&_p]:leading-normal tw:[&_p]:text-[#89796f] tw:[&_label]:flex
-      tw:[&_label]:flex-col tw:[&_label]:gap-[0.53846rem] tw:[&_label]:text-[0.84615rem] tw:[&_label]:font-bold
-      tw:[&_label]:text-[#67574c] tw:[&_footer]:mt-[0.30769rem] tw:[&_footer]:flex tw:[&_footer]:justify-end
-      tw:[&_footer]:gap-[0.76923rem] tw:[&_:is(button.primary,button.secondary)]:inline-flex tw:[&_:is(button.primary,button.secondary)]:h-auto
+      tw:grid tw:place-items-center tw:bg-cali-neutral-inverse/66 tw:p-5.5 tw:backdrop-blur-sm"><DialogFrame className="modal-card reports-v16-small-modal tw:relative tw:flex tw:max-h-[92dvh] tw:w-[min(41.53846rem,100%)]
+      tw:max-w-[43.84615rem] tw:flex-col tw:gap-4 tw:overflow-y-auto tw:rounded-[1.07692rem] tw:border
+      tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:p-8 tw:text-cali-text tw:[&_h2]:m-0
+      tw:[&_h2]:text-cali-title tw:[&_h2]:leading-tight tw:[&_h2]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-cali-body
+      tw:[&_p]:leading-[calc(1/0.75)] tw:[&_p]:leading-normal tw:[&_p]:text-cali-sand-text tw:[&_label]:flex
+      tw:[&_label]:flex-col tw:[&_label]:gap-2 tw:[&_label]:text-sm tw:[&_label]:font-bold
+      tw:[&_label]:text-cali-muted tw:[&_footer]:mt-1 tw:[&_footer]:flex tw:[&_footer]:justify-end
+      tw:[&_footer]:gap-3 tw:[&_:is(button.primary,button.secondary)]:inline-flex tw:[&_:is(button.primary,button.secondary)]:h-auto
       tw:[&_:is(button.primary,button.secondary)]:items-center tw:[&_:is(button.primary,button.secondary)]:justify-center
-      tw:[&_:is(button.primary,button.secondary)]:gap-[0.53846rem] tw:[&_:is(button.primary,button.secondary)]:rounded-[0.53846rem]
+      tw:[&_:is(button.primary,button.secondary)]:gap-2 tw:[&_:is(button.primary,button.secondary)]:rounded-lg
       tw:[&_:is(button.primary,button.secondary)]:border tw:[&_:is(button.primary,button.secondary)]:border-solid
-      tw:[&_button.secondary]:border-[#dec9c3] tw:[&_button.secondary]:bg-white tw:[&_button.secondary]:text-cali-brand
-      tw:[&_button.primary]:border-cali-brand tw:[&_button.primary]:bg-cali-brand tw:[&_button.primary]:text-white
-      tw:[&_:is(button.primary,button.secondary)]:px-[1.07692rem] tw:[&_:is(button.primary,button.secondary)]:py-[0.76923rem]
-      tw:[&_:is(button.primary,button.secondary)]:text-[0.84615rem] tw:[&_:is(button.primary,button.secondary)]:font-bold
-      tw:[&_button:disabled]:cursor-not-allowed tw:[&_button:disabled]:opacity-45" aria-label="Dispensar alerta"><Button className="tw:absolute tw:top-4 tw:right-4 tw:grid tw:size-8 tw:place-items-center tw:rounded-[0.4375rem]
-      tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:p-0 tw:text-cali-brand" variant="close" type="button" onClick={() => setDismissTarget(null)}><X size={19} /></Button><span className="section-kicker tw:block tw:text-[0.5625rem] tw:font-extrabold tw:tracking-[0.14em] tw:text-cali-gold">JUSTIFICATIVA INTERNA</span><h2>Ignorar este alerta?</h2><p><strong>{dismissTarget.title}</strong></p><textarea className="tw:box-border tw:w-full tw:rounded-[0.5625rem] tw:border tw:border-solid tw:border-[#e5d8d0] tw:bg-white
-      tw:px-3 tw:text-xs tw:font-normal tw:text-[#322f2c] tw:resize-y tw:py-[0.6875rem]" autoFocus rows={4} value={dismissReason} onChange={(event) => setDismissReason(event.target.value)} placeholder="Registre por que este ponto não impede o fechamento." /><footer><Button variant="secondary" type="button" onClick={() => setDismissTarget(null)}>Cancelar</Button><Button variant="primary" type="button" disabled={!dismissReason.trim()} onClick={dismissAlert}>Confirmar justificativa</Button></footer></DialogFrame></div> : null}
+      tw:[&_button.secondary]:border-cali-line-strong tw:[&_button.secondary]:bg-cali-neutral-surface tw:[&_button.secondary]:text-cali-brand
+      tw:[&_button.primary]:border-cali-brand tw:[&_button.primary]:bg-cali-brand tw:[&_button.primary]:text-cali-neutral-surface
+      tw:[&_:is(button.primary,button.secondary)]:px-4.5 tw:[&_:is(button.primary,button.secondary)]:py-3
+      tw:[&_:is(button.primary,button.secondary)]:text-sm tw:[&_:is(button.primary,button.secondary)]:font-bold
+      tw:[&_button:disabled]:cursor-not-allowed tw:[&_button:disabled]:opacity-45" aria-label="Dispensar alerta"><Button className="tw:absolute tw:top-4 tw:right-4 tw:grid tw:size-8 tw:place-items-center tw:rounded-md
+      tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-0 tw:text-cali-brand" variant="close" type="button" onClick={() => setDismissTarget(null)}><X size={19} /></Button><span className="section-kicker tw:block tw:text-cali-micro tw:font-extrabold tw:tracking-[0.14em] tw:text-cali-gold">JUSTIFICATIVA INTERNA</span><h2>Ignorar este alerta?</h2><p><strong>{dismissTarget.title}</strong></p><textarea className="tw:box-border tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface
+      tw:px-3 tw:text-xs tw:font-normal tw:text-cali-text tw:resize-y tw:py-3" autoFocus rows={4} value={dismissReason} onChange={(event) => setDismissReason(event.target.value)} placeholder="Registre por que este ponto não impede o fechamento." /><footer><Button variant="secondary" type="button" onClick={() => setDismissTarget(null)}>Cancelar</Button><Button variant="primary" type="button" disabled={!dismissReason.trim()} onClick={dismissAlert}>Confirmar justificativa</Button></footer></DialogFrame></div> : null}
 
     {sendOpen && activeReport ? <div className="modal-backdrop workspace-modal-backdrop tw:workspace-compact:motion-safe:animate-[v2-fade_.22s_ease-out_backwards] tw:workspace-compact:motion-safe:[&>*]:animate-[v2-pop_.34s_cubic-bezier(.2,.7,.2,1)_backwards] reports-v16-modal-backdrop tw:fixed tw:inset-0 tw:z-980
-      tw:grid tw:place-items-center tw:bg-[#171017a8] tw:p-[1.38462rem] tw:backdrop-blur-sm"><DialogFrame className="modal-card reports-v16-send-modal tw:relative tw:flex tw:max-h-[92dvh] tw:w-[min(41.53846rem,100%)]
-      tw:max-w-[43.84615rem] tw:flex-col tw:gap-[1rem] tw:overflow-y-auto tw:rounded-[1.07692rem] tw:border
-      tw:border-solid tw:border-[#eadfd6] tw:bg-[#fffdfb] tw:p-[2rem] tw:text-[#322f2c] tw:[&_h2]:m-0
-      tw:[&_h2]:text-[1.61538rem] tw:[&_h2]:leading-tight tw:[&_h2]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[0.92308rem]
-      tw:[&_p]:leading-[calc(1/0.75)] tw:[&_p]:leading-normal tw:[&_p]:text-[#89796f] tw:[&_label]:flex
-      tw:[&_label]:flex-col tw:[&_label]:gap-[0.53846rem] tw:[&_label]:text-[0.84615rem] tw:[&_label]:font-bold
-      tw:[&_label]:text-[#67574c] tw:[&_footer]:mt-[0.30769rem] tw:[&_footer]:flex tw:[&_footer]:justify-end
-      tw:[&_footer]:gap-[0.76923rem] tw:[&_:is(button.primary,button.secondary)]:inline-flex tw:[&_:is(button.primary,button.secondary)]:h-auto
+      tw:grid tw:place-items-center tw:bg-cali-neutral-inverse/66 tw:p-5.5 tw:backdrop-blur-sm"><DialogFrame className="modal-card reports-v16-send-modal tw:relative tw:flex tw:max-h-[92dvh] tw:w-[min(41.53846rem,100%)]
+      tw:max-w-[43.84615rem] tw:flex-col tw:gap-4 tw:overflow-y-auto tw:rounded-[1.07692rem] tw:border
+      tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:p-8 tw:text-cali-text tw:[&_h2]:m-0
+      tw:[&_h2]:text-cali-title tw:[&_h2]:leading-tight tw:[&_h2]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-cali-body
+      tw:[&_p]:leading-[calc(1/0.75)] tw:[&_p]:leading-normal tw:[&_p]:text-cali-sand-text tw:[&_label]:flex
+      tw:[&_label]:flex-col tw:[&_label]:gap-2 tw:[&_label]:text-sm tw:[&_label]:font-bold
+      tw:[&_label]:text-cali-muted tw:[&_footer]:mt-1 tw:[&_footer]:flex tw:[&_footer]:justify-end
+      tw:[&_footer]:gap-3 tw:[&_:is(button.primary,button.secondary)]:inline-flex tw:[&_:is(button.primary,button.secondary)]:h-auto
       tw:[&_:is(button.primary,button.secondary)]:items-center tw:[&_:is(button.primary,button.secondary)]:justify-center
-      tw:[&_:is(button.primary,button.secondary)]:gap-[0.53846rem] tw:[&_:is(button.primary,button.secondary)]:rounded-[0.53846rem]
+      tw:[&_:is(button.primary,button.secondary)]:gap-2 tw:[&_:is(button.primary,button.secondary)]:rounded-lg
       tw:[&_:is(button.primary,button.secondary)]:border tw:[&_:is(button.primary,button.secondary)]:border-solid
-      tw:[&_button.secondary]:border-[#dec9c3] tw:[&_button.secondary]:bg-white tw:[&_button.secondary]:text-cali-brand
-      tw:[&_button.primary]:border-cali-brand tw:[&_button.primary]:bg-cali-brand tw:[&_button.primary]:text-white
-      tw:[&_:is(button.primary,button.secondary)]:px-[1.07692rem] tw:[&_:is(button.primary,button.secondary)]:py-[0.76923rem]
-      tw:[&_:is(button.primary,button.secondary)]:text-[0.84615rem] tw:[&_:is(button.primary,button.secondary)]:font-bold
-      tw:[&_button:disabled]:cursor-not-allowed tw:[&_button:disabled]:opacity-45" aria-label="Enviar relatório"><Button className="tw:absolute tw:top-4 tw:right-4 tw:grid tw:size-8 tw:place-items-center tw:rounded-[0.4375rem]
-      tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:p-0 tw:text-cali-brand" variant="close" type="button" onClick={() => setSendOpen(false)}><X size={19} /></Button><span className="section-kicker tw:block tw:text-[0.5625rem] tw:font-extrabold tw:tracking-[0.14em] tw:text-cali-gold">ENVIAR AO CLIENTE</span><h2>Relatório aprovado · v{activeReport.version}</h2><p>Ao confirmar, esta versão congelada ficará disponível em Relatórios no Workspace do cliente e os destinatários receberão a notificação por e-mail.</p><div className="reports-v16-send-channels tw:mt-[1.23077rem] tw:mb-[0.15385rem] tw:flex tw:flex-wrap tw:gap-[0.76923rem]
-      tw:border-y tw:border-solid tw:border-[#eee7e2] tw:py-[0.92308rem] tw:[&_label]:flex-row! tw:[&_label]:items-center
-      tw:[&_label]:gap-[0.61538rem]! tw:[&_label]:rounded-[0.61538rem] tw:[&_label]:border tw:[&_label]:border-solid
-      tw:[&_label]:border-[#efe7df] tw:[&_label]:bg-white tw:[&_label]:px-[0.92308rem] tw:[&_label]:py-[0.69231rem]
-      tw:[&_label]:font-semibold! tw:[&_input]:m-0 tw:[&_input]:size-[1.15385rem] tw:[&_input]:accent-cali-brand"><label><input type="checkbox" checked readOnly />Disponibilizar no Workspace</label><label><input type="checkbox" checked readOnly />Enviar notificação por e-mail</label></div><label><span>Destinatários</span><input className="tw:box-border tw:w-full tw:rounded-[0.5625rem] tw:border tw:border-solid tw:border-[#e5d8d0] tw:bg-white
-      tw:px-3 tw:text-xs tw:font-normal tw:text-[#322f2c] tw:h-10" type="text" value={sendRecipients} onChange={(event) => setSendRecipients(event.target.value)} placeholder="email@cliente.com, outro@cliente.com" /></label><label><span>Mensagem opcional</span><textarea className="tw:box-border tw:w-full tw:rounded-[0.5625rem] tw:border tw:border-solid tw:border-[#e5d8d0] tw:bg-white
-      tw:px-3 tw:text-xs tw:font-normal tw:text-[#322f2c] tw:resize-y tw:py-[0.6875rem]" rows={4} value={sendMessage} onChange={(event) => setSendMessage(event.target.value)} placeholder="Uma observação curta antes do acesso ao relatório." /></label>{sendError && <InlineNotice tone="danger" role="alert">{sendError}</InlineNotice>}<footer><Button variant="secondary" type="button" disabled={sending} onClick={() => setSendOpen(false)}>Cancelar</Button><Button variant="primary" type="button" disabled={sending || !sendRecipients.trim()} onClick={() => void sendReport()}>{sending ? <Loader2 className="spin" size={16} /> : <Mail size={16} />}Enviar relatório</Button></footer></DialogFrame></div> : null}
+      tw:[&_button.secondary]:border-cali-line-strong tw:[&_button.secondary]:bg-cali-neutral-surface tw:[&_button.secondary]:text-cali-brand
+      tw:[&_button.primary]:border-cali-brand tw:[&_button.primary]:bg-cali-brand tw:[&_button.primary]:text-cali-neutral-surface
+      tw:[&_:is(button.primary,button.secondary)]:px-4.5 tw:[&_:is(button.primary,button.secondary)]:py-3
+      tw:[&_:is(button.primary,button.secondary)]:text-sm tw:[&_:is(button.primary,button.secondary)]:font-bold
+      tw:[&_button:disabled]:cursor-not-allowed tw:[&_button:disabled]:opacity-45" aria-label="Enviar relatório"><Button className="tw:absolute tw:top-4 tw:right-4 tw:grid tw:size-8 tw:place-items-center tw:rounded-md
+      tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-0 tw:text-cali-brand" variant="close" type="button" onClick={() => setSendOpen(false)}><X size={19} /></Button><span className="section-kicker tw:block tw:text-cali-micro tw:font-extrabold tw:tracking-[0.14em] tw:text-cali-gold">ENVIAR AO CLIENTE</span><h2>Relatório aprovado · v{activeReport.version}</h2><p>Ao confirmar, esta versão congelada ficará disponível em Relatórios no Workspace do cliente e os destinatários receberão a notificação por e-mail.</p><div className="reports-v16-send-channels tw:mt-5 tw:mb-0.5 tw:flex tw:flex-wrap tw:gap-3
+      tw:border-y tw:border-solid tw:border-cali-line tw:py-3.5 tw:[&_label]:flex-row! tw:[&_label]:items-center
+      tw:[&_label]:gap-2.5! tw:[&_label]:rounded-cali-compact-control tw:[&_label]:border tw:[&_label]:border-solid
+      tw:[&_label]:border-cali-line tw:[&_label]:bg-cali-neutral-surface tw:[&_label]:px-3.5 tw:[&_label]:py-3
+      tw:[&_label]:font-semibold! tw:[&_input]:m-0 tw:[&_input]:size-4.5 tw:[&_input]:accent-cali-brand"><label><input type="checkbox" checked readOnly />Disponibilizar no Workspace</label><label><input type="checkbox" checked readOnly />Enviar notificação por e-mail</label></div><label><span>Destinatários</span><input className="tw:box-border tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface
+      tw:px-3 tw:text-xs tw:font-normal tw:text-cali-text tw:h-10" type="text" value={sendRecipients} onChange={(event) => setSendRecipients(event.target.value)} placeholder="email@cliente.com, outro@cliente.com" /></label><label><span>Mensagem opcional</span><textarea className="tw:box-border tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface
+      tw:px-3 tw:text-xs tw:font-normal tw:text-cali-text tw:resize-y tw:py-3" rows={4} value={sendMessage} onChange={(event) => setSendMessage(event.target.value)} placeholder="Uma observação curta antes do acesso ao relatório." /></label>{sendError && <InlineNotice tone="danger" role="alert">{sendError}</InlineNotice>}<footer><Button variant="secondary" type="button" disabled={sending} onClick={() => setSendOpen(false)}>Cancelar</Button><Button variant="primary" type="button" disabled={sending || !sendRecipients.trim()} onClick={() => void sendReport()}>{sending ? <Loader2 className="spin" size={16} /> : <Mail size={16} />}Enviar relatório</Button></footer></DialogFrame></div> : null}
 
     {workflowAction && <ReportWorkflowConfirmation action={workflowAction} onCancel={() => setWorkflowAction(null)} onConfirm={confirmWorkflowAction} />}
     {historyOpen && trackedReport && (
@@ -801,28 +774,28 @@ export function AdminReportsPage() {
       }}
     />}
     {previewOpen && snapshot && selectedCompany ? <div className="modal-backdrop workspace-modal-backdrop tw:workspace-compact:motion-safe:animate-[v2-fade_.22s_ease-out_backwards] tw:workspace-compact:motion-safe:[&>*]:animate-[v2-pop_.34s_cubic-bezier(.2,.7,.2,1)_backwards] reports-v16-preview-backdrop tw:fixed tw:inset-0 tw:z-980
-      tw:grid tw:place-items-center tw:bg-[#171017a8] tw:p-[1.38462rem] tw:backdrop-blur-sm"><DialogFrame className="modal-card reports-v16-preview-modal tw:flex tw:h-[94dvh] tw:max-h-[94dvh] tw:w-[min(101.53846rem,100%)]
+      tw:grid tw:place-items-center tw:bg-cali-neutral-inverse/66 tw:p-5.5 tw:backdrop-blur-sm"><DialogFrame className="modal-card reports-v16-preview-modal tw:flex tw:h-[94dvh] tw:max-h-[94dvh] tw:w-[min(101.53846rem,100%)]
       tw:max-w-none tw:flex-col tw:overflow-hidden tw:rounded-[1.07692rem] tw:border tw:border-solid
-      tw:border-[#e8ded6] tw:bg-white tw:p-0 tw:shadow-[0_1.5625rem_5.3125rem_#2418234a] tw:[&_:is(button.primary,button.secondary)]:inline-flex
+      tw:border-cali-line tw:bg-cali-neutral-surface tw:p-0 tw:shadow-[0_1.5625rem_5.3125rem_rgb(var(--cali-rgb-burgundy-inverse)/0.2902)] tw:[&_:is(button.primary,button.secondary)]:inline-flex
       tw:[&_:is(button.primary,button.secondary)]:h-auto tw:[&_:is(button.primary,button.secondary)]:items-center
-      tw:[&_:is(button.primary,button.secondary)]:justify-center tw:[&_:is(button.primary,button.secondary)]:gap-[0.53846rem]
-      tw:[&_:is(button.primary,button.secondary)]:rounded-[0.53846rem] tw:[&_:is(button.primary,button.secondary)]:border
-      tw:[&_:is(button.primary,button.secondary)]:border-solid tw:[&_button.secondary]:border-[#dec9c3]
-      tw:[&_button.secondary]:bg-white tw:[&_button.secondary]:text-cali-brand tw:[&_button.primary]:border-cali-brand
-      tw:[&_button.primary]:bg-cali-brand tw:[&_button.primary]:text-white tw:[&_:is(button.primary,button.secondary)]:px-[1.07692rem]
-      tw:[&_:is(button.primary,button.secondary)]:py-[0.76923rem] tw:[&_:is(button.primary,button.secondary)]:text-[0.84615rem]
+      tw:[&_:is(button.primary,button.secondary)]:justify-center tw:[&_:is(button.primary,button.secondary)]:gap-2
+      tw:[&_:is(button.primary,button.secondary)]:rounded-lg tw:[&_:is(button.primary,button.secondary)]:border
+      tw:[&_:is(button.primary,button.secondary)]:border-solid tw:[&_button.secondary]:border-cali-line-strong
+      tw:[&_button.secondary]:bg-cali-neutral-surface tw:[&_button.secondary]:text-cali-brand tw:[&_button.primary]:border-cali-brand
+      tw:[&_button.primary]:bg-cali-brand tw:[&_button.primary]:text-cali-neutral-surface tw:[&_:is(button.primary,button.secondary)]:px-4.5
+      tw:[&_:is(button.primary,button.secondary)]:py-3 tw:[&_:is(button.primary,button.secondary)]:text-sm
       tw:[&_:is(button.primary,button.secondary)]:font-bold tw:[&_button:disabled]:cursor-not-allowed
-      tw:[&_button:disabled]:opacity-45" aria-label="Prévia do relatório"><div className="reports-v16-preview-toolbar tw:flex tw:h-[5.23077rem] tw:flex-none tw:flex-wrap tw:items-center
-      tw:justify-between tw:gap-[1.07692rem] tw:border-b tw:border-solid tw:border-[#ded5d0]! tw:bg-white!
-      tw:px-[1.69231rem] tw:py-[1.23077rem] tw:text-[0.92308rem] tw:leading-[calc(1/0.75)] tw:text-cali-ink!
+      tw:[&_button:disabled]:opacity-45" aria-label="Prévia do relatório"><div className="reports-v16-preview-toolbar tw:flex tw:h-21 tw:flex-none tw:flex-wrap tw:items-center
+      tw:justify-between tw:gap-4.5 tw:border-b tw:border-solid tw:border-cali-neutral-line! tw:bg-cali-neutral-surface!
+      tw:px-7 tw:py-5 tw:text-cali-body tw:leading-[calc(1/0.75)] tw:text-cali-ink!
       tw:max-[680px]:h-auto tw:max-[680px]:flex-col tw:max-[680px]:items-start tw:[&>div:first-child]:flex
-      tw:[&>div:first-child]:min-w-0 tw:[&>div:first-child]:flex-col tw:[&>div:first-child]:gap-[0.30769rem]
-      tw:[&_strong]:text-[1.15385rem] tw:[&_strong]:text-cali-brand! tw:[&_span]:text-[0.84615rem] tw:[&_span]:text-[#6a5f59]!
+      tw:[&>div:first-child]:min-w-0 tw:[&>div:first-child]:flex-col tw:[&>div:first-child]:gap-1
+      tw:[&_strong]:text-lg tw:[&_strong]:text-cali-brand! tw:[&_span]:text-sm tw:[&_span]:text-cali-neutral-accent!
       tw:[&>div:last-child]:flex tw:[&>div:last-child]:flex-wrap tw:[&>div:last-child]:items-center
-      tw:[&>div:last-child]:gap-[0.61538rem]"><div><strong>{activeReport ? 'Prévia da versão congelável' : 'Prévia interna sem persistência'}</strong><span>{selectedCompany.name} · {periodName}{activeReport ? ` · v${activeReport.version}` : ''}</span></div><div><Button variant="secondary" type="button" onClick={() => setPreviewOpen(false)}><X size={16} />Voltar</Button>{activeReport ? <Button variant="secondary" type="button" onClick={openPrint}><Printer size={16} />Baixar / imprimir PDF</Button> : null}{activeReport?.status === 'review' && !isSimulation ? <Button variant="primary" type="button" disabled={saving || !canApprove} onClick={() => void approveReport()}><CheckCircle2 size={16} />Aprovar relatório</Button> : activeReport?.status === 'approved' ? <Button variant="primary" type="button" disabled={saving || !canSend} onClick={() => void openSend()}><Send size={16} />Enviar ao cliente</Button> : null}</div></div><div className="reports-v16-preview-document tw:h-[calc(100%-5.23077rem)] tw:min-h-0 tw:flex-1 tw:overflow-auto
-      tw:bg-[#d8d2cd] tw:px-[2.76923rem] tw:pt-[2.15385rem] tw:pb-[3.69231rem] tw:text-[1.02564rem]
+      tw:[&>div:last-child]:gap-2.5"><div><strong>{activeReport ? 'Prévia da versão congelável' : 'Prévia interna sem persistência'}</strong><span>{selectedCompany.name} · {periodName}{activeReport ? ` · v${activeReport.version}` : ''}</span></div><div><Button variant="secondary" type="button" onClick={() => setPreviewOpen(false)}><X size={16} />Voltar</Button>{activeReport ? <Button variant="secondary" type="button" onClick={openPrint}><Printer size={16} />Baixar / imprimir PDF</Button> : null}{activeReport?.status === 'review' && !isSimulation ? <Button variant="primary" type="button" disabled={saving || !canApprove} onClick={() => void approveReport()}><CheckCircle2 size={16} />Aprovar relatório</Button> : activeReport?.status === 'approved' ? <Button variant="primary" type="button" disabled={saving || !canSend} onClick={() => void openSend()}><Send size={16} />Enviar ao cliente</Button> : null}</div></div><div className="reports-v16-preview-document tw:h-[calc(100%-5.23077rem)] tw:min-h-0 tw:flex-1 tw:overflow-auto
+      tw:bg-cali-neutral-line tw:px-11 tw:pt-8.5 tw:pb-15 tw:text-base
       tw:[scrollbar-width:none] tw:[&::-webkit-scrollbar]:hidden tw:max-[680px]:h-[calc(100%-8.61538rem)]
-      tw:max-[680px]:p-[1.07692rem] tw:[&_.reports-v16-paper_small]:text-[0.92308rem]! tw:[&_.reports-v16-paper_small]:leading-[calc(1/0.75)]!
-      tw:[&_.reports-v16-paper_h1]:text-[2.23077rem]!"><WorkspaceExecutiveReportPaper company={selectedCompany} snapshot={attachReportManualComplements(snapshot, manualComplements)} editor={editor} reportType={reportType} periodName={periodName} protocol={activeReport?.protocol || '—'} deliveries={deliveries} /></div></DialogFrame></div> : null}
+      tw:max-[680px]:p-4.5 tw:[&_.reports-v16-paper_small]:text-cali-body! tw:[&_.reports-v16-paper_small]:leading-[calc(1/0.75)]!
+      tw:[&_.reports-v16-paper_h1]:text-4xl!"><WorkspaceExecutiveReportPaper company={selectedCompany} snapshot={attachReportManualComplements(snapshot, manualComplements)} editor={editor} reportType={reportType} periodName={periodName} protocol={activeReport?.protocol || '—'} deliveries={deliveries} /></div></DialogFrame></div> : null}
   </WorkflowPage></WorkspaceAdminContent></WorkspaceAdminPage></Shell>;
 }

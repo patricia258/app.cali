@@ -160,21 +160,21 @@ function PublicForm({ slug, preview }: { slug: string; preview: boolean }) {
     <div className={ui.progress} aria-hidden="true"><i className={ui.progressFill} style={{ width: `${progress}%` }} /></div>
     <header className={ui.header}><img className={ui.logo} src="/brand/cali-rh-bordo.png" alt="CALI RH" />{preview && <span className={ui.preview}>Prévia · as respostas não são salvas</span>}</header>
     <main className={ui.stage} ref={stageRef}>
-      {phase === 'loading' && <div className={`${ui.screen} ${ui.center} tw:max-w-[45rem]`}><span className={ui.spinner} aria-label="Carregando" /></div>}
-      {phase === 'missing' && <div className={`${ui.screen} ${ui.center} ${ui.enter} tw:max-w-[45rem]`}><small className={ui.eyebrow}>CALI FORMS</small><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>Formulário não encontrado</h1><p className={`${ui.description} tw:max-w-[38.75rem]`}>Confira o link que você recebeu ou fale com a CALI RH.</p></div>}
-      {phase === 'closed' && form && <div className={`${ui.screen} ${ui.center} ${ui.enter} tw:max-w-[45rem]`}><small className={ui.eyebrow}>CALI FORMS</small><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>{form.title}</h1><p className={`${ui.description} tw:max-w-[38.75rem]`}>Este formulário não está mais recebendo respostas. Obrigada pelo interesse.</p></div>}
-      {phase === 'welcome' && form && <div className={`${ui.screen} ${ui.enter} tw:max-w-[55rem]`}>
+      {phase === 'loading' && <div className={`${ui.screen} ${ui.center} tw:max-w-180`}><span className={ui.spinner} aria-label="Carregando" /></div>}
+      {phase === 'missing' && <div className={`${ui.screen} ${ui.center} ${ui.enter} tw:max-w-180`}><small className={ui.eyebrow}>CALI FORMS</small><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>Formulário não encontrado</h1><p className={`${ui.description} tw:max-w-155`}>Confira o link que você recebeu ou fale com a CALI RH.</p></div>}
+      {phase === 'closed' && form && <div className={`${ui.screen} ${ui.center} ${ui.enter} tw:max-w-180`}><small className={ui.eyebrow}>CALI FORMS</small><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>{form.title}</h1><p className={`${ui.description} tw:max-w-155`}>Este formulário não está mais recebendo respostas. Obrigada pelo interesse.</p></div>}
+      {phase === 'welcome' && form && <div className={`${ui.screen} ${ui.enter} tw:max-w-220`}>
         <small className={ui.eyebrow}>{form.category || 'Formulário'}</small><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>{form.title}</h1>
         {form.description && <p className={`${ui.description} ${ui.richText}`}><RichText value={form.description} /></p>}
-        <div className={ui.actions}><button type="button" className={ui.primary} onClick={() => setPhase('questions')}>Começar <ArrowRight size={18} /></button><span className="tw:text-[0.8125rem] tw:text-[#6b5d63]! tw:max-[641px]:hidden tw:[&_b]:inline-flex tw:[&_b]:items-center tw:[&_b]:gap-[0.1875rem] tw:[&_b]:font-bold tw:[&_b]:text-[#2b2024]!">ou pressione <b>Enter <CornerDownLeft size={13} /></b></span></div>
+        <div className={ui.actions}><button type="button" className={ui.primary} onClick={() => setPhase('questions')}>Começar <ArrowRight size={18} /></button><span className="tw:text-cali-detail tw:text-cali-muted! tw:max-[641px]:hidden tw:[&_b]:inline-flex tw:[&_b]:items-center tw:[&_b]:gap-1 tw:[&_b]:font-bold tw:[&_b]:text-cali-text!">ou pressione <b>Enter <CornerDownLeft size={13} /></b></span></div>
         <p className={ui.meta}>{answerable.length} {answerable.length === 1 ? 'pergunta' : 'perguntas'} · cerca de {Math.max(1, Math.round(answerable.length * 0.4))} min</p>
       </div>}
-      {(phase === 'questions' || phase === 'sending') && question && <div className={`${ui.screen} tw:max-w-[45rem] ${direction === 'next' ? ui.forward : ui.back}`} key={question.id}>
+      {(phase === 'questions' || phase === 'sending') && question && <div className={`${ui.screen} tw:max-w-180 ${direction === 'next' ? ui.forward : ui.back}`} key={question.id}>
         <div className="tw:flex tw:items-start tw:gap-3 tw:max-[641px]:gap-2">
-          {isAnswerable(question) && <span className="tw:mt-[0.4375rem] tw:inline-flex tw:min-w-[1.625rem] tw:flex-none tw:items-center tw:gap-[0.1875rem] tw:text-[0.9375rem] tw:font-bold tw:text-cali-brand!">{numberOf(question)}<ArrowRight size={14} /></span>}
-          <h2 className={ui.heading}>{question.label}{isAnswerable(question) && (question.required ? <em className="tw:ml-[0.375rem] tw:text-cali-brand! tw:not-italic" aria-label="obrigatória">*</em> : <span className="tw:ml-[0.625rem] tw:inline-block tw:rounded-full tw:bg-[#efe6df] tw:px-[0.5625rem] tw:py-[0.1875rem] tw:align-middle tw:text-xs tw:font-semibold tw:tracking-normal tw:text-[#6b5d63]">Opcional</span>)}</h2>
+          {isAnswerable(question) && <span className="tw:mt-2 tw:inline-flex tw:min-w-6.5 tw:flex-none tw:items-center tw:gap-1 tw:text-cali-body tw:font-bold tw:text-cali-brand!">{numberOf(question)}<ArrowRight size={14} /></span>}
+          <h2 className={ui.heading}>{question.label}{isAnswerable(question) && (question.required ? <em className="tw:ml-1.5 tw:text-cali-brand! tw:not-italic" aria-label="obrigatória">*</em> : <span className="tw:ml-2.5 tw:inline-block tw:rounded-full tw:bg-cali-sand-line tw:px-2 tw:py-1 tw:align-middle tw:text-xs tw:font-semibold tw:tracking-normal tw:text-cali-muted">Opcional</span>)}</h2>
         </div>
-        {question.help && <p className={`tw:mr-0 tw:mb-0 tw:leading-[1.55] tw:whitespace-pre-line tw:text-[#6b5d63]! ${ui.richText} ${statement ? 'tw:mt-[0.875rem] tw:text-[clamp(1rem,1.6vw,1.125rem)]' : `tw:mt-[0.625rem] tw:text-base ${questionIndent}`}`}><RichText value={question.help} /></p>}
+        {question.help && <p className={`tw:mr-0 tw:mb-0 tw:leading-[1.55] tw:whitespace-pre-line tw:text-cali-muted! ${ui.richText} ${statement ? 'tw:mt-3.5 tw:text-[clamp(1rem,1.6vw,1.125rem)]' : `tw:mt-2.5 tw:text-base ${questionIndent}`}`}><RichText value={question.help} /></p>}
         <PublicQuestionAnswer
           item={question}
           value={answers[question.id]}
@@ -192,17 +192,17 @@ function PublicForm({ slug, preview }: { slug: string; preview: boolean }) {
         {sendError && isLast && <p className={`${ui.error} ${questionIndent}`} role="alert">{sendError}</p>}
         <div className={`${ui.actions} ${questionIndent}`}>
           <button type="button" className={ui.primary} disabled={phase === 'sending'} onClick={goNext}>{phase === 'sending' ? 'Enviando…' : isLast ? <>{form?.submit_label || 'Enviar'} <Check size={18} /></> : question.kind === 'statement' ? <>Continuar <ArrowRight size={18} /></> : <>OK <Check size={18} /></>}</button>
-          {phase !== 'sending' && <span className="tw:text-[0.8125rem] tw:text-[#6b5d63]! tw:max-[641px]:hidden tw:[&_b]:inline-flex tw:[&_b]:items-center tw:[&_b]:gap-[0.1875rem] tw:[&_b]:font-bold tw:[&_b]:text-[#2b2024]!">pressione <b>Enter <CornerDownLeft size={13} /></b>{question.kind === 'long_text' && <> · <b>Shift + Enter</b> quebra linha</>}</span>}
+          {phase !== 'sending' && <span className="tw:text-cali-detail tw:text-cali-muted! tw:max-[641px]:hidden tw:[&_b]:inline-flex tw:[&_b]:items-center tw:[&_b]:gap-1 tw:[&_b]:font-bold tw:[&_b]:text-cali-text!">pressione <b>Enter <CornerDownLeft size={13} /></b>{question.kind === 'long_text' && <> · <b>Shift + Enter</b> quebra linha</>}</span>}
         </div>
       </div>}
-      {phase === 'done' && form && <div className={`${ui.screen} ${ui.center} ${ui.enter} tw:max-w-[45rem]`}>
-        <span className="tw:mb-[0.625rem] tw:grid tw:size-[5.25rem] tw:place-items-center tw:rounded-full tw:bg-cali-brand tw:shadow-[0_0.875rem_2.125rem_rgba(90,30,45,.22)]"><img src="/brand/cali-oak-mark-light.svg" alt="" className="tw:block tw:size-[3.125rem]" /></span>
+      {phase === 'done' && form && <div className={`${ui.screen} ${ui.center} ${ui.enter} tw:max-w-180`}>
+        <span className="tw:mb-2.5 tw:grid tw:size-21 tw:place-items-center tw:rounded-full tw:bg-cali-brand tw:shadow-[0_0.875rem_2.125rem_rgb(var(--cali-rgb-burgundy-accent)/0.22)]"><img src="/brand/cali-oak-mark-light.svg" alt="" className="tw:block tw:size-12.5" /></span>
         {(() => {
           // Mensagem própria do formulário: a primeira frase curta vira o título; o resto, o texto.
           const custom = form.success_text?.trim();
-          if (!custom) return <><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>Muito obrigado!</h1><p className={`${ui.description} tw:max-w-[38.75rem]`}>Recebemos suas respostas e agradecemos a colaboração.</p></>;
+          if (!custom) return <><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>Muito obrigado!</h1><p className={`${ui.description} tw:max-w-155`}>Recebemos suas respostas e agradecemos a colaboração.</p></>;
           const match = custom.match(/^(.{4,70}?[!.?])\s+(.+)$/s);
-          return match ? <><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>{match[1]}</h1><p className={`${ui.description} tw:max-w-[38.75rem]`}>{match[2]}</p></> : <><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>Muito obrigado!</h1><p className={`${ui.description} tw:max-w-[38.75rem]`}>{custom}</p></>;
+          return match ? <><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>{match[1]}</h1><p className={`${ui.description} tw:max-w-155`}>{match[2]}</p></> : <><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>Muito obrigado!</h1><p className={`${ui.description} tw:max-w-155`}>{custom}</p></>;
         })()}
       </div>}
     </main>

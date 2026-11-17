@@ -126,24 +126,24 @@ export function NotificationCenter({ role }: { role: Role }) {
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((current) => !current)}
         className={`tw:relative tw:grid tw:size-10 tw:cursor-pointer tw:place-items-center tw:rounded-xl
-          tw:border tw:border-solid tw:p-0 tw:shadow-[0_0.25rem_0.875rem_#331e230e]
+          tw:border tw:border-solid tw:p-0 tw:shadow-[0_0.25rem_0.875rem_rgb(var(--cali-rgb-red-inverse)/0.0549)]
           tw:[transition:background_.18s_ease,border-color_.18s_ease,color_.18s_ease,box-shadow_.18s_ease,transform_.18s_ease]
           tw:hover:-translate-y-px tw:motion-reduce:transition-none tw:workspace-compact:inline-flex
           tw:workspace-compact:size-auto tw:workspace-compact:items-center tw:workspace-compact:justify-center
-          tw:workspace-compact:rounded-none tw:workspace-compact:border-0 tw:workspace-compact:p-[0.385rem] tw:workspace-compact:shadow-none
-          tw:workspace-compact:hover:translate-y-0 tw:workspace-compact:[&>svg]:size-[1.308rem]
+          tw:workspace-compact:rounded-none tw:workspace-compact:border-0 tw:workspace-compact:p-1.5 tw:workspace-compact:shadow-none
+          tw:workspace-compact:hover:translate-y-0 tw:workspace-compact:[&>svg]:size-5
           ${unread
-            ? 'tw:border-[color-mix(in_srgb,var(--cali-color-gold)_42%,var(--theme-line))] tw:bg-[color-mix(in_srgb,var(--cali-color-gold)_11%,var(--theme-surface))] tw:text-cali-brand tw:[&>svg]:stroke-[2.25] tw:workspace-night:border-[#b58c5261] tw:workspace-night:bg-[#b58c5224] tw:workspace-night:text-[#e4bb70] tw:workspace-compact:bg-[#f6edf0] tw:workspace-compact:text-cali-brand tw:workspace-compact:shadow-[0_0_0_0.231rem_#5a1e2d14]! tw:workspace-compact:[&>svg]:origin-[50%_10%] tw:workspace-compact:[&>svg]:motion-safe:animate-[notification-bell-ring_2.8s_ease-in-out_infinite]'
-            : 'tw:border-[#5a1e2d1a] tw:bg-white/80 tw:text-cali-text tw:workspace-night:border-cali-line tw:workspace-night:bg-[#241b1f] tw:workspace-compact:bg-transparent tw:workspace-compact:text-[#5d5350]'}`}
+            ? 'tw:border-[color-mix(in_srgb,var(--cali-color-gold)_42%,var(--theme-line))] tw:bg-[color-mix(in_srgb,var(--cali-color-gold)_11%,var(--theme-surface))] tw:text-cali-brand tw:[&>svg]:stroke-[2.25] tw:workspace-night:border-cali-gold/38 tw:workspace-night:bg-cali-gold/14 tw:workspace-night:text-cali-orange-line tw:workspace-compact:bg-cali-danger-surface tw:workspace-compact:text-cali-brand tw:workspace-compact:shadow-[0_0_0_0.231rem_rgb(var(--cali-rgb-burgundy-accent)/0.07843)]! tw:workspace-compact:[&>svg]:origin-[50%_10%] tw:workspace-compact:[&>svg]:motion-safe:animate-[notification-bell-ring_2.8s_ease-in-out_infinite]'
+            : 'tw:border-cali-brand/10 tw:bg-cali-neutral-surface/80 tw:text-cali-text tw:workspace-night:border-cali-line tw:workspace-night:bg-cali-surface tw:workspace-compact:bg-transparent tw:workspace-compact:text-cali-neutral-text'}`}
       >
         <Bell size={20} />
         {unread > 0 && (
-          <span className="tw:absolute tw:-top-[0.4375rem] tw:-right-[0.4375rem] tw:grid tw:h-[1.3125rem]
+          <span className="tw:absolute tw:-top-2 tw:-right-2 tw:grid tw:h-5
             tw:min-w-[1.3125rem] tw:place-items-center tw:rounded-full tw:border-2 tw:border-solid tw:border-[var(--ivory)]
-            tw:bg-cali-brand tw:px-[0.3125rem] tw:text-[0.68rem]/none tw:font-extrabold tw:text-white
-            tw:shadow-[0_0.25rem_0.75rem_#5a1e2d2e] tw:workspace-compact:-top-[0.462rem] tw:workspace-compact:-right-[0.462rem]
-            tw:workspace-compact:h-[1.462rem] tw:workspace-compact:min-w-[1.462rem] tw:workspace-compact:border-white
-            tw:workspace-compact:bg-[#b7495d] tw:workspace-compact:px-[0.385rem] tw:workspace-compact:text-[0.769rem]/none">
+            tw:bg-cali-brand tw:px-1 tw:text-cali-label/none tw:font-extrabold tw:text-cali-neutral-surface
+            tw:shadow-[0_0.25rem_0.75rem_rgb(var(--cali-rgb-burgundy-accent)/0.1804)] tw:workspace-compact:-top-2 tw:workspace-compact:-right-2
+            tw:workspace-compact:h-6 tw:workspace-compact:min-w-[1.462rem] tw:workspace-compact:border-cali-neutral-surface
+            tw:workspace-compact:bg-cali-danger tw:workspace-compact:px-1.5 tw:workspace-compact:text-xs/none">
             {unread > 9 ? '9+' : unread}
           </span>
         )}

@@ -1,3 +1,4 @@
+import { emailColors } from '../_shared/email-colors.ts';
 import type { JsonValue } from '../_shared/json.ts';
 import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -40,29 +41,29 @@ const typeLabel: Record<string, string> = {
 };
 
 function html(title: string, body: string, url: string, company: string, context?: { protocol?: string; type?: string; subject?: string }) {
-  const contextBlock = context ? `<div style="margin:0 0 22px;padding:14px 16px;border:1px solid #E8DDD4;border-radius:12px;background:#FBF7F3">
-    <div style="font-size:10px;color:#8C807A;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">${esc(company)}${context.type ? ` · ${esc(context.type)}` : ""}</div>
-    ${context.protocol ? `<div style="font-size:11px;color:#B58C52;font-weight:700;margin-bottom:4px">${esc(context.protocol)}</div>` : ""}
-    ${context.subject ? `<div style="font-size:14px;color:#2B2B2B;font-weight:700;line-height:1.4">${esc(context.subject)}</div>` : ""}
+  const contextBlock = context ? `<div style="margin:0 0 22px;padding:14px 16px;border:1px solid ${emailColors.line};border-radius:12px;background:${emailColors.surfaceSoft}">
+    <div style="font-size:10px;color:${emailColors.textMuted};letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">${esc(company)}${context.type ? ` · ${esc(context.type)}` : ""}</div>
+    ${context.protocol ? `<div style="font-size:11px;color:${emailColors.accentText};font-weight:700;margin-bottom:4px">${esc(context.protocol)}</div>` : ""}
+    ${context.subject ? `<div style="font-size:14px;color:${emailColors.text};font-weight:700;line-height:1.4">${esc(context.subject)}</div>` : ""}
   </div>` : "";
-  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#F7F3EE;font-family:Arial,Helvetica,sans-serif;color:#2B2B2B">
+  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:${emailColors.page};font-family:Arial,Helvetica,sans-serif;color:${emailColors.text}">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 14px">
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#fff;border:1px solid #E8DDD4;border-radius:18px;overflow:hidden">
-      <tr><td style="padding:20px 26px;border-bottom:1px solid #6A2838;background:#5A1E2D">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:${emailColors.surface};border:1px solid ${emailColors.line};border-radius:18px;overflow:hidden">
+      <tr><td style="padding:20px 26px;border-bottom:1px solid ${emailColors.brandLine};background:${emailColors.brand}">
         <table width="100%" cellpadding="0" cellspacing="0"><tr>
           <td align="left" valign="middle"><img src="${LOGO_URL}" alt="CALI Workspace" width="122" style="display:block;width:122px;max-width:122px;height:auto"></td>
           <td align="right" valign="middle"><img src="${MARK_URL}" alt="" width="48" height="48" style="display:block;width:48px;height:48px;object-fit:contain"></td>
         </tr></table>
       </td></tr>
       <tr><td style="padding:30px">
-        <div style="font-size:10px;letter-spacing:.12em;color:#B58C52;font-weight:700;margin-bottom:8px">ATUALIZAÇÃO DO WORKSPACE</div>
-        <h1 style="font-family:Georgia,serif;font-size:25px;line-height:1.25;font-weight:400;color:#5A1E2D;margin:0 0 14px">${esc(title)}</h1>
+        <div style="font-size:10px;letter-spacing:.12em;color:${emailColors.accentText};font-weight:700;margin-bottom:8px">ATUALIZAÇÃO DO WORKSPACE</div>
+        <h1 style="font-family:Georgia,serif;font-size:25px;line-height:1.25;font-weight:400;color:${emailColors.brand};margin:0 0 14px">${esc(title)}</h1>
         ${contextBlock}
         ${body ? `<p style="font-size:15px;line-height:1.65;margin:0 0 24px">${esc(body)}</p>` : ""}
-        <div style="text-align:center;margin:0 0 24px"><a href="${esc(url)}" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir no Workspace</a></div>
-        <div style="height:1px;background:#EAE1D8;margin-bottom:18px"></div>
-        <p style="font-size:12px;color:#8C807A;margin:0"><strong>APP CALI Workspace</strong></p>
-        <p style="font-size:12px;line-height:1.6;color:#8C807A;margin:8px 0 0">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_URL}" style="color:#5A1E2D;text-decoration:underline">Workspace</a>.</p>
+        <div style="text-align:center;margin:0 0 24px"><a href="${esc(url)}" style="display:inline-block;background:${emailColors.brand};color:${emailColors.onBrand};text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir no Workspace</a></div>
+        <div style="height:1px;background:${emailColors.line};margin-bottom:18px"></div>
+        <p style="font-size:12px;color:${emailColors.textMuted};margin:0"><strong>APP CALI Workspace</strong></p>
+        <p style="font-size:12px;line-height:1.6;color:${emailColors.textMuted};margin:8px 0 0">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_URL}" style="color:${emailColors.brand};text-decoration:underline">Workspace</a>.</p>
       </td></tr>
     </table>
   </td></tr></table></body></html>`;
@@ -393,7 +394,7 @@ Deno.serve(async (req: Request) => {
             // aprovado não possui um marcador próprio. Usar bloco opcional controlado.
             const location = String(onSite ? request.location || "" : "").trim();
             safeHtmlBlocks.bloco_observacoes = location
-              ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr><td style="padding:10px 14px;background:#F7F3EE;border:1px solid #E8DDD4"><strong style="color:#5A1E2D;font:700 11px/18px Arial,Helvetica,sans-serif">ENDEREÇO INFORMADO</strong><p style="margin:5px 0 0;color:#2B2B2B;font:13px/20px Arial,Helvetica,sans-serif">${esc(location)}</p></td></tr></table>`
+              ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr><td style="padding:10px 14px;background:${emailColors.page};border:1px solid ${emailColors.line}"><strong style="color:${emailColors.brand};font:700 11px/18px Arial,Helvetica,sans-serif">ENDEREÇO INFORMADO</strong><p style="margin:5px 0 0;color:${emailColors.text};font:13px/20px Arial,Helvetica,sans-serif">${esc(location)}</p></td></tr></table>`
               : "";
           } else if (template === "document_ack") {
             // Somente arquivos que EXIGEM ciência recebem o modelo de confirmação.

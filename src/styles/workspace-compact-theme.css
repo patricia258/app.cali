@@ -1,22 +1,22 @@
 /* Mantém os valores do tema compacto após as folhas base do Workspace. */
 html[data-workspace-ui='v2'] {
-  --theme-page: #f7f3ee;
-  --theme-page-2: #f7f3ee;
-  --theme-surface: #fff;
-  --theme-surface-soft: #fbf7f4;
-  --theme-surface-muted: #f4eee8;
-  --theme-text: #322f2c;
-  --theme-muted: #857870;
-  --theme-line: #e9dbd0;
-  --theme-line-strong: #dec9c3;
-  --theme-elevated-shadow: 0 20px 80px #1d111344;
-  --theme-input: #fff;
-  --theme-input-border: #e5d8d0;
-  --theme-accent: #5a1e2d;
-  --theme-accent-soft: #f8ecef;
-  --theme-gold: #b58c52;
-  --theme-gold-soft: #fffaf1;
-  --theme-success: #42785a;
-  --theme-success-soft: #eaf3ed;
-  --theme-danger: #b7495d;
+  --theme-page: var(--cali-color-sand-soft);
+  --theme-page-2: var(--cali-color-sand-soft);
+  --theme-surface: var(--cali-color-neutral-surface);
+  --theme-surface-soft: var(--cali-color-sand-soft);
+  --theme-surface-muted: var(--cali-color-neutral-soft);
+  --theme-text: var(--cali-color-neutral-strong);
+  --theme-muted: var(--cali-color-neutral-accent);
+  --theme-line: var(--cali-color-sand-line);
+  --theme-line-strong: var(--cali-color-neutral-line);
+  --theme-elevated-shadow: 0 20px 80px rgb(var(--cali-rgb-neutral-inverse)/0.2667);
+  --theme-input: var(--cali-color-neutral-surface);
+  --theme-input-border: var(--cali-color-sand-line);
+  --theme-accent: var(--cali-color-burgundy-accent);
+  --theme-accent-soft: var(--cali-color-red-surface);
+  --theme-gold: var(--cali-color-gold-accent);
+  --theme-gold-soft: var(--cali-color-gold-surface);
+  --theme-success: var(--cali-color-green-accent);
+  --theme-success-soft: var(--cali-color-green-surface);
+  --theme-danger: var(--cali-color-red-accent);
 }

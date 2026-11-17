@@ -41,7 +41,7 @@ function MeetingRecordFields({ meeting, outcome, protocol }: RecordData & { prot
 
   return (
     <>
-      <section className="tw:my-3.5 tw:rounded-2xl tw:border tw:border-solid tw:border-cali-line tw:bg-[var(--theme-surface-soft,#faf7f5)] tw:px-4 tw:py-3.5 tw:text-base/[1.45] tw:text-cali-muted">
+      <section className="tw:my-3.5 tw:rounded-2xl tw:border tw:border-solid tw:border-cali-line tw:bg-[var(--theme-surface-soft,var(--cali-color-sand-soft))] tw:px-4 tw:py-3.5 tw:text-base/[1.45] tw:text-cali-muted">
         <strong className="tw:text-cali-text">Agenda contratual · {classification}</strong><br />
         {meeting.mode === 'in_person' ? 'Presencial' : 'Online'}
         {meeting.billing_applies && ` · ${meeting.billing_reason || 'Condição adicional'}`}
@@ -50,10 +50,10 @@ function MeetingRecordFields({ meeting, outcome, protocol }: RecordData & { prot
           {outcome.note && ` · ${outcome.note}`}
         </>}
       </section>
-      <section className="tw:flex tw:flex-col tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-[#efe7df] tw:bg-[#fffdfb] tw:px-4.5 tw:py-4 tw:text-[#67574c]">
+      <section className="tw:flex tw:flex-col tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:px-4.5 tw:py-4 tw:text-cali-muted">
         <header className="tw:flex tw:items-center tw:justify-between tw:gap-3">
-          <strong className="tw:text-sm/[inherit] tw:font-bold tw:text-[#322f2c]">Registro do encontro</strong>
-          <span className="tw:rounded-md tw:bg-[#f6f0eb] tw:px-2.5 tw:py-1 tw:text-xs/[inherit] tw:font-bold tw:whitespace-nowrap tw:text-[#857870]">{status}</span>
+          <strong className="tw:text-sm/[inherit] tw:font-bold tw:text-cali-text">Registro do encontro</strong>
+          <span className="tw:rounded-md tw:bg-cali-surface-muted tw:px-2.5 tw:py-1 tw:text-xs/[inherit] tw:font-bold tw:whitespace-nowrap tw:text-cali-muted">{status}</span>
         </header>
         <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.5">
           {outcome ? (
@@ -63,7 +63,7 @@ function MeetingRecordFields({ meeting, outcome, protocol }: RecordData & { prot
               <MeetingRecordAction primary onClick={() => edit('occurred')}>Aconteceu</MeetingRecordAction>
               <MeetingRecordAction onClick={() => edit('not_occurred')}>Não aconteceu</MeetingRecordAction>
             </>
-          ) : <span className="tw:text-sm/[inherit] tw:text-[#857870]">O registro fica disponível no dia do encontro.</span>}
+          ) : <span className="tw:text-sm/[inherit] tw:text-cali-muted">O registro fica disponível no dia do encontro.</span>}
         </div>
         {editing && (
           <form key={editing} className={recordForm} onSubmit={(event) => {

@@ -12,7 +12,7 @@ export function useVerifyAccessCode() {
     gcTime: 0,
     mutationFn: async ({ email, code }: { email: string; code: string }) => {
       const result = await verifyAccessCode(email.trim(), code);
-      if (result.error) throw new Error('Código inválido ou expirado.');
+      if (result.error) throw new Error(result.error.message);
       const profile = await readAuthenticatedWorkspaceProfile();
       if (profile && !profile.active) {
         await endWorkspaceSession();

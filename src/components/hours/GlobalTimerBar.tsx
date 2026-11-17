@@ -136,12 +136,12 @@ export function GlobalTimerBar({role}:{role:Role}){
   const showMore = moreOpen && overflow.length > 0;
 
   return <>
-    {role === 'admin' && visibleTimers.length > 0 && <div className="global-timers tw:mr-[0.3125rem] tw:flex tw:min-w-0 tw:shrink-0 tw:items-center tw:gap-[0.4375rem] tw:[@media(max-width:47.5rem)]:max-w-[16.1538rem]" aria-label="Timers ativos">
-      <span className="global-timers-mark tw:grid tw:size-[2.125rem] tw:flex-none tw:place-items-center tw:rounded-[0.6875rem] tw:bg-[color:color-mix(in_srgb,var(--theme-accent)_11%,var(--theme-surface))] tw:text-cali-accent tw:workspace-compact:hidden tw:[@media(max-width:61.25rem)]:hidden" title={`${visibleTimers.length} timer(s) fora do contexto atual`}><TimerReset size={16}/></span>
-      {primary.length > 0 && <div className="global-timers-primary tw:flex tw:min-w-0 tw:items-center tw:gap-[0.4375rem]">{primary.map((timer) => <GlobalTimerChip key={timer.id} {...chipProps(timer)} />)}</div>}
+    {role === 'admin' && visibleTimers.length > 0 && <div className="global-timers tw:mr-1 tw:flex tw:min-w-0 tw:shrink-0 tw:items-center tw:gap-2 tw:[@media(max-width:47.5rem)]:max-w-[16.1538rem]" aria-label="Timers ativos">
+      <span className="global-timers-mark tw:grid tw:size-8.5 tw:flex-none tw:place-items-center tw:rounded-cali-panel tw:bg-[color:color-mix(in_srgb,var(--theme-accent)_11%,var(--theme-surface))] tw:text-cali-accent tw:workspace-compact:hidden tw:[@media(max-width:61.25rem)]:hidden" title={`${visibleTimers.length} timer(s) fora do contexto atual`}><TimerReset size={16}/></span>
+      {primary.length > 0 && <div className="global-timers-primary tw:flex tw:min-w-0 tw:items-center tw:gap-2">{primary.map((timer) => <GlobalTimerChip key={timer.id} {...chipProps(timer)} />)}</div>}
       {overflow.length > 0 && <button
         ref={moreButton}
-        className={`global-timers-more tw:inline-flex tw:h-[2.3125rem] tw:min-w-[2.375rem] tw:shrink-0 tw:cursor-pointer tw:items-center tw:justify-center tw:gap-[0.3125rem] tw:rounded-full tw:border tw:border-solid tw:border-cali-line tw:bg-[color:var(--theme-surface-soft)] tw:px-[0.625rem] tw:text-[0.875rem] tw:font-extrabold tw:whitespace-nowrap tw:text-cali-text tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-accent`}
+        className={`global-timers-more tw:inline-flex tw:h-9 tw:min-w-9.5 tw:shrink-0 tw:cursor-pointer tw:items-center tw:justify-center tw:gap-1 tw:rounded-full tw:border tw:border-solid tw:border-cali-line tw:bg-[color:var(--theme-surface-soft)] tw:px-2.5 tw:text-sm tw:font-extrabold tw:whitespace-nowrap tw:text-cali-text tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-accent`}
         type="button"
         aria-label={overflow.length === 1 ? 'Ver mais 1 timer ativo' : `Ver mais ${overflow.length} timers ativos`}
         aria-haspopup="dialog"
@@ -158,18 +158,18 @@ export function GlobalTimerBar({role}:{role:Role}){
     </div>}
     {showMore && createPortal(
       <div
-        className="global-timers-popover tw:fixed tw:z-1000 tw:w-[min(33.0625rem,calc(100vw-2.4615rem))] tw:overflow-auto tw:rounded-[1.1538rem] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:p-[0.75rem] tw:text-cali-text tw:shadow-[0_1.3846rem_4.2308rem_#2b2b2b2b]"
+        className="global-timers-popover tw:fixed tw:z-1000 tw:w-[min(33.0625rem,calc(100vw-2.4615rem))] tw:overflow-auto tw:rounded-[1.1538rem] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:p-3 tw:text-cali-text tw:shadow-[0_1.3846rem_4.2308rem_rgb(var(--cali-rgb-neutral-strong)/0.1686)]"
         id={panelId}
         ref={morePanel}
         role="dialog"
         aria-labelledby={panelTitleId}
         style={{ top: panelPosition.top, right: panelPosition.right, maxHeight: `calc(100dvh - ${panelPosition.top + 16}px)` }}
       >
-        <header className="tw:flex tw:items-start tw:justify-between tw:gap-[0.9375rem] tw:p-[0.2308rem_0.2308rem_0.6875rem]">
-          <div className="tw:grid tw:gap-[0.1538rem]"><strong className="tw:text-[0.9375rem]" id={panelTitleId}>{primary.length > 0 ? 'Outros timers' : 'Timers ativos'}</strong><small className="tw:text-[0.8077rem] tw:text-cali-muted">Empresas diferentes podem rodar em paralelo.</small></div>
-          <button className={`tw:grid tw:size-[2.125rem] tw:shrink-0 tw:cursor-pointer tw:place-items-center tw:border-0 tw:bg-transparent tw:text-cali-muted tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-accent`} type="button" ref={moreCloseButton} aria-label="Fechar timers" onClick={closePanel}><X size={16}/></button>
+        <header className="tw:flex tw:items-start tw:justify-between tw:gap-4 tw:p-[0.2308rem_0.2308rem_0.6875rem]">
+          <div className="tw:grid tw:gap-0.5"><strong className="tw:text-cali-body" id={panelTitleId}>{primary.length > 0 ? 'Outros timers' : 'Timers ativos'}</strong><small className="tw:text-cali-detail tw:text-cali-muted">Empresas diferentes podem rodar em paralelo.</small></div>
+          <button className={`tw:grid tw:size-8.5 tw:shrink-0 tw:cursor-pointer tw:place-items-center tw:border-0 tw:bg-transparent tw:text-cali-muted tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-accent`} type="button" ref={moreCloseButton} aria-label="Fechar timers" onClick={closePanel}><X size={16}/></button>
         </header>
-        <div className="tw:grid tw:gap-[0.4375rem]">{overflow.map((timer) => <GlobalTimerChip key={timer.id} {...chipProps(timer)} extended />)}</div>
+        <div className="tw:grid tw:gap-2">{overflow.map((timer) => <GlobalTimerChip key={timer.id} {...chipProps(timer)} extended />)}</div>
       </div>,
       document.body,
     )}

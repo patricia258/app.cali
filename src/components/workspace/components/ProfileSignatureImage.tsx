@@ -7,5 +7,5 @@ export function ProfileSignatureImage({ source }: { source: string }) {
 
   if (isPending) return <span role="status">Carregando assinatura…</span>;
   if (!url || url === failedUrl) return <span role="status">Imagem da assinatura indisponível.</span>;
-  return <img className="tw:max-h-[5rem] tw:max-w-[65%] tw:object-contain" data-workspace-identity src={url} alt="Sua assinatura atual" onError={() => setFailedUrl(url)} />;
+  return <img className="tw:max-h-20 tw:max-w-[65%] tw:object-contain" data-workspace-identity src={url} alt="Sua assinatura atual" onError={() => setFailedUrl(url)} />;
 }

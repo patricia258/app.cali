@@ -16,11 +16,11 @@ type Props = {
   onOpenEvent: (event: WorkspaceCalendarEvent) => void;
 };
 
-const filterLabel = 'tw:flex tw:flex-col tw:gap-1.5 tw:text-[0.625rem] tw:font-bold tw:text-[#67574c]';
-const filterInput = 'tw:h-[2.375rem] tw:min-h-[2.625rem] tw:w-full tw:rounded-md tw:border tw:border-solid tw:border-[#e5d8d0] tw:bg-white tw:px-2.5 tw:text-xs tw:font-normal tw:text-[#322f2c]';
-const pending = { label: 'Sem registro', className: 'tw:bg-[#f8efcf] tw:text-[#79571a]' };
-const completed = { label: 'Realizada', className: 'tw:bg-[#e6f6ec] tw:text-[#31805a]' };
-const missed = { label: 'Não realizada', className: 'tw:bg-[#fbe9ec] tw:text-[#b7495d]' };
+const filterLabel = 'tw:flex tw:flex-col tw:gap-1.5 tw:text-cali-micro tw:font-bold tw:text-cali-muted';
+const filterInput = 'tw:h-9.5 tw:min-h-10.5 tw:w-full tw:rounded-md tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-2.5 tw:text-xs tw:font-normal tw:text-cali-text';
+const pending = { label: 'Sem registro', className: 'tw:bg-cali-gold-soft tw:text-cali-gold-text' };
+const completed = { label: 'Realizada', className: 'tw:bg-cali-success-surface tw:text-cali-success' };
+const missed = { label: 'Não realizada', className: 'tw:bg-cali-red-surface tw:text-cali-danger' };
 
 export function CalendarMeetingHistory({ openedAt, companyId, events, outcomes, onClose, onOpenEvent }: Props) {
   const [month, setMonth] = useState('');
@@ -51,30 +51,30 @@ export function CalendarMeetingHistory({ openedAt, companyId, events, outcomes, 
         <div className={`${dialogHeaderClass} tw:flex-col tw:gap-1.5`}>
           <span className={dialogKickerClass}>AGENDA REALIZADA</span>
           <strong className={dialogTitleClass}>Histórico de reuniões</strong>
-          <span className="tw:text-[0.6875rem] tw:font-semibold tw:text-[#857870]">Ver encontros e transcrições</span>
+          <span className="tw:text-cali-label tw:font-semibold tw:text-cali-muted">Ver encontros e transcrições</span>
         </div>
-        <div className="tw:grid tw:grid-cols-3 tw:gap-3 tw:border-0 tw:border-b tw:border-solid tw:border-[#f1e9e2] tw:px-6 tw:py-4 tw:max-sm:grid-cols-1">
+        <div className="tw:grid tw:grid-cols-3 tw:gap-3 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:px-6 tw:py-4 tw:max-sm:grid-cols-1">
           <label className={filterLabel}>Período<input className={filterInput} type="month" value={month} onChange={event => setMonth(event.target.value)} /></label>
           <label className={filterLabel}>Formato<select className={filterInput} value={mode} onChange={event => setMode(event.target.value)}><option value="all">Todos</option><option value="remote">Online</option><option value="in_person">Presencial</option></select></label>
           <label className={filterLabel}>Situação<select className={filterInput} value={outcomeFilter} onChange={event => setOutcomeFilter(event.target.value)}><option value="all">Todas</option><option value="occurred">Realizada</option><option value="not_occurred">Não realizada</option><option value="cancelled">Cancelada</option><option value="pending">Sem registro</option></select></label>
         </div>
-        <div className="tw:flex tw:max-h-[19.375rem] tw:flex-col tw:gap-2 tw:overflow-auto tw:px-6 tw:pt-4 tw:pb-5 tw:[scrollbar-width:none]">
+        <div className="tw:flex tw:max-h-77.5 tw:flex-col tw:gap-2 tw:overflow-auto tw:px-6 tw:pt-4 tw:pb-5 tw:[scrollbar-width:none]">
           {history.length ? history.map(event => {
             const outcome = outcomes[event.id];
             const status = event.cancelledAt ? { ...missed, label: 'Cancelada' }
               : outcome?.outcome === 'occurred' ? completed : outcome?.outcome === 'not_occurred' ? missed : pending;
             return (
               <button type="button" key={event.id} onClick={() => onOpenEvent(event)}
-                className="tw:flex tw:w-full tw:cursor-pointer tw:items-center tw:justify-between tw:gap-3.5 tw:rounded-lg tw:border tw:border-solid tw:border-[#efe7df] tw:bg-white tw:px-3.5 tw:py-3 tw:text-left tw:hover:border-[#dec9c3] tw:hover:bg-[#fffdfb] tw:max-[43.75rem]:flex-wrap">
+                className="tw:flex tw:w-full tw:cursor-pointer tw:items-center tw:justify-between tw:gap-3.5 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-left tw:hover:border-cali-line-strong tw:hover:bg-cali-paper tw:max-[43.75rem]:flex-wrap">
                 <span className="tw:flex tw:min-w-0 tw:flex-1 tw:flex-col tw:gap-0.5">
-                  <strong className="tw:text-xs tw:text-[#322f2c]">{event.title}</strong>
-                  <small className="tw:text-[0.625rem] tw:text-[#857870]">{event.company || 'CALI'} · {formatCalendarDate(event.startsAt)} · {event.mode === 'in_person' ? 'Presencial' : 'Online'}</small>
+                  <strong className="tw:text-xs tw:text-cali-text">{event.title}</strong>
+                  <small className="tw:text-cali-micro tw:text-cali-muted">{event.company || 'CALI'} · {formatCalendarDate(event.startsAt)} · {event.mode === 'in_person' ? 'Presencial' : 'Online'}</small>
                 </span>
-                <b className={`tw:shrink-0 tw:rounded-sm tw:px-2 tw:py-1 tw:text-[0.5625rem] tw:font-bold tw:tracking-wide tw:whitespace-nowrap ${status.className}`}>{status.label}</b>
+                <b className={`tw:shrink-0 tw:rounded-sm tw:px-2 tw:py-1 tw:text-cali-micro tw:font-bold tw:tracking-wide tw:whitespace-nowrap ${status.className}`}>{status.label}</b>
                 {outcome?.transcription_url && <FileText size={16} aria-label="Transcrição disponível" />}
               </button>
             );
-          }) : <p className="tw:text-[0.6875rem] tw:text-[#857870]">Nenhuma reunião encontrada com esses filtros.</p>}
+          }) : <p className="tw:text-cali-label tw:text-cali-muted">Nenhuma reunião encontrada com esses filtros.</p>}
         </div>
       </DialogFrame>
     </div>

@@ -16,6 +16,20 @@ async function scope(page, expected) {
   assert.deepEqual(state, { ...expected, injectedStyle: false });
 }
 
+function contrastRatio(foreground, background) {
+  function luminance(color) {
+    const channels = /^rgb\((\d+), (\d+), (\d+)\)$/.exec(color);
+    assert.ok(channels, `Cor opaca esperada, recebida ${color}`);
+    const [red, green, blue] = channels.slice(1).map((value) => {
+      const channel = Number(value) / 255;
+      return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  }
+  const values = [luminance(foreground), luminance(background)];
+  return (Math.max(...values) + 0.05) / (Math.min(...values) + 0.05);
+}
+
 async function publicSurfaces({ page, context, origin }) {
   await context.addInitScript(() => {
     localStorage.setItem(
@@ -33,7 +47,19 @@ async function publicSurfaces({ page, context, origin }) {
   await login.waitFor();
   await scope(page, { workspaceUi: null, workspaceSurface: 'sign-in', workspaceTheme: 'night' });
   const heading = login.getByRole('heading', { name: 'Entre no seu Workspace.', exact: true });
-  assert.equal(await heading.evaluate((element) => getComputedStyle(element).color), 'rgb(43, 43, 43)');
+  const instructions = login.getByText(/^Informe o e-mail cadastrado\./);
+  const emailInput = login.getByRole('textbox', { name: 'E-mail' });
+  const terms = login.getByRole('link', { name: 'Termos', exact: true });
+  const [headingColors, instructionColors, placeholderColors, footerColors] = await Promise.all([
+    heading.evaluate((element) => [getComputedStyle(element).color, getComputedStyle(element.closest('form')).backgroundColor]),
+    instructions.evaluate((element) => [getComputedStyle(element).color, getComputedStyle(element.closest('form')).backgroundColor]),
+    emailInput.evaluate((element) => [getComputedStyle(element, '::placeholder').color, getComputedStyle(element.parentElement).backgroundColor]),
+    terms.evaluate((element) => [getComputedStyle(element).color, getComputedStyle(element.closest('footer')).backgroundColor]),
+  ]);
+  const contrastTargets = { título: headingColors, instruções: instructionColors, placeholder: placeholderColors, rodapé: footerColors };
+  for (const [target, [foreground, background]] of Object.entries(contrastTargets)) {
+    assert.ok(contrastRatio(foreground, background) >= 4.5, `Contraste insuficiente no ${target} com ${foreground} em ${background}`);
+  }
   const send = login.getByRole('button', { name: 'Enviar código de acesso', exact: true });
   assert.equal(await send.evaluate((element) => getComputedStyle(element).backgroundImage), 'none');
   await page.getByRole('link', { name: 'Termos', exact: true }).click();

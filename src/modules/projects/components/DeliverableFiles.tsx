@@ -208,8 +208,8 @@ export function DeliverableFiles({
     );
   const total = groups.reduce((sum, group) => sum + group.files.length, 0);
   return (
-    <section aria-label="Pasta do entregável" className="tw:flex tw:flex-col tw:gap-[1.231rem]">
-      <div className="tw:flex tw:items-start tw:gap-[0.923rem] tw:rounded-[0.769rem] tw:bg-[#fbf7f4] tw:px-[1.231rem] tw:py-[1.077rem] tw:text-cali-brand tw:[&_svg]:shrink-0 tw:[&_strong]:text-[1.038rem] tw:[&_p]:mt-[0.231rem] tw:[&_p]:mb-0 tw:[&_p]:text-[0.923rem] tw:[&_p]:text-[#7d726b]">
+    <section aria-label="Pasta do entregável" className="tw:flex tw:flex-col tw:gap-5">
+      <div className="tw:flex tw:items-start tw:gap-3.5 tw:rounded-xl tw:bg-cali-surface-soft tw:px-5 tw:py-4.5 tw:text-cali-brand tw:[&_svg]:shrink-0 tw:[&_strong]:text-base tw:[&_p]:mt-1 tw:[&_p]:mb-0 tw:[&_p]:text-cali-body tw:[&_p]:text-cali-muted">
         <FolderOpen size={18} />
         <div>
           <strong>Pasta do entregável</strong>
@@ -222,17 +222,17 @@ export function DeliverableFiles({
       </div>
       {groups.map((group) => (
         <div
-          className="tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#eadfd5] tw:bg-white tw:px-[1.231rem] tw:py-[1.077rem]"
+          className="tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-5 tw:py-4.5"
           key={group.key}
         >
-          <h4 className="tw:mt-0 tw:mb-[0.769rem] tw:flex tw:flex-wrap tw:items-baseline tw:gap-[0.769rem] tw:text-[1rem] tw:text-cali-ink tw:[&_small]:text-[0.808rem] tw:[&_small]:font-medium tw:[&_small]:text-[#9a8d85]">
+          <h4 className="tw:mt-0 tw:mb-3 tw:flex tw:flex-wrap tw:items-baseline tw:gap-3 tw:text-base tw:text-cali-ink tw:[&_small]:text-cali-detail tw:[&_small]:font-medium tw:[&_small]:text-cali-muted">
             {group.title}
             <small>
               {group.hint} · {group.files.length} {group.files.length === 1 ? 'arquivo' : 'arquivos'}
             </small>
           </h4>
           {group.files.length ? (
-            <ul className="tw:m-0 tw:flex tw:list-none tw:flex-col tw:gap-[0.615rem] tw:p-0">
+            <ul className="tw:m-0 tw:flex tw:list-none tw:flex-col tw:gap-2.5 tw:p-0">
               {group.files.map((file) => {
                 const final = finals.find((row) => row.storage_path === file.path);
                 const state = final?.status || 'none';
@@ -240,11 +240,11 @@ export function DeliverableFiles({
                 return (
                   <li
                     key={file.path}
-                    className="tw:grid tw:grid-cols-[minmax(0,1fr)_auto_auto] tw:items-center tw:gap-[1.077rem] tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#f0e8e1] tw:bg-[#fdfaf7] tw:px-[0.923rem] tw:py-[0.769rem] tw:max-[45rem]:grid-cols-1"
+                    className="tw:grid tw:grid-cols-[minmax(0,1fr)_auto_auto] tw:items-center tw:gap-4.5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:px-3.5 tw:py-3 tw:max-[45rem]:grid-cols-1"
                   >
                     <button
                       type="button"
-                      className="tw:m-0 tw:inline-flex tw:w-fit tw:max-w-full tw:cursor-pointer tw:items-center tw:gap-[0.692rem] tw:justify-self-start tw:rounded-[0.692rem] tw:border tw:border-solid tw:border-[#e6d9ce] tw:bg-[#fffaf7] tw:px-[0.923rem] tw:py-[0.615rem] tw:text-left tw:text-cali-ink tw:[&>span:last-child]:flex tw:[&>span:last-child]:min-w-0 tw:[&>span:last-child]:flex-col tw:[&>span:last-child]:gap-[0.077rem] tw:[&_strong]:block tw:[&_strong]:max-w-[17.692rem] tw:[&_strong]:truncate tw:[&_strong]:text-[0.923rem] tw:[&_small]:text-[0.769rem] tw:[&_small]:text-[#8a7c74]"
+                      className="tw:m-0 tw:inline-flex tw:w-fit tw:max-w-full tw:cursor-pointer tw:items-center tw:gap-3 tw:justify-self-start tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:px-3.5 tw:py-2.5 tw:text-left tw:text-cali-ink tw:[&>span:last-child]:flex tw:[&>span:last-child]:min-w-0 tw:[&>span:last-child]:flex-col tw:[&>span:last-child]:gap-0.5 tw:[&_strong]:block tw:[&_strong]:max-w-[17.692rem] tw:[&_strong]:truncate tw:[&_strong]:text-cali-body tw:[&_small]:text-xs tw:[&_small]:text-cali-muted"
                       onClick={() => void open(file.path)}
                     >
                       <span>📎</span>
@@ -257,7 +257,7 @@ export function DeliverableFiles({
                       </span>
                     </button>
                     <span
-                      className={`tw:text-[0.846rem] tw:font-bold tw:whitespace-nowrap ${state === 'published' ? 'tw:text-[#356448]' : state === 'draft' ? 'tw:text-[#8a5a12]' : state === 'archived' ? 'tw:text-[#a03535]' : 'tw:text-[#8a7c74]'}`}
+                      className={`tw:text-sm tw:font-bold tw:whitespace-nowrap ${state === 'published' ? 'tw:text-cali-success' : state === 'draft' ? 'tw:text-cali-warning' : state === 'archived' ? 'tw:text-cali-red-text' : 'tw:text-cali-muted'}`}
                     >
                       {state === 'published'
                         ? 'Liberado ao cliente'
@@ -267,16 +267,16 @@ export function DeliverableFiles({
                             ? 'Suspenso'
                             : 'Arquivo de trabalho'}
                       {final && state !== 'archived' && renaming?.id !== final.id && (
-                        <small className="tw:mt-[0.154rem] tw:block tw:text-[0.808rem] tw:font-normal tw:text-[#7d726b]">
+                        <small className="tw:mt-0.5 tw:block tw:text-cali-detail tw:font-normal tw:text-cali-muted">
                           O cliente vê como: {final.title || file.name}
                         </small>
                       )}
                     </span>
-                    <span className="tw:flex tw:gap-[0.615rem] tw:max-[45rem]:flex-wrap tw:[&_button]:h-[2.462rem]! tw:[&_button]:cursor-pointer tw:[&_button]:rounded-[0.615rem]! tw:[&_button]:border! tw:[&_button]:border-solid tw:[&_button]:border-[#dfd3ca] tw:[&_button]:bg-white tw:[&_button]:px-[0.923rem]! tw:[&_button]:py-0! tw:[&_button]:text-[0.885rem]! tw:[&_button]:font-bold! tw:[&_button]:whitespace-nowrap tw:[&_button]:text-cali-brand tw:[&_button.primary]:border-cali-brand! tw:[&_button.primary]:bg-cali-brand! tw:[&_button.primary]:text-white! tw:[&_button.danger]:border-[#b23b3b] tw:[&_button.danger]:bg-[#b23b3b] tw:[&_button.danger]:text-white tw:[&_button:disabled]:cursor-default tw:[&_button:disabled]:opacity-50 tw:[&_em]:self-center tw:[&_em]:text-[0.885rem] tw:[&_em]:font-bold tw:[&_em]:text-[#8a2f2f] tw:[&_em]:not-italic">
+                    <span className="tw:flex tw:gap-2.5 tw:max-[45rem]:flex-wrap tw:[&_button]:h-10! tw:[&_button]:cursor-pointer tw:[&_button]:rounded-cali-compact-control! tw:[&_button]:border! tw:[&_button]:border-solid tw:[&_button]:border-cali-input-line tw:[&_button]:bg-cali-neutral-surface tw:[&_button]:px-3.5! tw:[&_button]:py-0! tw:[&_button]:text-sm! tw:[&_button]:font-bold! tw:[&_button]:whitespace-nowrap tw:[&_button]:text-cali-brand tw:[&_button.primary]:border-cali-brand! tw:[&_button.primary]:bg-cali-brand! tw:[&_button.primary]:text-cali-neutral-surface! tw:[&_button.danger]:border-cali-danger tw:[&_button.danger]:bg-cali-danger tw:[&_button.danger]:text-cali-neutral-surface tw:[&_button:disabled]:cursor-default tw:[&_button:disabled]:opacity-50 tw:[&_em]:self-center tw:[&_em]:text-sm tw:[&_em]:font-bold tw:[&_em]:text-cali-red-text tw:[&_em]:not-italic">
                       {final && renaming?.id === final.id ? (
                         <>
                           <input
-                            className="tw:box-border tw:h-[2.462rem] tw:min-w-[16.923rem] tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-[0.769rem] tw:text-[0.923rem] tw:max-[45rem]:min-w-0 tw:max-[45rem]:w-full"
+                            className="tw:box-border tw:h-10 tw:min-w-[16.923rem] tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3 tw:text-cali-body tw:max-[45rem]:min-w-0 tw:max-[45rem]:w-full"
                             value={renaming.title}
                             maxLength={200}
                             disabled={savingName}
@@ -392,7 +392,7 @@ export function DeliverableFiles({
               })}
             </ul>
           ) : (
-            <p className="tw:m-0 tw:text-[0.923rem] tw:text-[#8a7c74]">Sem arquivos nesta conversa.</p>
+            <p className="tw:m-0 tw:text-cali-body tw:text-cali-muted">Sem arquivos nesta conversa.</p>
           )}
         </div>
       ))}

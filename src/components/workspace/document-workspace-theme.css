@@ -1,8 +1,8 @@
 /* Document-shell tokens and document-root behavior for screen, portals and print. */
 :where(html[data-workspace-surface='admin-documents']) {
-  --surface: rgb(255 253 249 / .88);
-  --document-canvas: #f1ede8;
-  --document-root: #faf8f5;
+  --surface: rgb(var(--cali-rgb-sand-surface)/0.88);
+  --document-canvas: var(--cali-color-neutral-soft);
+  --document-root: var(--cali-color-sand-surface);
 
   &:root {
     min-height: 100%;
@@ -58,17 +58,17 @@
   }
 
   .app-shell[data-visual-system='v2'][data-workspace-role] {
-    --v2-canvas: #f7f3ee;
-    --v2-surface: #fff;
-    --v2-text: #322f2c;
-    --v2-muted: #746a64;
-    --v2-line: #e9e0d8;
-    --v2-accent: #5a1e2d;
-    --v2-gold: #b58c52;
+    --v2-canvas: var(--cali-color-sand-soft);
+    --v2-surface: var(--cali-color-neutral-surface);
+    --v2-text: var(--cali-color-neutral-strong);
+    --v2-muted: var(--cali-color-neutral-accent);
+    --v2-line: var(--cali-color-sand-line);
+    --v2-accent: var(--cali-color-burgundy-accent);
+    --v2-gold: var(--cali-color-gold-accent);
   }
 
   &[data-workspace-theme='night'] {
-    --document-canvas: #160f12;
+    --document-canvas: var(--cali-color-neutral-inverse);
     --document-root: var(--theme-page);
 
     &, body, #root {
@@ -76,13 +76,13 @@
     }
 
     .app-shell[data-visual-system='v2'][data-workspace-role] {
-      --v2-canvas: #201b1e;
-      --v2-surface: #2b2428;
-      --v2-text: #f7f3ee;
-      --v2-muted: #c8bbb3;
-      --v2-line: #493a40;
-      --v2-accent: #e5bbc6;
-      --v2-gold: #ddbb85;
+      --v2-canvas: var(--cali-color-burgundy-inverse);
+      --v2-surface: var(--cali-color-burgundy-strong);
+      --v2-text: var(--cali-color-sand-soft);
+      --v2-muted: var(--cali-color-sand-accent);
+      --v2-line: var(--cali-color-neutral-text);
+      --v2-accent: var(--cali-color-burgundy-soft);
+      --v2-gold: var(--cali-color-orange-soft);
     }
 
     :is(h1, h2, h3, h4), .main :is(strong, b) {
@@ -104,12 +104,12 @@
       caret-color: var(--theme-accent);
 
       &::placeholder {
-        color: #897d79;
+        color: var(--cali-color-sand-text);
       }
 
       &:focus {
-        border-color: rgb(208 138 157 / .48) !important;
-        box-shadow: 0 0 0 .1875rem rgb(208 138 157 / .09);
+        border-color: rgb(var(--cali-rgb-burgundy-line)/0.48) !important;
+        box-shadow: 0 0 0 .1875rem rgb(var(--cali-rgb-burgundy-line)/0.09);
       }
     }
 

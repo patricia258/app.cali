@@ -43,10 +43,10 @@ export function RecordConversation({ recordId, companyId, role, actorId, partner
 
   return (
     <>
-      <div className="tw:mt-0 tw:min-h-0 tw:flex-1 tw:overflow-y-auto tw:px-[1.85rem] tw:pt-[1.08rem] tw:pb-[1.38rem] tw:[scrollbar-width:none]" data-v2-operation="conversation-history" aria-live="polite" aria-busy={messages.isPending} ref={historyRef} onScroll={onScroll}>
-        {messages.isPending && <span className="tw:m-auto tw:text-[1rem] tw:text-cali-muted">Carregando conversa…</span>}
+      <div className="tw:mt-0 tw:min-h-0 tw:flex-1 tw:overflow-y-auto tw:px-7.5 tw:pt-4.5 tw:pb-5.5 tw:[scrollbar-width:none]" data-v2-operation="conversation-history" aria-live="polite" aria-busy={messages.isPending} ref={historyRef} onScroll={onScroll}>
+        {messages.isPending && <span className="tw:m-auto tw:text-base tw:text-cali-muted">Carregando conversa…</span>}
         {messages.isError && !rows.length && <InlineNotice tone="danger">Não foi possível carregar a conversa. <button type="button" onClick={() => void messages.refetch()}>Tentar novamente</button></InlineNotice>}
-        {messages.isSuccess && !rows.length && <p className={partner ? 'tw:m-0 tw:text-[.92rem] tw:text-[#8c7e74]' : 'tw:m-auto tw:text-[1rem] tw:text-cali-muted'}>{partner ? 'Ainda não há mensagens nesta conversa.' : 'A conversa começa aqui.'}</p>}
+        {messages.isSuccess && !rows.length && <p className={partner ? 'tw:m-0 tw:text-cali-body tw:text-cali-muted' : 'tw:m-auto tw:text-base tw:text-cali-muted'}>{partner ? 'Ainda não há mensagens nesta conversa.' : 'A conversa começa aqui.'}</p>}
         {rows.map((message) => <RecordMessageRow
           key={message.id}
           message={message}

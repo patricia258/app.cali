@@ -23,10 +23,10 @@ type ProposalSendDrawerProps = {
   onSend: () => void;
 };
 
-const sectionStyle = 'tw:mb-3 tw:rounded-xl tw:border tw:border-solid tw:border-[var(--line)] tw:p-[1.125rem]';
+const sectionStyle = 'tw:mb-3 tw:rounded-xl tw:border tw:border-solid tw:border-[var(--line)] tw:p-4.5';
 const headingStyle = 'tw:mt-0 tw:mb-2.5 tw:text-[var(--v2-text,var(--graphite))]';
 const copyStyle = 'tw:text-cali-small/[1.55]!';
-const fieldStyle = 'tw:mt-1.5 tw:block tw:w-full tw:rounded-[0.5625rem] tw:border tw:border-solid tw:border-[var(--line)] tw:bg-cali-input tw:p-2.5 tw:text-inherit';
+const fieldStyle = 'tw:mt-1.5 tw:block tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-[var(--line)] tw:bg-cali-input tw:p-2.5 tw:text-inherit';
 
 export function ProposalSendDrawer({
   service, protocol, recipient, email, fileName, archivedVersion, sendingAgain, sending,
@@ -36,7 +36,7 @@ export function ProposalSendDrawer({
 
   return createPortal(
     <div
-      className="portal-send-backdrop tw:fixed tw:inset-0 tw:z-2147483000 tw:bg-[#28191c57] tw:backdrop-blur-[0.125rem]
+      className="portal-send-backdrop tw:fixed tw:inset-0 tw:z-2147483000 tw:bg-cali-burgundy-inverse/34 tw:backdrop-blur-[0.125rem]
         tw:[html:has(&)]:overflow-hidden! tw:[body:has(&)]:overflow-hidden! tw:print:hidden!"
       role="presentation"
       onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
@@ -44,20 +44,20 @@ export function ProposalSendDrawer({
       <DialogFrame
         as="aside"
         className="portal-send-drawer tw:absolute tw:inset-y-0 tw:right-0 tw:flex tw:w-[min(38.75rem,95vw)] tw:flex-col
-          tw:bg-cali-surface tw:font-cali-body tw:text-[0.8125rem] tw:text-cali-text tw:shadow-[-1.125rem_0_3.4375rem_#28161a2e]"
+          tw:bg-cali-surface tw:font-cali-body tw:text-cali-detail tw:text-cali-text tw:shadow-[-1.125rem_0_3.4375rem_rgb(var(--cali-rgb-burgundy-inverse)/0.1804)]"
         aria-label={title}
       >
-        <header className="tw:flex tw:shrink-0 tw:justify-between tw:gap-4 tw:bg-cali-brand tw:px-[1.625rem] tw:py-6 tw:text-white tw:max-[40rem]:px-5 tw:max-[40rem]:py-4">
+        <header className="tw:flex tw:shrink-0 tw:justify-between tw:gap-4 tw:bg-cali-brand tw:px-6.5 tw:py-6 tw:text-cali-neutral-surface tw:max-[40rem]:px-5 tw:max-[40rem]:py-4">
           <div>
-            <span className="tw:text-xs/[1.4] tw:font-bold tw:tracking-[0.14em] tw:text-[#ddbb7f]">ENVIO APROVADO</span>
-            <h2 className="tw:my-1 tw:font-cali-body tw:text-[1.6875rem]/[1.22]! tw:text-white!">{title}</h2>
-            <p className="tw:m-0 tw:text-cali-small/[1.55]! tw:text-[#ead9d1]">{service} · {protocol}</p>
+            <span className="tw:text-xs/[1.4] tw:font-bold tw:tracking-[0.14em] tw:text-cali-orange-line">ENVIO APROVADO</span>
+            <h2 className="tw:my-1 tw:font-cali-body tw:text-cali-title/[1.22]! tw:text-cali-neutral-surface!">{title}</h2>
+            <p className="tw:m-0 tw:text-cali-small/[1.55]! tw:text-cali-sand-line">{service} · {protocol}</p>
           </div>
           <button
             type="button"
             className="tw:grid tw:size-11 tw:shrink-0 tw:cursor-pointer tw:place-items-center tw:rounded-xl tw:border tw:border-solid
-              tw:border-[#5a1e2d1a] tw:bg-white/72 tw:text-cali-ink tw:hover:bg-white tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-gold
-              tw:workspace-night:border-cali-line tw:workspace-night:bg-[#241b1f] tw:workspace-night:text-cali-text tw:workspace-night:hover:bg-[#2c2126]"
+              tw:border-cali-brand/10 tw:bg-cali-neutral-surface/72 tw:text-cali-ink tw:hover:bg-cali-neutral-surface tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-gold
+              tw:workspace-night:border-cali-line tw:workspace-night:bg-cali-surface tw:workspace-night:text-cali-text tw:workspace-night:hover:bg-cali-surface-muted"
             data-dialog-close=""
             aria-label="Fechar envio da proposta"
             onClick={onClose}

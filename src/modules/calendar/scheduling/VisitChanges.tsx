@@ -10,16 +10,16 @@ export function VisitChanges({ rows, companyName, onDecision }: {
   return (
     <section className="
       tw:mb-5.5 tw:overflow-hidden tw:rounded-3xl tw:border tw:border-solid
-      tw:border-[color:color-mix(in_srgb,var(--cali-color-gold)_24%,var(--theme-line,#e5ddd7))]
-      tw:bg-[color:var(--theme-surface,#fff)] tw:text-sm/[inherit] tw:text-cali-text tw:shadow-[0_0.75rem_2rem_#311f190b]
-      tw:workspace-night:border-[#4b373e] tw:workspace-night:bg-[#241a1e] tw:workspace-night:text-[#f2e8ea]
+      tw:border-[color:color-mix(in_srgb,var(--cali-color-gold)_24%,var(--theme-line,var(--cali-color-sand-line)))]
+      tw:bg-[color:var(--theme-surface,var(--cali-color-neutral-surface))] tw:text-sm/[inherit] tw:text-cali-text tw:shadow-[0_0.75rem_2rem_rgb(var(--cali-rgb-gold-inverse)/0.04314)]
+      tw:workspace-night:border-cali-neutral-text tw:workspace-night:bg-cali-surface tw:workspace-night:text-cali-red-surface
     ">
       <header className="
-        tw:bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cali-color-gold)_5%,var(--theme-surface,#fff)),color-mix(in_srgb,var(--cali-color-burgundy)_3%,var(--theme-surface,#fff)))]
-        tw:px-5.5 tw:py-4.5 tw:workspace-night:bg-[linear-gradient(135deg,#b58c5214,#5a1e2d29)]
+        tw:bg-[linear-gradient(135deg,color-mix(in_srgb,var(--cali-color-gold)_5%,var(--theme-surface,var(--cali-color-neutral-surface))),color-mix(in_srgb,var(--cali-color-burgundy)_3%,var(--theme-surface,var(--cali-color-neutral-surface))))]
+        tw:px-5.5 tw:py-4.5 tw:workspace-night:bg-[linear-gradient(135deg,rgb(var(--cali-rgb-gold-accent)/0.07843),rgb(var(--cali-rgb-burgundy-accent)/0.1608))]
       ">
         <small className="tw:block tw:text-sm/[inherit] tw:font-black tw:tracking-[.13em] tw:text-cali-gold">ALTERAÇÕES DO CLIENTE</small>
-        <h2 className="tw:mb-1 tw:text-[1.375rem]/[1.15]">Condições para avaliar</h2>
+        <h2 className="tw:mb-1 tw:text-cali-title-sm/[1.15]">Condições para avaliar</h2>
       </header>
       <div className="tw:px-5.5 tw:pb-2">
         {rows.map((request) => {
@@ -30,7 +30,7 @@ export function VisitChanges({ rows, companyName, onDecision }: {
               tw:border-solid tw:border-cali-line tw:py-4 tw:first:border-t-0
               tw:[@media(max-width:56.25rem)]:grid-cols-1
             ">
-              <div className="tw:[&_p]:m-0 tw:[&_p]:text-sm/[1.4] tw:[&_p]:text-[color:var(--theme-muted,#857870)] tw:[&_p+p]:mt-1">
+              <div className="tw:[&_p]:m-0 tw:[&_p]:text-sm/[1.4] tw:[&_p]:text-[color:var(--theme-muted,var(--cali-color-neutral-accent))] tw:[&_p+p]:mt-1">
                 <strong>{companyName(request)} · {request.title}</strong>
                 <p>{request.extra_visit_change_kind === 'cancel' ? 'Cancelamento' : 'Reagendamento'} · {request.extra_visit_previous_slot ? formatSlot(request.extra_visit_previous_slot) : 'data anterior não registrada'}</p>
                 <p>Cliente: {request.extra_visit_change_reason}</p>

@@ -9,11 +9,11 @@ type DocumentStorageNoticeProps = {
 
 export function DocumentStorageNotice({ title, description, icon, action }: DocumentStorageNoticeProps) {
   return (
-    <section className="tw:mb-[1.154rem] tw:flex tw:flex-wrap tw:items-center tw:gap-[1.308rem] tw:rounded-[.769rem] tw:border tw:border-solid tw:border-[#ecdac3] tw:bg-[linear-gradient(90deg,#f8e8c9,#fdfaf4)] tw:px-[1.692rem] tw:py-[1.385rem] tw:text-[#7a5134]">
+    <section className="tw:mb-4.5 tw:flex tw:flex-wrap tw:items-center tw:gap-5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-sand-line tw:bg-[linear-gradient(90deg,var(--cali-color-gold-soft),var(--cali-color-sand-surface))] tw:px-7 tw:py-5.5 tw:text-cali-orange-inverse">
       {icon && <span className="tw:shrink-0" aria-hidden="true">{icon}</span>}
       <div className="tw:min-w-0 tw:flex-1">
-        <strong className="tw:text-[.923rem]">{title}</strong>
-        <p className="tw:mt-[.538rem] tw:mb-0 tw:text-[.769rem] tw:wrap-anywhere tw:text-[#9c8575]">{description}</p>
+        <strong className="tw:text-cali-body">{title}</strong>
+        <p className="tw:mt-2 tw:mb-0 tw:text-xs tw:wrap-anywhere tw:text-cali-sand-text">{description}</p>
       </div>
       {action}
     </section>

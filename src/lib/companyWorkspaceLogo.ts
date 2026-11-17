@@ -1,3 +1,4 @@
+import { caliPalette } from '../../supabase/functions/_shared/cali-palette';
 import { workspaceStorageAvailable } from '../api/files/workspace';
 import {
   listCompaniesWithoutWorkspaceLogo,
@@ -9,8 +10,8 @@ import { resolveWorkspaceMedia, workspaceMediaSignal } from './workspaceMedia';
 
 export type { CompanyLogoRecord };
 
-const WORKSPACE_BG = '#F7F3EE';
-const WORKSPACE_MARK = '#5A1E2D';
+const WORKSPACE_BG = caliPalette.sand.lighter;
+const WORKSPACE_MARK = caliPalette.burgundy.base;
 const TILE_SIZE = 256;
 const STYLE_VERSION = 1;
 const ensureQueues = new WeakMap<AbortSignal, Promise<string>>();

@@ -43,7 +43,7 @@ const isValid = (iso: string) => validUntil(iso).getTime() > Date.now();
 /** Bolinha do estilo: inicial do nome do perfil (E, C, P, A) na cor DISC. */
 function StyleDot({ style, mixed }: { style: Style; mixed?: boolean }) {
   const content = STYLE_CONTENT[style];
-  return <span className={`cpa-dot tw:inline-grid tw:size-[1.85rem] tw:place-items-center tw:rounded-full tw:text-[0.85rem] tw:font-bold ${style === 'I' ? 'dark tw:text-[#5a4100]' : 'tw:text-white'}`} style={{ background: content.color }} title={`${content.name}${mixed ? ' (perfil misto)' : ''}`} aria-label={content.name}>{content.name[0]}</span>;
+  return <span className={`cpa-dot tw:inline-grid tw:size-7.5 tw:place-items-center tw:rounded-full tw:text-sm tw:font-bold ${style === 'I' ? 'dark tw:text-cali-gold-strong' : 'tw:text-cali-neutral-surface'}`} style={{ background: content.color }} title={`${content.name}${mixed ? ' (perfil misto)' : ''}`} aria-label={content.name}>{content.name[0]}</span>;
 }
 
 export function AdminProfilesPage() {
@@ -185,76 +185,76 @@ export function AdminProfilesPage() {
   const linkTitle = (id: string | null) => links.find((link) => link.id === id)?.title || 'Link removido';
 
   const resultRow = (row: ResultRow, showCompany: boolean) => <tr key={row.id}>
-    <td><button type="button" className="cpa-person-btn tw:cursor-pointer tw:border-0 tw:bg-transparent tw:p-0 tw:text-left tw:text-[1rem]
-      tw:font-semibold tw:text-[#3e3533] tw:hover:text-cali-brand tw:hover:underline" onClick={() => void openPerson(row)}>{row.person_name}</button></td>
-    {showCompany && <td className="cpa-muted tw:text-[0.92rem] tw:text-[#8c7e74]">{companyName(row.company_id, row.company_name)}</td>}
-    <td><span className="cpa-dots tw:inline-flex tw:items-center tw:gap-[0.31rem]"><StyleDot style={row.primary_style} mixed={row.mixed} /><StyleDot style={row.secondary_style} mixed={row.mixed} /></span></td>
-    <td><span className="cpa-tag tw:inline-flex tw:rounded-full tw:bg-[#f3ece6] tw:px-[0.77rem] tw:py-[0.23rem] tw:text-[0.85rem] tw:font-semibold tw:whitespace-nowrap tw:text-[#5a4e48]">{pressureOf(row)}</span></td>
-    <td className="cpa-muted tw:text-[0.92rem] tw:text-[#8c7e74]">{day(row.created_at)}</td>
+    <td><button type="button" className="cpa-person-btn tw:cursor-pointer tw:border-0 tw:bg-transparent tw:p-0 tw:text-left tw:text-base
+      tw:font-semibold tw:text-cali-text tw:hover:text-cali-brand tw:hover:underline" onClick={() => void openPerson(row)}>{row.person_name}</button></td>
+    {showCompany && <td className="cpa-muted tw:text-cali-body tw:text-cali-muted">{companyName(row.company_id, row.company_name)}</td>}
+    <td><span className="cpa-dots tw:inline-flex tw:items-center tw:gap-1"><StyleDot style={row.primary_style} mixed={row.mixed} /><StyleDot style={row.secondary_style} mixed={row.mixed} /></span></td>
+    <td><span className="cpa-tag tw:inline-flex tw:rounded-full tw:bg-cali-surface-muted tw:px-3 tw:py-1 tw:text-sm tw:font-semibold tw:whitespace-nowrap tw:text-cali-neutral-text">{pressureOf(row)}</span></td>
+    <td className="cpa-muted tw:text-cali-body tw:text-cali-muted">{day(row.created_at)}</td>
     <td>{isValid(row.created_at) ? <FormStatusBadge status="open">{day(validUntil(row.created_at).toISOString())}</FormStatusBadge> : <FormStatusBadge status="closed">Vencido</FormStatusBadge>}</td>
-    <td className="cpa-actions tw:table-cell tw:text-right tw:whitespace-nowrap tw:[&>*]:ml-[0.46rem] tw:[&>*]:inline-flex
+    <td className="cpa-actions tw:table-cell tw:text-right tw:whitespace-nowrap tw:[&>*]:ml-2 tw:[&>*]:inline-flex
       tw:[&>*]:align-middle tw:[&_a.wf-secondary]:no-underline tw:[&_a.v2-forms-edit]:inline-grid tw:[&_a.v2-forms-edit]:place-items-center
       tw:[&_a.v2-forms-edit]:no-underline">
-      <Link className="wf-secondary tw:inline-flex tw:items-center tw:gap-[0.538rem] tw:justify-center tw:[border:1px_solid_#e3d6cc]
-        tw:bg-white tw:text-cali-brand tw:rounded-[0.538rem] tw:[padding:0.692rem_1rem] tw:[font:600_0.846rem_Inter,sans-serif]
+      <Link className="wf-secondary tw:inline-flex tw:items-center tw:gap-2 tw:justify-center tw:[border:1px_solid_var(--cali-color-sand-line)]
+        tw:bg-cali-neutral-surface tw:text-cali-brand tw:rounded-lg tw:[padding:0.692rem_1rem] tw:[font:600_0.846rem_Inter,sans-serif]
         tw:no-underline tw:cursor-pointer tw:[transition:border-color_.15s,background_.15s] tw:[&:hover:not(:disabled)]:border-cali-brand
-        tw:[&:hover:not(:disabled)]:bg-[#fbf7f3] tw:[&:disabled]:opacity-[.45] tw:[&:disabled]:cursor-default" to={`/admin/perfil-comportamental/${row.id}`} title="Relatório técnico para a CALI"><ExternalLink size={14} /> Relatório do avaliador</Link>
-      {row.report_path && <button type="button" className="v2-forms-edit tw:grid tw:place-items-center tw:w-[2.154rem] tw:h-[2.154rem] tw:[border:1px_solid_#eadfd6]
-        tw:rounded-[0.538rem] tw:bg-white tw:text-cali-brand tw:cursor-pointer tw:[&:hover]:border-cali-brand
-        tw:[&:hover]:bg-[#fbf7f3]" title="PDF que a pessoa recebeu" aria-label="PDF que a pessoa recebeu" onClick={() => void openPdf(row)}><FileDown size={14} /></button>}
-      <button type="button" className="v2-forms-edit tw:grid tw:place-items-center tw:w-[2.154rem] tw:h-[2.154rem] tw:[border:1px_solid_#eadfd6]
-        tw:rounded-[0.538rem] tw:bg-white tw:text-cali-brand tw:cursor-pointer tw:[&:hover]:border-cali-brand
-        tw:[&:hover]:bg-[#fbf7f3]" aria-label="Excluir resposta" title="Excluir resposta" onClick={() => setRemoving(row)}><Trash2 size={14} /></button>
+        tw:[&:hover:not(:disabled)]:bg-cali-surface-soft tw:[&:disabled]:opacity-[.45] tw:[&:disabled]:cursor-default" to={`/admin/perfil-comportamental/${row.id}`} title="Relatório técnico para a CALI"><ExternalLink size={14} /> Relatório do avaliador</Link>
+      {row.report_path && <button type="button" className="v2-forms-edit tw:grid tw:place-items-center tw:w-8.5 tw:h-8.5 tw:[border:1px_solid_var(--cali-color-sand-line)]
+        tw:rounded-lg tw:bg-cali-neutral-surface tw:text-cali-brand tw:cursor-pointer tw:[&:hover]:border-cali-brand
+        tw:[&:hover]:bg-cali-surface-soft" title="PDF que a pessoa recebeu" aria-label="PDF que a pessoa recebeu" onClick={() => void openPdf(row)}><FileDown size={14} /></button>}
+      <button type="button" className="v2-forms-edit tw:grid tw:place-items-center tw:w-8.5 tw:h-8.5 tw:[border:1px_solid_var(--cali-color-sand-line)]
+        tw:rounded-lg tw:bg-cali-neutral-surface tw:text-cali-brand tw:cursor-pointer tw:[&:hover]:border-cali-brand
+        tw:[&:hover]:bg-cali-surface-soft" aria-label="Excluir resposta" title="Excluir resposta" onClick={() => setRemoving(row)}><Trash2 size={14} /></button>
     </td>
   </tr>;
 
-  return <Shell role="admin"><WorkspaceAdminPage className="v2-forms v2-client-module tw:[--fm-wine:#5a1e2d] tw:[--fm-line:#eadfd6] tw:[--fm-muted:#8c7e74]
-    tw:[--fm-ink:#3e3533] tw:[&_.wf-head_.v2-head-actions_a]:no-underline tw:[&_label>span]:block
-    tw:[&_label>span]:text-[0.846rem] tw:[&_label>span]:font-semibold tw:[&_label>span]:text-[color:var(--fm-ink)]
-    tw:[&_label>span]:mb-[0.462rem] tw:[&_label>span_em]:not-italic tw:[&_label>span_em]:font-medium
-    tw:[&_label>span_em]:text-[color:var(--fm-muted)] tw:[&_label>span_em]:ml-[0.308rem]    tw:[&_textarea]:resize-y tw:[&_:is(input,select,textarea):focus]:outline-none tw:[&_:is(input,select,textarea):focus]:[border-color:var(--fm-wine)]
-    tw:[&_:is(input,select,textarea):focus]:[box-shadow:0_0_0_0.231rem_rgba(90,30,45,.08)]"><WorkspaceAdminContent><WorkflowPage>
+  return <Shell role="admin"><WorkspaceAdminPage className="v2-forms v2-client-module tw:[--fm-wine:var(--cali-color-burgundy-accent)] tw:[--fm-line:var(--cali-color-sand-line)] tw:[--fm-muted:var(--cali-color-sand-text)]
+    tw:[--fm-ink:var(--cali-color-neutral-strong)] tw:[&_.wf-head_.v2-head-actions_a]:no-underline tw:[&_label>span]:block
+    tw:[&_label>span]:text-sm tw:[&_label>span]:font-semibold tw:[&_label>span]:text-[color:var(--fm-ink)]
+    tw:[&_label>span]:mb-2 tw:[&_label>span_em]:not-italic tw:[&_label>span_em]:font-medium
+    tw:[&_label>span_em]:text-[color:var(--fm-muted)] tw:[&_label>span_em]:ml-1    tw:[&_textarea]:resize-y tw:[&_:is(input,select,textarea):focus]:outline-none tw:[&_:is(input,select,textarea):focus]:[border-color:var(--fm-wine)]
+    tw:[&_:is(input,select,textarea):focus]:[box-shadow:0_0_0_0.231rem_rgb(var(--cali-rgb-burgundy-accent)/0.08)]"><WorkspaceAdminContent><WorkflowPage>
     <WorkflowHeading><div><small>BACKOFFICE / CALI RH</small><h1>Perfil comportamental</h1></div>
-      <div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]"><Button variant="formSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</Button><Button variant="workflowPrimary" type="button" onClick={() => setEditing(newDraft())}><Plus size={15} /> Novo link</Button></div></WorkflowHeading>
+      <div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-3"><Button variant="formSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</Button><Button variant="workflowPrimary" type="button" onClick={() => setEditing(newDraft())}><Plus size={15} /> Novo link</Button></div></WorkflowHeading>
     <WorkflowSegments className="v2-forms-tabs tw:[margin:0.308rem_0_1.231rem] tw:w-max tw:max-w-full" role="tablist"><button type="button" className={tab === 'results' ? 'on' : ''} onClick={() => setTab('results')}>Respostas ({results.length})</button><button type="button" className={tab === 'links' ? 'on' : ''} onClick={() => setTab('links')}>Links e convites ({links.length})</button></WorkflowSegments>
 
     {tab === 'results' && <>
-      <WorkflowControls className="v2-forms-controls cpa-filters tw:flex-wrap tw:gap-[0.77rem] tw:flex tw:items-center tw:gap-[0.769rem] tw:flex-wrap tw:mb-[0.923rem]">
-        <label className="v2-forms-search tw:flex tw:items-center tw:gap-[0.538rem] tw:flex-1 tw:min-w-[16.923rem] tw:max-w-[29.231rem]
-          tw:[border:1px_solid_#e3d6cc] tw:rounded-[0.615rem] tw:[padding:0_0.769rem] tw:bg-white tw:text-[color:var(--fm-muted)]
+      <WorkflowControls className="v2-forms-controls cpa-filters tw:flex-wrap tw:gap-3 tw:flex tw:items-center tw:gap-3 tw:flex-wrap tw:mb-3.5">
+        <label className="v2-forms-search tw:flex tw:items-center tw:gap-2 tw:flex-1 tw:min-w-[16.923rem] tw:max-w-[29.231rem]
+          tw:[border:1px_solid_var(--cali-color-sand-line)] tw:rounded-cali-compact-control tw:[padding:0_0.769rem] tw:bg-cali-neutral-surface tw:text-[color:var(--fm-muted)]
           tw:[&_input]:flex-1 tw:[&_input]:border-0 tw:[&_input]:outline-none tw:[&_input]:[padding:0.692rem_0]
           tw:[&_input]:[font:400_0.923rem_Inter,sans-serif] tw:[&_input]:bg-transparent"><Search size={15} /><input value={query} placeholder="Buscar pessoa, e-mail ou empresa" onChange={(event) => setQuery(event.target.value)} /></label>
-        <select className="v2-forms-filter-select tw:[border:1px_solid_#e3d6cc] tw:rounded-[0.615rem] tw:[padding:0.615rem_0.769rem]
-          tw:[font:500_0.923rem_Inter,sans-serif] tw:text-[color:var(--fm-ink)] tw:bg-white tw:max-w-[18.462rem]" value={companyFilter} onChange={(event) => setCompanyFilter(event.target.value)} aria-label="Empresa"><option value="">Todas as empresas</option><option value="livre">Sem empresa cadastrada</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select>
-        <select className="v2-forms-filter-select tw:[border:1px_solid_#e3d6cc] tw:rounded-[0.615rem] tw:[padding:0.615rem_0.769rem]
-          tw:[font:500_0.923rem_Inter,sans-serif] tw:text-[color:var(--fm-ink)] tw:bg-white tw:max-w-[18.462rem]" value={styleFilter} onChange={(event) => setStyleFilter(event.target.value as Style | '')} aria-label="Perfil predominante"><option value="">Todos os perfis</option>{STYLES.map((style) => <option key={style} value={style}>{STYLE_CONTENT[style].name}</option>)}</select>
-        <select className="v2-forms-filter-select tw:[border:1px_solid_#e3d6cc] tw:rounded-[0.615rem] tw:[padding:0.615rem_0.769rem]
-          tw:[font:500_0.923rem_Inter,sans-serif] tw:text-[color:var(--fm-ink)] tw:bg-white tw:max-w-[18.462rem]" value={validityFilter} onChange={(event) => setValidityFilter(event.target.value as typeof validityFilter)} aria-label="Validade"><option value="">Vigentes e vencidos</option><option value="valid">Só vigentes</option><option value="expired">Só vencidos</option></select>
-        <label className="cpa-date tw:inline-flex tw:items-center tw:gap-[0.46rem] tw:text-[0.92rem] tw:font-medium tw:text-[#6b5d63]
-          tw:[&_input]:rounded-[0.62rem] tw:[&_input]:border tw:[&_input]:border-solid tw:[&_input]:border-[#e3d6cc]
-          tw:[&_input]:bg-white tw:[&_input]:px-[0.62rem] tw:[&_input]:py-[0.54rem] tw:[&_input]:text-[0.96rem]
+        <select className="v2-forms-filter-select tw:[border:1px_solid_var(--cali-color-sand-line)] tw:rounded-cali-compact-control tw:[padding:0.615rem_0.769rem]
+          tw:[font:500_0.923rem_Inter,sans-serif] tw:text-[color:var(--fm-ink)] tw:bg-cali-neutral-surface tw:max-w-[18.462rem]" value={companyFilter} onChange={(event) => setCompanyFilter(event.target.value)} aria-label="Empresa"><option value="">Todas as empresas</option><option value="livre">Sem empresa cadastrada</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select>
+        <select className="v2-forms-filter-select tw:[border:1px_solid_var(--cali-color-sand-line)] tw:rounded-cali-compact-control tw:[padding:0.615rem_0.769rem]
+          tw:[font:500_0.923rem_Inter,sans-serif] tw:text-[color:var(--fm-ink)] tw:bg-cali-neutral-surface tw:max-w-[18.462rem]" value={styleFilter} onChange={(event) => setStyleFilter(event.target.value as Style | '')} aria-label="Perfil predominante"><option value="">Todos os perfis</option>{STYLES.map((style) => <option key={style} value={style}>{STYLE_CONTENT[style].name}</option>)}</select>
+        <select className="v2-forms-filter-select tw:[border:1px_solid_var(--cali-color-sand-line)] tw:rounded-cali-compact-control tw:[padding:0.615rem_0.769rem]
+          tw:[font:500_0.923rem_Inter,sans-serif] tw:text-[color:var(--fm-ink)] tw:bg-cali-neutral-surface tw:max-w-[18.462rem]" value={validityFilter} onChange={(event) => setValidityFilter(event.target.value as typeof validityFilter)} aria-label="Validade"><option value="">Vigentes e vencidos</option><option value="valid">Só vigentes</option><option value="expired">Só vencidos</option></select>
+        <label className="cpa-date tw:inline-flex tw:items-center tw:gap-2 tw:text-cali-body tw:font-medium tw:text-cali-muted
+          tw:[&_input]:rounded-cali-compact-control tw:[&_input]:border tw:[&_input]:border-solid tw:[&_input]:border-cali-input-line
+          tw:[&_input]:bg-cali-neutral-surface tw:[&_input]:px-2.5 tw:[&_input]:py-2 tw:[&_input]:text-cali-body
           tw:[&_input]:font-normal">Respondido de<input type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label>
-        <label className="cpa-date tw:inline-flex tw:items-center tw:gap-[0.46rem] tw:text-[0.92rem] tw:font-medium tw:text-[#6b5d63]
-          tw:[&_input]:rounded-[0.62rem] tw:[&_input]:border tw:[&_input]:border-solid tw:[&_input]:border-[#e3d6cc]
-          tw:[&_input]:bg-white tw:[&_input]:px-[0.62rem] tw:[&_input]:py-[0.54rem] tw:[&_input]:text-[0.96rem]
+        <label className="cpa-date tw:inline-flex tw:items-center tw:gap-2 tw:text-cali-body tw:font-medium tw:text-cali-muted
+          tw:[&_input]:rounded-cali-compact-control tw:[&_input]:border tw:[&_input]:border-solid tw:[&_input]:border-cali-input-line
+          tw:[&_input]:bg-cali-neutral-surface tw:[&_input]:px-2.5 tw:[&_input]:py-2 tw:[&_input]:text-cali-body
           tw:[&_input]:font-normal">até<input type="date" value={to} onChange={(event) => setTo(event.target.value)} /></label>
-        <label className="cpa-group-toggle tw:inline-flex tw:cursor-pointer tw:items-center tw:gap-[0.46rem] tw:text-[0.96rem]
-          tw:font-medium tw:text-[#3e3533] tw:[&_input]:size-[1.15rem] tw:[&_input]:accent-cali-brand"><input type="checkbox" checked={grouped} onChange={(event) => setGrouped(event.target.checked)} /> Agrupar por empresa</label>
-        {filtersOn && <button type="button" className="cpa-clear tw:inline-flex tw:cursor-pointer tw:items-center tw:gap-[0.31rem] tw:border-0 tw:bg-transparent tw:text-[0.92rem] tw:font-semibold tw:text-cali-brand" onClick={() => { setQuery(''); setCompanyFilter(''); setStyleFilter(''); setValidityFilter(''); setFrom(''); setTo(''); }}><X size={13} /> Limpar filtros</button>}
-        <span className="v2-forms-total tw:text-[0.846rem] tw:text-[color:var(--fm-muted)] tw:mr-auto">{filtered.length} de {results.length}</span>
+        <label className="cpa-group-toggle tw:inline-flex tw:cursor-pointer tw:items-center tw:gap-2 tw:text-cali-body
+          tw:font-medium tw:text-cali-text tw:[&_input]:size-4.5 tw:[&_input]:accent-cali-brand"><input type="checkbox" checked={grouped} onChange={(event) => setGrouped(event.target.checked)} /> Agrupar por empresa</label>
+        {filtersOn && <button type="button" className="cpa-clear tw:inline-flex tw:cursor-pointer tw:items-center tw:gap-1 tw:border-0 tw:bg-transparent tw:text-cali-body tw:font-semibold tw:text-cali-brand" onClick={() => { setQuery(''); setCompanyFilter(''); setStyleFilter(''); setValidityFilter(''); setFrom(''); setTo(''); }}><X size={13} /> Limpar filtros</button>}
+        <span className="v2-forms-total tw:text-sm tw:text-[color:var(--fm-muted)] tw:mr-auto">{filtered.length} de {results.length}</span>
       </WorkflowControls>
       {loading ? <LoadingState>Carregando…</LoadingState> : !results.length ? <EmptyState variant="workflow"><strong>Nenhuma resposta ainda.</strong><p>Crie um link em &quot;Novo link&quot; e envie os convites.</p></EmptyState>
         : !filtered.length ? <EmptyState variant="workflow"><strong>Nada com esses filtros.</strong><p>Ajuste ou limpe os filtros.</p></EmptyState>
         : <FormResultsTable><thead><tr><th>Pessoa</th>{!grouped && <th>Empresa</th>}<th>Perfil</th><th>Sob pressão</th><th>Respondido em</th><th>Válido até</th><th /></tr></thead><tbody>
           {grouped ? groups.map((group) => { const closed = collapsed.includes(group.key); const valid = group.rows.filter((row) => isValid(row.created_at)).length; return <Fragment key={group.key}>
-            <tr className="cpa-group tw:[&_td]:border-t tw:[&_td]:border-solid tw:[&_td]:border-[#eadfd6] tw:[&_td]:bg-[#faf6f2]
+            <tr className="cpa-group tw:[&_td]:border-t tw:[&_td]:border-solid tw:[&_td]:border-cali-line tw:[&_td]:bg-cali-surface-soft
               tw:[&_td]:p-0 tw:[&_button]:flex tw:[&_button]:w-full tw:[&_button]:cursor-pointer tw:[&_button]:items-center
-              tw:[&_button]:gap-[0.77rem] tw:[&_button]:border-0 tw:[&_button]:bg-transparent tw:[&_button]:px-[1.08rem]
-              tw:[&_button]:py-[0.85rem] tw:[&_button]:text-left tw:[&_button]:text-[1rem] tw:[&_button]:font-normal
-              tw:[&_button]:text-[#3e3533] tw:[&_strong]:text-[1.04rem] tw:[&_strong]:text-cali-brand"><td colSpan={6}><button type="button" onClick={() => setCollapsed((current) => closed ? current.filter((key) => key !== group.key) : [...current, group.key])} aria-expanded={!closed}>
+              tw:[&_button]:gap-3 tw:[&_button]:border-0 tw:[&_button]:bg-transparent tw:[&_button]:px-4.5
+              tw:[&_button]:py-3.5 tw:[&_button]:text-left tw:[&_button]:text-base tw:[&_button]:font-normal
+              tw:[&_button]:text-cali-text tw:[&_strong]:text-base tw:[&_strong]:text-cali-brand"><td colSpan={6}><button type="button" onClick={() => setCollapsed((current) => closed ? current.filter((key) => key !== group.key) : [...current, group.key])} aria-expanded={!closed}>
               {closed ? <ChevronRight size={15} /> : <ChevronDown size={15} />}<strong>{group.name}</strong>
-              <span className={`cpa-badge tw:inline-flex tw:rounded-full tw:px-[0.62rem] tw:py-[0.15rem] tw:text-[0.81rem] tw:font-semibold ${group.client ? 'client tw:bg-[#f3e4e8] tw:text-cali-brand' : 'tw:bg-[#f1ece8] tw:text-[#8c7e74]'}`}>{group.client ? 'Cliente CALI' : 'Fora da carteira'}</span>
-              <span className="cpa-group-count tw:ml-auto tw:text-[0.92rem] tw:text-[#8c7e74]">{group.rows.length} {group.rows.length === 1 ? 'pessoa' : 'pessoas'} · {valid} {valid === 1 ? 'vigente' : 'vigentes'}</span>
+              <span className={`cpa-badge tw:inline-flex tw:rounded-full tw:px-2.5 tw:py-0.5 tw:text-cali-detail tw:font-semibold ${group.client ? 'client tw:bg-cali-red-surface tw:text-cali-brand' : 'tw:bg-cali-surface-muted tw:text-cali-muted'}`}>{group.client ? 'Cliente CALI' : 'Fora da carteira'}</span>
+              <span className="cpa-group-count tw:ml-auto tw:text-cali-body tw:text-cali-muted">{group.rows.length} {group.rows.length === 1 ? 'pessoa' : 'pessoas'} · {valid} {valid === 1 ? 'vigente' : 'vigentes'}</span>
             </button></td></tr>
             {!closed && group.rows.map((row) => resultRow(row, false))}
           </Fragment>; }) : filtered.map((row) => resultRow(row, true))}
@@ -264,64 +264,64 @@ export function AdminProfilesPage() {
     {tab === 'links' && (loading ? <LoadingState>Carregando…</LoadingState> : !links.length ? <EmptyState variant="workflow"><strong>Nenhum link ainda.</strong><p>&quot;Novo link&quot; cria um link livre ou de uma empresa.</p></EmptyState>
       : <FormResultsTable><thead><tr><th>Link</th><th>Empresa</th><th>Contexto</th><th>Situação</th><th>Respostas</th><th /></tr></thead><tbody>
         {links.map((link) => <tr key={link.id}>
-          <td><span className="cpa-person tw:flex tw:flex-col tw:gap-[0.15rem] tw:text-inherit tw:no-underline tw:[&_strong]:text-[1rem]
-            tw:[&_strong]:text-[#3e3533] tw:[&_small]:text-[0.85rem] tw:[&_small]:text-[#8c7e74]"><strong>{link.title}</strong><small>{BASE.replace('https://', '')}{link.slug}</small></span></td>
+          <td><span className="cpa-person tw:flex tw:flex-col tw:gap-0.5 tw:text-inherit tw:no-underline tw:[&_strong]:text-base
+            tw:[&_strong]:text-cali-text tw:[&_small]:text-sm tw:[&_small]:text-cali-muted"><strong>{link.title}</strong><small>{BASE.replace('https://', '')}{link.slug}</small></span></td>
           <td>{linkCompany(link)}</td>
           <td>{PURPOSE[link.purpose]}</td>
           <td><FormStatusBadge status={link.status === 'open' ? 'open' : 'closed'} onClick={() => void patchLink(link, link.status === 'open' ? 'closed' : 'open')} title="Clique para alternar">{link.status === 'open' ? 'Recebendo respostas' : 'Bloqueado'}</FormStatusBadge></td>
           <td>{results.filter((row) => row.link_id === link.id).length}</td>
-          <td className="cpa-actions tw:table-cell tw:text-right tw:whitespace-nowrap tw:[&>*]:ml-[0.46rem] tw:[&>*]:inline-flex
+          <td className="cpa-actions tw:table-cell tw:text-right tw:whitespace-nowrap tw:[&>*]:ml-2 tw:[&>*]:inline-flex
             tw:[&>*]:align-middle tw:[&_a.wf-secondary]:no-underline tw:[&_a.v2-forms-edit]:inline-grid tw:[&_a.v2-forms-edit]:place-items-center
             tw:[&_a.v2-forms-edit]:no-underline">
-            <Link className="wf-secondary tw:inline-flex tw:items-center tw:gap-[0.538rem] tw:justify-center tw:[border:1px_solid_#e3d6cc]
-              tw:bg-white tw:text-cali-brand tw:rounded-[0.538rem] tw:[padding:0.692rem_1rem] tw:[font:600_0.846rem_Inter,sans-serif]
+            <Link className="wf-secondary tw:inline-flex tw:items-center tw:gap-2 tw:justify-center tw:[border:1px_solid_var(--cali-color-sand-line)]
+              tw:bg-cali-neutral-surface tw:text-cali-brand tw:rounded-lg tw:[padding:0.692rem_1rem] tw:[font:600_0.846rem_Inter,sans-serif]
               tw:no-underline tw:cursor-pointer tw:[transition:border-color_.15s,background_.15s] tw:[&:hover:not(:disabled)]:border-cali-brand
-              tw:[&:hover:not(:disabled)]:bg-[#fbf7f3] tw:[&:disabled]:opacity-[.45] tw:[&:disabled]:cursor-default" to={`/admin/perfil-comportamental/convites/${link.id}`}><Mail size={14} /> Convites</Link>
-            <Link className="wf-secondary tw:inline-flex tw:items-center tw:gap-[0.538rem] tw:justify-center tw:[border:1px_solid_#e3d6cc]
-              tw:bg-white tw:text-cali-brand tw:rounded-[0.538rem] tw:[padding:0.692rem_1rem] tw:[font:600_0.846rem_Inter,sans-serif]
+              tw:[&:hover:not(:disabled)]:bg-cali-surface-soft tw:[&:disabled]:opacity-[.45] tw:[&:disabled]:cursor-default" to={`/admin/perfil-comportamental/convites/${link.id}`}><Mail size={14} /> Convites</Link>
+            <Link className="wf-secondary tw:inline-flex tw:items-center tw:gap-2 tw:justify-center tw:[border:1px_solid_var(--cali-color-sand-line)]
+              tw:bg-cali-neutral-surface tw:text-cali-brand tw:rounded-lg tw:[padding:0.692rem_1rem] tw:[font:600_0.846rem_Inter,sans-serif]
               tw:no-underline tw:cursor-pointer tw:[transition:border-color_.15s,background_.15s] tw:[&:hover:not(:disabled)]:border-cali-brand
-              tw:[&:hover:not(:disabled)]:bg-[#fbf7f3] tw:[&:disabled]:opacity-[.45] tw:[&:disabled]:cursor-default" to={`/admin/perfil-comportamental/gestao/${link.id}`}><BarChart3 size={14} /> Relatório de gestão</Link>
+              tw:[&:hover:not(:disabled)]:bg-cali-surface-soft tw:[&:disabled]:opacity-[.45] tw:[&:disabled]:cursor-default" to={`/admin/perfil-comportamental/gestao/${link.id}`}><BarChart3 size={14} /> Relatório de gestão</Link>
             <Button type="button" variant="formSecondary" onClick={() => setSharing(link)}><Share2 size={14} /> Compartilhar</Button>
-            <button type="button" className="v2-forms-edit tw:grid tw:place-items-center tw:w-[2.154rem] tw:h-[2.154rem] tw:[border:1px_solid_#eadfd6]
-              tw:rounded-[0.538rem] tw:bg-white tw:text-cali-brand tw:cursor-pointer tw:[&:hover]:border-cali-brand
-              tw:[&:hover]:bg-[#fbf7f3]" aria-label="Editar link" title="Editar link" onClick={() => setEditing(editDraft(link))}><Pencil size={14} /></button>
-            <a className="v2-forms-edit tw:grid tw:place-items-center tw:w-[2.154rem] tw:h-[2.154rem] tw:[border:1px_solid_#eadfd6]
-              tw:rounded-[0.538rem] tw:bg-white tw:text-cali-brand tw:cursor-pointer tw:[&:hover]:border-cali-brand
-              tw:[&:hover]:bg-[#fbf7f3]" href={`/perfil/${link.slug}?previa=1`} target="_blank" rel="noopener noreferrer" aria-label="Ver como respondente" title="Ver como respondente"><ExternalLink size={14} /></a>
+            <button type="button" className="v2-forms-edit tw:grid tw:place-items-center tw:w-8.5 tw:h-8.5 tw:[border:1px_solid_var(--cali-color-sand-line)]
+              tw:rounded-lg tw:bg-cali-neutral-surface tw:text-cali-brand tw:cursor-pointer tw:[&:hover]:border-cali-brand
+              tw:[&:hover]:bg-cali-surface-soft" aria-label="Editar link" title="Editar link" onClick={() => setEditing(editDraft(link))}><Pencil size={14} /></button>
+            <a className="v2-forms-edit tw:grid tw:place-items-center tw:w-8.5 tw:h-8.5 tw:[border:1px_solid_var(--cali-color-sand-line)]
+              tw:rounded-lg tw:bg-cali-neutral-surface tw:text-cali-brand tw:cursor-pointer tw:[&:hover]:border-cali-brand
+              tw:[&:hover]:bg-cali-surface-soft" href={`/perfil/${link.slug}?previa=1`} target="_blank" rel="noopener noreferrer" aria-label="Ver como respondente" title="Ver como respondente"><ExternalLink size={14} /></a>
           </td>
         </tr>)}
       </tbody></FormResultsTable>)}
-    {error && <InlineNotice className="cpc-notice error tw:m-0 tw:rounded-[0.77rem] tw:border tw:border-solid tw:border-[#f0c8c0] tw:bg-[#fdf1ee]
-      tw:px-[1.23rem] tw:py-[0.92rem] tw:text-[1rem] tw:text-[#8d382a]" role="alert">{error}</InlineNotice>}
+    {error && <InlineNotice className="cpc-notice error tw:m-0 tw:rounded-xl tw:border tw:border-solid tw:border-cali-red-soft tw:bg-cali-sand-soft
+      tw:px-5 tw:py-3.5 tw:text-base tw:text-cali-red-text" role="alert">{error}</InlineNotice>}
   </WorkflowPage></WorkspaceAdminContent>
   {toast && <FormFeedbackToast>{toast}</FormFeedbackToast>}
 
   {person && <WorkspaceDialogOverlay onMouseDown={(event) => { if (event.target === event.currentTarget) setPerson(null); }}><WorkspaceConfirmDialog className="cpa-person-card tw:max-h-[92vh] tw:w-[min(47.69rem,96vw)] tw:overflow-auto" aria-label={person.person_name}>
     <div><small>PESSOA</small><h2>{person.person_name}</h2><p>{[person.job_title, person.email].filter(Boolean).join(' · ')}</p></div>
-    <dl className="cpa-facts tw:m-0 tw:grid tw:grid-cols-3 tw:gap-[0.77rem] tw:max-[640px]:grid-cols-1 tw:[&>div]:rounded-[0.77rem]
-      tw:[&>div]:border tw:[&>div]:border-solid tw:[&>div]:border-[#eadfd6] tw:[&>div]:bg-[#fbf7f3]
-      tw:[&>div]:px-[0.92rem] tw:[&>div]:py-[0.77rem] tw:[&_dt]:mb-[0.31rem] tw:[&_dt]:text-[0.77rem]
-      tw:[&_dt]:font-bold tw:[&_dt]:tracking-[0.08em] tw:[&_dt]:text-[#8c7e74] tw:[&_dt]:uppercase tw:[&_dd]:m-0
-      tw:[&_dd]:flex tw:[&_dd]:flex-wrap tw:[&_dd]:items-center tw:[&_dd]:gap-[0.46rem] tw:[&_dd]:text-[1rem]
-      tw:[&_dd]:text-[#3e3533]">
-      <div><dt>Empresa</dt><dd>{companyName(person.company_id, person.company_name)} <span className={`cpa-badge tw:inline-flex tw:rounded-full tw:px-[0.62rem] tw:py-[0.15rem] tw:text-[0.81rem] tw:font-semibold ${person.company_id ? 'client tw:bg-[#f3e4e8] tw:text-cali-brand' : 'tw:bg-[#f1ece8] tw:text-[#8c7e74]'}`}>{person.company_id ? 'Cliente CALI' : 'Fora da carteira'}</span></dd></div>
+    <dl className="cpa-facts tw:m-0 tw:grid tw:grid-cols-3 tw:gap-3 tw:max-[640px]:grid-cols-1 tw:[&>div]:rounded-xl
+      tw:[&>div]:border tw:[&>div]:border-solid tw:[&>div]:border-cali-line tw:[&>div]:bg-cali-surface-soft
+      tw:[&>div]:px-3.5 tw:[&>div]:py-3 tw:[&_dt]:mb-1 tw:[&_dt]:text-xs
+      tw:[&_dt]:font-bold tw:[&_dt]:tracking-[0.08em] tw:[&_dt]:text-cali-muted tw:[&_dt]:uppercase tw:[&_dd]:m-0
+      tw:[&_dd]:flex tw:[&_dd]:flex-wrap tw:[&_dd]:items-center tw:[&_dd]:gap-2 tw:[&_dd]:text-base
+      tw:[&_dd]:text-cali-text">
+      <div><dt>Empresa</dt><dd>{companyName(person.company_id, person.company_name)} <span className={`cpa-badge tw:inline-flex tw:rounded-full tw:px-2.5 tw:py-0.5 tw:text-cali-detail tw:font-semibold ${person.company_id ? 'client tw:bg-cali-red-surface tw:text-cali-brand' : 'tw:bg-cali-surface-muted tw:text-cali-muted'}`}>{person.company_id ? 'Cliente CALI' : 'Fora da carteira'}</span></dd></div>
       <div><dt>Respondeu</dt><dd>{history.length} {history.length === 1 ? 'vez' : 'vezes'}</dd></div>
       <div><dt>Convites</dt><dd>{personInvites === null ? 'Carregando…' : personInvites.length ? `${personInvites.length} (${personInvites.filter((invite) => invite.state === 'completed').length} respondidos)` : 'Nenhum: respondeu por link aberto'}</dd></div>
     </dl>
-    <div className="cpa-history tw:flex tw:flex-col tw:gap-[0.46rem]">{history.map((row) => <div key={row.id} className="tw:flex tw:items-center tw:gap-[0.92rem] tw:rounded-[0.77rem] tw:border tw:border-solid tw:border-[#eadfd6]
-      tw:px-[0.92rem] tw:py-[0.77rem] tw:max-[640px]:flex-wrap">
-      <span className="cpa-dots tw:inline-flex tw:items-center tw:gap-[0.31rem]"><StyleDot style={row.primary_style} mixed={row.mixed} /><StyleDot style={row.secondary_style} mixed={row.mixed} /></span>
-      <span className="tw:flex tw:min-w-0 tw:flex-1 tw:flex-col tw:text-[1rem] tw:max-[640px]:basis-[calc(100%-5rem)]"><b>{day(row.created_at)}</b><small className="tw:text-[0.88rem] tw:font-normal tw:tracking-normal tw:text-[#8c7e74] tw:normal-case">{linkTitle(row.link_id)} · {isValid(row.created_at) ? `válido até ${day(validUntil(row.created_at).toISOString())}` : 'vencido'}</small></span>
+    <div className="cpa-history tw:flex tw:flex-col tw:gap-2">{history.map((row) => <div key={row.id} className="tw:flex tw:items-center tw:gap-3.5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line
+      tw:px-3.5 tw:py-3 tw:max-[640px]:flex-wrap">
+      <span className="cpa-dots tw:inline-flex tw:items-center tw:gap-1"><StyleDot style={row.primary_style} mixed={row.mixed} /><StyleDot style={row.secondary_style} mixed={row.mixed} /></span>
+      <span className="tw:flex tw:min-w-0 tw:flex-1 tw:flex-col tw:text-base tw:max-[640px]:basis-[calc(100%-5rem)]"><b>{day(row.created_at)}</b><small className="tw:text-sm tw:font-normal tw:tracking-normal tw:text-cali-muted tw:normal-case">{linkTitle(row.link_id)} · {isValid(row.created_at) ? `válido até ${day(validUntil(row.created_at).toISOString())}` : 'vencido'}</small></span>
       <Link className="wf-secondary tw:whitespace-nowrap tw:no-underline tw:max-[640px]:ml-auto tw:inline-flex tw:items-center
-        tw:gap-[0.538rem] tw:justify-center tw:[border:1px_solid_#e3d6cc] tw:bg-white tw:text-cali-brand
-        tw:rounded-[0.538rem] tw:[padding:0.692rem_1rem] tw:[font:600_0.846rem_Inter,sans-serif] tw:no-underline
+        tw:gap-2 tw:justify-center tw:[border:1px_solid_var(--cali-color-sand-line)] tw:bg-cali-neutral-surface tw:text-cali-brand
+        tw:rounded-lg tw:[padding:0.692rem_1rem] tw:[font:600_0.846rem_Inter,sans-serif] tw:no-underline
         tw:cursor-pointer tw:[transition:border-color_.15s,background_.15s] tw:[&:hover:not(:disabled)]:border-cali-brand
-        tw:[&:hover:not(:disabled)]:bg-[#fbf7f3] tw:[&:disabled]:opacity-[.45] tw:[&:disabled]:cursor-default" to={`/admin/perfil-comportamental/${row.id}`}>Relatório do avaliador</Link>
+        tw:[&:hover:not(:disabled)]:bg-cali-surface-soft tw:[&:disabled]:opacity-[.45] tw:[&:disabled]:cursor-default" to={`/admin/perfil-comportamental/${row.id}`}>Relatório do avaliador</Link>
     </div>)}</div>
-    {!!personInvites?.some((invite) => invite.state !== 'completed') && <ul className="cpa-invites tw:m-0 tw:pl-[1.38rem] tw:text-[0.96rem] tw:leading-[1.6] tw:text-[#6b5d63]">{personInvites.filter((invite) => invite.state !== 'completed').map((invite) => <li key={invite.id}>{linkTitle(invite.link_id)} · {INVITE_STATE[invite.state] || invite.state}{invite.deadline_at ? ` · prazo ${day(invite.deadline_at)}` : ''}</li>)}</ul>}
-    <div className="cpa-resend tw:flex tw:flex-col tw:gap-[0.46rem] tw:border-t tw:border-solid tw:border-[#f1e9e2] tw:pt-[0.92rem] tw:[&_p]:m-0">
+    {!!personInvites?.some((invite) => invite.state !== 'completed') && <ul className="cpa-invites tw:m-0 tw:pl-5.5 tw:text-cali-body tw:leading-[1.6] tw:text-cali-muted">{personInvites.filter((invite) => invite.state !== 'completed').map((invite) => <li key={invite.id}>{linkTitle(invite.link_id)} · {INVITE_STATE[invite.state] || invite.state}{invite.deadline_at ? ` · prazo ${day(invite.deadline_at)}` : ''}</li>)}</ul>}
+    <div className="cpa-resend tw:flex tw:flex-col tw:gap-2 tw:border-t tw:border-solid tw:border-cali-line tw:pt-3.5 tw:[&_p]:m-0">
       <label>Reenviar o teste pelo link<select value={resendLink} onChange={(event) => setResendLink(event.target.value)}>{!links.some((link) => link.status === 'open') && <option value="">Nenhum link recebendo respostas</option>}{links.filter((link) => link.status === 'open').map((link) => <option key={link.id} value={link.id}>{link.title} · {linkCompany(link)}</option>)}</select></label>
-      <p className="cpa-muted tw:text-[0.92rem] tw:text-[#8c7e74]">A pessoa recebe um convite novo por e-mail, com prazo e lembretes. As respostas anteriores continuam no histórico.</p>
+      <p className="cpa-muted tw:text-cali-body tw:text-cali-muted">A pessoa recebe um convite novo por e-mail, com prazo e lembretes. As respostas anteriores continuam no histórico.</p>
     </div>
     <footer><button type="button" onClick={() => setPerson(null)}>Fechar</button><button type="button" disabled={!resendLink || resending} onClick={() => void resend()}><Send size={14} /> {resending ? 'Enviando…' : 'Reenviar teste'}</button></footer>
   </WorkspaceConfirmDialog></WorkspaceDialogOverlay>}
@@ -332,42 +332,42 @@ export function AdminProfilesPage() {
     <label>Empresa<select value={editing.mode === 'company' ? editing.company_id : editing.mode} onChange={(event) => { const value = event.target.value; setEditing({ ...editing, mode: value === 'free' ? 'free' : value === 'other' ? 'other' : 'company', company_id: value === 'free' || value === 'other' ? '' : value, error: '' }); }}><option value="free">Link livre (a pessoa informa a empresa)</option><option value="other">Outra empresa (digitar o nome)</option><optgroup label="Empresas cadastradas">{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</optgroup></select></label>
     {editing.mode === 'other' && <label>Nome da empresa<input value={editing.company_label} maxLength={120} placeholder="Ex.: Padaria Bom Dia" onChange={(event) => setEditing({ ...editing, company_label: event.target.value, error: '' })} /></label>}
     <label>Contexto de uso<select value={editing.purpose} onChange={(event) => setEditing({ ...editing, purpose: event.target.value })}><option value="desenvolvimento">Desenvolvimento</option><option value="selecao">Seleção</option><option value="diagnostico">Diagnóstico</option></select></label>
-    <label>Endereço do link<span className="cpa-slug tw:flex tw:items-center tw:overflow-hidden tw:rounded-[0.62rem] tw:border tw:border-solid
-      tw:border-[#e3d6cc] tw:bg-[#fbf7f3] tw:font-normal tw:[&_b]:pr-[0.15rem] tw:[&_b]:pl-[0.77rem]
-      tw:[&_b]:text-[0.92rem] tw:[&_b]:font-medium tw:[&_b]:whitespace-nowrap tw:[&_b]:text-[#8c7e74]
+    <label>Endereço do link<span className="cpa-slug tw:flex tw:items-center tw:overflow-hidden tw:rounded-cali-compact-control tw:border tw:border-solid
+      tw:border-cali-input-line tw:bg-cali-surface-soft tw:font-normal tw:[&_b]:pr-0.5 tw:[&_b]:pl-3
+      tw:[&_b]:text-cali-body tw:[&_b]:font-medium tw:[&_b]:whitespace-nowrap tw:[&_b]:text-cali-muted
       tw:[&_input]:w-auto! tw:[&_input]:min-w-0 tw:[&_input]:flex-auto! tw:[&_input]:rounded-none! tw:[&_input]:border-0!
-      tw:[&_input]:bg-white! tw:[&_input]:px-[0.62rem]! tw:[&_input]:py-[0.77rem]! tw:[&_input]:text-[1rem]!"><b>app.calirh.com/perfil/</b><input value={editing.slug} maxLength={60} placeholder="gerado automaticamente" onChange={(event) => setEditing({ ...editing, slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-') })} /></span></label>
+      tw:[&_input]:bg-cali-neutral-surface! tw:[&_input]:px-2.5! tw:[&_input]:py-3! tw:[&_input]:text-base!"><b>app.calirh.com/perfil/</b><input value={editing.slug} maxLength={60} placeholder="gerado automaticamente" onChange={(event) => setEditing({ ...editing, slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-') })} /></span></label>
     <label>Situação<select value={editing.status} onChange={(event) => setEditing({ ...editing, status: event.target.value as LinkDraft['status'] })}><option value="open">Recebendo respostas</option><option value="closed">Bloqueado (não recebe mais respostas)</option></select></label>
-    {editing.id && editing.slug && links.find((item) => item.id === editing.id)?.slug !== slugify(editing.slug) && <p className="v2-forms-warn tw:[margin:0_0_1.077rem] tw:[padding:0.769rem_1.077rem] tw:rounded-[0.692rem] tw:text-[0.923rem]
-      tw:font-semibold tw:bg-[#fff5e0] tw:text-[#967030] tw:[border:1px_solid_#f2dfb8]">Ao trocar o endereço, o link antigo para de funcionar.</p>}
-    {editing.error && <p className="v2-forms-error tw:[margin:0_0_1.077rem] tw:[padding:0.769rem_1.077rem] tw:rounded-[0.692rem] tw:text-[0.923rem]
-      tw:font-semibold tw:bg-[#fff6f4] tw:text-[#b42318] tw:[border:1px_solid_#f1c4bd]" role="alert">{editing.error}</p>}
+    {editing.id && editing.slug && links.find((item) => item.id === editing.id)?.slug !== slugify(editing.slug) && <p className="v2-forms-warn tw:[margin:0_0_1.077rem] tw:[padding:0.769rem_1.077rem] tw:rounded-cali-panel tw:text-cali-body
+      tw:font-semibold tw:bg-cali-warning-surface tw:text-cali-warning tw:[border:1px_solid_var(--cali-color-gold-line)]">Ao trocar o endereço, o link antigo para de funcionar.</p>}
+    {editing.error && <p className="v2-forms-error tw:[margin:0_0_1.077rem] tw:[padding:0.769rem_1.077rem] tw:rounded-cali-panel tw:text-cali-body
+      tw:font-semibold tw:bg-cali-danger-surface tw:text-cali-danger tw:[border:1px_solid_var(--cali-color-red-soft)]" role="alert">{editing.error}</p>}
     <footer><button type="button" disabled={editing.busy} onClick={() => setEditing(null)}>Cancelar</button><button type="button" disabled={editing.busy} onClick={() => void saveLink()}>{editing.busy ? 'Salvando…' : editing.id ? 'Salvar' : 'Criar link'}</button></footer>
   </WorkspaceConfirmDialog></WorkspaceDialogOverlay>}
   {sharing && <WorkspaceDialogOverlay onMouseDown={(event) => { if (event.target === event.currentTarget) setSharing(null); }}><WorkspaceConfirmDialog className="cpa-share tw:w-[min(49.23rem,96vw)]" aria-label="Compartilhar link">
     <div><small>COMPARTILHAR</small><h2>{sharing.title}</h2><p>{linkCompany(sharing)}{sharing.status === 'closed' ? ' · bloqueado: quem abrir verá que não recebe mais respostas' : ''}</p></div>
-    <div className="cpa-share-body tw:flex tw:items-center tw:gap-[1.38rem] tw:max-[640px]:flex-col tw:max-[640px]:items-stretch">
+    <div className="cpa-share-body tw:flex tw:items-center tw:gap-5.5 tw:max-[640px]:flex-col tw:max-[640px]:items-stretch">
       <div className="cpa-qr tw:grid tw:h-[13.85rem] tw:flex-[0_0_13.85rem] tw:place-items-center tw:rounded-[0.92rem]
-        tw:border tw:border-solid tw:border-[#eadfd6] tw:bg-white tw:p-[0.62rem] tw:max-[640px]:mx-auto
+        tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-2.5 tw:max-[640px]:mx-auto
         tw:max-[640px]:aspect-square tw:max-[640px]:h-auto tw:max-[640px]:max-w-[15.38rem] tw:max-[640px]:basis-auto
         tw:[&_img]:size-full tw:[&_img]:object-contain">{qr ? <img src={qr} alt="QR Code do link" /> : <span>Gerando…</span>}</div>
-      <div className="cpa-share-actions tw:flex tw:min-w-0 tw:flex-1 tw:flex-col tw:gap-[0.62rem] tw:[&_a]:no-underline">
-        <div className="v2-forms-link tw:flex tw:gap-[0.615rem] tw:[&_input]:flex-1 tw:[&_input]:min-w-0 tw:[&_input]:[border:1px_solid_#e3d6cc]
-          tw:[&_input]:rounded-[0.615rem] tw:[&_input]:[padding:0.692rem_0.846rem] tw:[&_input]:[font:500_1rem_Inter,sans-serif]
-          tw:[&_input]:text-[color:var(--fm-wine)] tw:[&_input]:bg-[#fbf7f3] tw:[@media(max-width:760px)]:flex-col"><input readOnly value={`${BASE}${sharing.slug}`} onFocus={(event) => event.target.select()} /><Button type="button" variant="workflowPrimary" onClick={() => { void navigator.clipboard.writeText(`${BASE}${sharing.slug}`).then(() => flash('Link copiado.')); }}><Copy size={14} /> Copiar</Button></div>
+      <div className="cpa-share-actions tw:flex tw:min-w-0 tw:flex-1 tw:flex-col tw:gap-2.5 tw:[&_a]:no-underline">
+        <div className="v2-forms-link tw:flex tw:gap-2.5 tw:[&_input]:flex-1 tw:[&_input]:min-w-0 tw:[&_input]:[border:1px_solid_var(--cali-color-sand-line)]
+          tw:[&_input]:rounded-cali-compact-control tw:[&_input]:[padding:0.692rem_0.846rem] tw:[&_input]:[font:500_1rem_Inter,sans-serif]
+          tw:[&_input]:text-[color:var(--fm-wine)] tw:[&_input]:bg-cali-surface-soft tw:[@media(max-width:760px)]:flex-col"><input readOnly value={`${BASE}${sharing.slug}`} onFocus={(event) => event.target.select()} /><Button type="button" variant="workflowPrimary" onClick={() => { void navigator.clipboard.writeText(`${BASE}${sharing.slug}`).then(() => flash('Link copiado.')); }}><Copy size={14} /> Copiar</Button></div>
         <Button type="button" variant="formSecondary" onClick={() => void downloadQrPng(`${BASE}${sharing.slug}`, `perfil-${sharing.slug}-qrcode.png`)}><QrCode size={14} /> Baixar QR Code</Button>
         <Button type="button" variant="formSecondary" onClick={() => void downloadShareCard({ title: sharing.title, category: 'Perfil comportamental', intro: 'Queremos conhecer mais sobre você: como decide, se comunica e reage no trabalho. São 24 blocos de 4 frases curtas, em média 12 a 20 minutos, e você recebe o seu relatório por e-mail.' }, `${BASE}${sharing.slug}`, `perfil-${sharing.slug}-cartao.png`)}><Download size={14} /> Baixar cartão para divulgar</Button>
-        <a className="wf-secondary tw:inline-flex tw:items-center tw:gap-[0.538rem] tw:justify-center tw:[border:1px_solid_#e3d6cc]
-          tw:bg-white tw:text-cali-brand tw:rounded-[0.538rem] tw:[padding:0.692rem_1rem] tw:[font:600_0.846rem_Inter,sans-serif]
+        <a className="wf-secondary tw:inline-flex tw:items-center tw:gap-2 tw:justify-center tw:[border:1px_solid_var(--cali-color-sand-line)]
+          tw:bg-cali-neutral-surface tw:text-cali-brand tw:rounded-lg tw:[padding:0.692rem_1rem] tw:[font:600_0.846rem_Inter,sans-serif]
           tw:no-underline tw:cursor-pointer tw:[transition:border-color_.15s,background_.15s] tw:[&:hover:not(:disabled)]:border-cali-brand
-          tw:[&:hover:not(:disabled)]:bg-[#fbf7f3] tw:[&:disabled]:opacity-[.45] tw:[&:disabled]:cursor-default" href={`https://wa.me/?text=${encodeURIComponent(`${sharing.title}: ${BASE}${sharing.slug}`)}`} target="_blank" rel="noopener noreferrer"><ExternalLink size={14} /> Enviar no WhatsApp</a>
+          tw:[&:hover:not(:disabled)]:bg-cali-surface-soft tw:[&:disabled]:opacity-[.45] tw:[&:disabled]:cursor-default" href={`https://wa.me/?text=${encodeURIComponent(`${sharing.title}: ${BASE}${sharing.slug}`)}`} target="_blank" rel="noopener noreferrer"><ExternalLink size={14} /> Enviar no WhatsApp</a>
       </div>
     </div>
     <footer><button type="button" onClick={() => setSharing(null)}>Fechar</button></footer>
   </WorkspaceConfirmDialog></WorkspaceDialogOverlay>}
   {removing && <WorkspaceDialogOverlay onMouseDown={(event) => { if (event.target === event.currentTarget) setRemoving(null); }}><WorkspaceConfirmDialog aria-label="Excluir resposta">
     <div><small>PERFIL COMPORTAMENTAL</small><h2>Tem certeza que quer excluir?</h2><p><strong>{removing.person_name}</strong> · respondido em {day(removing.created_at)}. Apaga as respostas, os escores e o PDF. Não dá para desfazer.</p></div>
-    <footer><button type="button" onClick={() => setRemoving(null)}>Cancelar</button><button type="button" className="danger tw:border-[#b42318]! tw:bg-[#b42318]!" onClick={() => void remove()}>Excluir</button></footer>
+    <footer><button type="button" onClick={() => setRemoving(null)}>Cancelar</button><button type="button" className="danger tw:border-cali-danger! tw:bg-cali-danger!" onClick={() => void remove()}>Excluir</button></footer>
   </WorkspaceConfirmDialog></WorkspaceDialogOverlay>}
   </WorkspaceAdminPage></Shell>;
 }

@@ -1,0 +1,76 @@
+/* Paleta CALI. Uma escala nomeada por família. */
+:root {
+  --cali-palette-neutral-lightest-rgb: 255 255 255;
+  --cali-palette-neutral-lighter-rgb: 243 238 235;
+  --cali-palette-neutral-light-rgb: 216 210 206;
+  --cali-palette-neutral-base-rgb: 116 109 104;
+  --cali-palette-neutral-dark-rgb: 81 69 66;
+  --cali-palette-neutral-darker-rgb: 50 47 44;
+  --cali-palette-neutral-darkest-rgb: 23 18 21;
+
+  --cali-palette-sand-lightest-rgb: 255 253 249;
+  --cali-palette-sand-lighter-rgb: 247 243 238;
+  --cali-palette-sand-light-rgb: 230 221 212;
+  --cali-palette-sand-base-rgb: 201 180 164;
+  --cali-palette-sand-dark-rgb: 151 137 128;
+  --cali-palette-sand-darker-rgb: 116 98 78;
+  --cali-palette-sand-darkest-rgb: 57 42 34;
+
+  --cali-palette-burgundy-lightest-rgb: 241 219 225;
+  --cali-palette-burgundy-lighter-rgb: 227 166 183;
+  --cali-palette-burgundy-light-rgb: 199 123 145;
+  --cali-palette-burgundy-base-rgb: 90 30 45;
+  --cali-palette-burgundy-dark-rgb: 67 21 32;
+  --cali-palette-burgundy-darker-rgb: 42 32 36;
+  --cali-palette-burgundy-darkest-rgb: 33 25 29;
+
+  --cali-palette-gold-lightest-rgb: 255 250 241;
+  --cali-palette-gold-lighter-rgb: 246 231 191;
+  --cali-palette-gold-light-rgb: 236 217 176;
+  --cali-palette-gold-base-rgb: 181 140 82;
+  --cali-palette-gold-dark-rgb: 140 100 42;
+  --cali-palette-gold-darker-rgb: 97 71 31;
+  --cali-palette-gold-darkest-rgb: 51 38 25;
+
+  --cali-palette-green-lightest-rgb: 234 243 237;
+  --cali-palette-green-lighter-rgb: 202 235 217;
+  --cali-palette-green-light-rgb: 135 185 154;
+  --cali-palette-green-base-rgb: 66 120 90;
+  --cali-palette-green-dark-rgb: 53 100 72;
+  --cali-palette-green-darker-rgb: 36 72 54;
+  --cali-palette-green-darkest-rgb: 25 46 37;
+
+  --cali-palette-red-lightest-rgb: 251 236 238;
+  --cali-palette-red-lighter-rgb: 243 213 219;
+  --cali-palette-red-light-rgb: 216 143 132;
+  --cali-palette-red-base-rgb: 183 73 93;
+  --cali-palette-red-dark-rgb: 141 70 62;
+  --cali-palette-red-darker-rgb: 102 43 53;
+  --cali-palette-red-darkest-rgb: 53 26 34;
+
+  --cali-palette-blue-lightest-rgb: 232 242 251;
+  --cali-palette-blue-lighter-rgb: 206 228 244;
+  --cali-palette-blue-light-rgb: 167 205 231;
+  --cali-palette-blue-base-rgb: 80 123 159;
+  --cali-palette-blue-dark-rgb: 54 101 135;
+
+  --cali-palette-violet-lightest-rgb: 242 237 249;
+  --cali-palette-violet-lighter-rgb: 225 215 244;
+  --cali-palette-violet-light-rgb: 207 182 238;
+  --cali-palette-violet-base-rgb: 154 113 199;
+  --cali-palette-violet-dark-rgb: 114 83 156;
+  --cali-palette-violet-darker-rgb: 81 59 108;
+
+  --cali-palette-teal-lightest-rgb: 229 245 242;
+  --cali-palette-teal-base-rgb: 94 172 154;
+  --cali-palette-teal-dark-rgb: 49 135 121;
+
+  --cali-palette-orange-lightest-rgb: 255 241 230;
+  --cali-palette-orange-lighter-rgb: 255 211 170;
+  --cali-palette-orange-light-rgb: 227 163 108;
+  --cali-palette-orange-base-rgb: 217 119 43;
+  --cali-palette-orange-dark-rgb: 154 87 42;
+  --cali-palette-orange-darkest-rgb: 114 62 32;
+
+  --cali-palette-ink-base-rgb: 0 0 0;
+}

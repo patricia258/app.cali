@@ -25,7 +25,7 @@ export function ClientDeliveryRowMetadata({
         {complexity ? (
           <ProjectComplexityBadge code={complexity} explain className="tw:z-10 tw:w-fit tw:max-w-full" />
         ) : (
-          <span className="tw:w-fit tw:text-[#b5a79d]">—</span>
+          <span className="tw:w-fit tw:text-cali-sand-accent">—</span>
         )}
         <StatusBadge
           variant="delivery"
@@ -34,7 +34,7 @@ export function ClientDeliveryRowMetadata({
         >
           {status}
         </StatusBadge>
-        <span className="tw:text-[.77rem] tw:whitespace-nowrap tw:text-[#928077] tw:@min-[56rem]:text-right">
+        <span className="tw:text-xs tw:whitespace-nowrap tw:text-cali-sand-text tw:@min-[56rem]:text-right">
           {due}
         </span>
       </span>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useContext, useEffect, useState, type ReactNode } from 'react';
 import { BookOpenText, BriefcaseBusiness, Building2, CalendarDays, FileText, FolderKanban, LayoutDashboard, PieChart, Star, Target, TimerReset, UsersRound } from 'lucide-react';
 import { endWorkspaceSession } from '../../api/access/session';
 import { RUNTIME_V2_EVENT, usesV2 } from '../../app/visualRoutes';
@@ -12,6 +12,7 @@ import { DocumentWorkspaceSidebar, isDocumentNavigationActive, type DocumentNavi
 import { DirectProfileControl } from './DirectProfileControl';
 import { NotificationCenter } from './WorkspaceChrome';
 import { AdminShell, ClientShell } from './WorkspaceShellLayout';
+import { WorkspaceFrameContext } from './workspaceFrameContext';
 import './document-workspace-theme.css';
 
 export type Role = 'admin' | 'client';
@@ -32,8 +33,6 @@ const documentProducts: DocumentNavigationItem[] = [
   { label: 'Propostas', icon: BriefcaseBusiness, href: '/admin/propostas' },
   { label: 'Mapa de People', icon: Target, href: '/admin/mapa-de-people' },
 ];
-
-const WorkspaceFrameContext = createContext(false);
 
 function WorkspaceChrome({ role, children }: { role: Role; children: ReactNode }) {
   const navigate = useNavigate();
@@ -74,7 +73,7 @@ function WorkspaceChrome({ role, children }: { role: Role; children: ReactNode }
   const currentPage = [...documentNavigation, ...documentProducts].find(({ href }) => isDocumentNavigationActive(pathname, href));
   return (
     <div
-      className="app-shell tw:flex tw:min-h-dvh tw:w-screen tw:min-w-0 tw:max-w-[100vw] tw:overflow-x-clip tw:bg-[var(--v2-canvas)] tw:font-cali-body tw:text-[0.8125rem]/[inherit] tw:text-[var(--v2-text)]
+      className="app-shell tw:flex tw:min-h-dvh tw:w-screen tw:min-w-0 tw:max-w-[100vw] tw:overflow-x-clip tw:bg-[var(--v2-canvas)] tw:font-cali-body tw:text-cali-detail/[inherit] tw:text-[var(--v2-text)]
         tw:[body.workspace-modal-open_&]:overflow-visible!
         tw:print:has-[.portal-proposal-preview,.report-print-v16-stage]:block!
         tw:print:has-[.portal-proposal-preview,.report-print-v16-stage]:w-[210mm]!
@@ -112,14 +111,14 @@ function WorkspaceChrome({ role, children }: { role: Role; children: ReactNode }
           tw:print:p-0!
           tw:print:has-[.portal-proposal-preview,.report-print-v16-stage]:max-w-none!
           tw:[&>:is(.page,.company-team,.fronts-page)]:mx-auto! tw:[&>:is(.page,.company-team,.fronts-page)]:my-0!
-          tw:[&>:is(.page,.company-team,.fronts-page)]:w-full! tw:[&>:is(.page,.company-team,.fronts-page)]:max-w-[96.875rem]!
-          tw:[&>:is(.page,.company-team,.fronts-page)]:px-[1.875rem]! tw:[&>:is(.page,.company-team,.fronts-page)]:pt-[1.625rem]!
-          tw:[&>:is(.page,.company-team,.fronts-page)]:pb-[4.5rem]! tw:[&>:is(.page,.company-team,.fronts-page)]:text-[var(--v2-text)]
-          tw:[@media(max-width:64rem)]:[&>:is(.page,.company-team,.fronts-page)]:px-[1.375rem]!
-          tw:[@media(max-width:64rem)]:[&>:is(.page,.company-team,.fronts-page)]:pt-[1.375rem]!
-          tw:[@media(max-width:64rem)]:[&>:is(.page,.company-team,.fronts-page)]:pb-[3.75rem]!
-          tw:[@media(max-width:37.5rem)]:[&>:is(.page,.company-team,.fronts-page)]:px-[0.875rem]!
-          tw:[@media(max-width:37.5rem)]:[&>:is(.page,.company-team,.fronts-page)]:pt-[1.125rem]!">
+          tw:[&>:is(.page,.company-team,.fronts-page)]:w-full! tw:[&>:is(.page,.company-team,.fronts-page)]:max-w-387.5!
+          tw:[&>:is(.page,.company-team,.fronts-page)]:px-7.5! tw:[&>:is(.page,.company-team,.fronts-page)]:pt-6.5!
+          tw:[&>:is(.page,.company-team,.fronts-page)]:pb-18! tw:[&>:is(.page,.company-team,.fronts-page)]:text-[var(--v2-text)]
+          tw:[@media(max-width:64rem)]:[&>:is(.page,.company-team,.fronts-page)]:px-5.5!
+          tw:[@media(max-width:64rem)]:[&>:is(.page,.company-team,.fronts-page)]:pt-5.5!
+          tw:[@media(max-width:64rem)]:[&>:is(.page,.company-team,.fronts-page)]:pb-15!
+          tw:[@media(max-width:37.5rem)]:[&>:is(.page,.company-team,.fronts-page)]:px-3.5!
+          tw:[@media(max-width:37.5rem)]:[&>:is(.page,.company-team,.fronts-page)]:pt-4.5!">
           {children}
         </div>
       </main>

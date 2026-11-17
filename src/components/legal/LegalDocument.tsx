@@ -3,8 +3,8 @@
 import { Fragment, type ReactNode } from 'react';
 import { keysByContent } from '../../lib/keysByContent';
 
-const bodyText = 'tw:text-[13px] tw:leading-[1.65] tw:font-[Inter,system-ui,sans-serif] tw:text-[#3e3533] tw:[-webkit-text-fill-color:#3e3533]';
-const headingText = 'tw:text-[#2b2024] tw:[-webkit-text-fill-color:#2b2024]';
+const bodyText = 'tw:text-cali-detail tw:leading-[1.65] tw:font-[Inter,system-ui,sans-serif] tw:text-cali-text tw:[-webkit-text-fill-color:var(--cali-color-neutral-strong)]';
+const headingText = 'tw:text-cali-text tw:[-webkit-text-fill-color:var(--cali-color-burgundy-strong)]';
 const listClass = 'tw:m-[0_0_10px] tw:pl-5';
 
 function inline(text: string): ReactNode {
@@ -26,12 +26,12 @@ export function LegalDocument({ source, idPrefix, embedded = false }: {
     const line = lines[index];
     const key = `${idPrefix}-${index}`;
     if (!line.trim()) { index += 1; continue; }
-    if (line.startsWith('### ')) { out.push(<h4 className={`${headingText} tw:m-[14px_0_4px] tw:text-[13px]`} key={key}>{plain(line.slice(4))}</h4>); index += 1; continue; }
-    if (line.startsWith('## ')) { out.push(<h3 className={`${headingText} tw:m-[20px_0_6px] tw:text-[14px]`} key={key}>{plain(line.slice(3))}</h3>); index += 1; continue; }
+    if (line.startsWith('### ')) { out.push(<h4 className={`${headingText} tw:m-[14px_0_4px] tw:text-cali-detail`} key={key}>{plain(line.slice(4))}</h4>); index += 1; continue; }
+    if (line.startsWith('## ')) { out.push(<h3 className={`${headingText} tw:m-[20px_0_6px] tw:text-sm`} key={key}>{plain(line.slice(3))}</h3>); index += 1; continue; }
     if (line.startsWith('# ')) {
       out.push(
         <h2
-          className={`${headingText} ${embedded ? 'tw:text-base' : 'tw:text-xl'} tw:m-[0_0_10px] tw:leading-[1.3] tw:[&:not(:first-child)]:mt-7 tw:border-0 tw:[&:not(:first-child)]:border-t tw:[&:not(:first-child)]:border-solid tw:[&:not(:first-child)]:border-[#eee3dc] tw:[&:not(:first-child)]:pt-[22px]`}
+          className={`${headingText} ${embedded ? 'tw:text-base' : 'tw:text-xl'} tw:m-[0_0_10px] tw:leading-[1.3] tw:[&:not(:first-child)]:mt-7 tw:border-0 tw:[&:not(:first-child)]:border-t tw:[&:not(:first-child)]:border-solid tw:[&:not(:first-child)]:border-cali-sand-line tw:[&:not(:first-child)]:pt-[22px]`}
           key={key}
         >{plain(line.slice(2)).replace(/^\d+\.\s+/, '')}</h2>,
       );
@@ -52,11 +52,11 @@ export function LegalDocument({ source, idPrefix, embedded = false }: {
         <div className="tw:m-[6px_0_12px] tw:overflow-x-auto tw:[scrollbar-width:none] tw:[&::-webkit-scrollbar]:hidden" key={key}>
           <table className="tw:w-full tw:border-collapse tw:text-xs tw:leading-[1.65]">
             <thead><tr>{keysByContent(head, (cell) => cell).map(({ item: cell, key }) => (
-              <th className="tw:border-0 tw:border-b tw:border-solid tw:border-[#e8ddd4] tw:p-2 tw:text-left tw:text-[10px] tw:leading-[1.65] tw:tracking-[.05em] tw:text-[#8a7a80] tw:uppercase" key={key}>{plain(cell)}</th>
+              <th className="tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:p-2 tw:text-left tw:text-cali-micro tw:leading-[1.65] tw:tracking-[.05em] tw:text-cali-neutral-accent tw:uppercase" key={key}>{plain(cell)}</th>
             ))}</tr></thead>
             <tbody>{keysByContent(rest, (row) => JSON.stringify(row)).map(({ item: row, key }) => (
               <tr key={key}>{keysByContent(row, (cell) => cell).map(({ item: cell, key: cellKey }) => (
-                <td className={`${bodyText} tw:border-0 tw:border-b tw:border-solid tw:border-[#f1e9e3] tw:p-2 tw:align-top`} key={cellKey}>{inline(cell)}</td>
+                <td className={`${bodyText} tw:border-0 tw:border-b tw:border-solid tw:border-cali-neutral-soft tw:p-2 tw:align-top`} key={cellKey}>{inline(cell)}</td>
               ))}</tr>
             ))}</tbody>
           </table>
@@ -80,7 +80,7 @@ export function LegalDocument({ source, idPrefix, embedded = false }: {
     index += 1;
   }
   const articleClass = embedded
-    ? 'tw:border-0 tw:text-[12.5px] tw:not-first:mt-[22px] tw:not-first:border-t tw:not-first:border-solid tw:not-first:border-[#eee3dc] tw:not-first:pt-[18px]'
-    : 'tw:mx-auto tw:max-w-[860px] tw:rounded-[14px] tw:border tw:border-solid tw:border-[#e8ddd4] tw:bg-white tw:px-[34px] tw:py-[30px] tw:text-[13px] tw:[@media(max-width:600px)]:px-[18px] tw:[@media(max-width:600px)]:py-[22px]';
-  return <article className={`v2-legal-doc ${articleClass} tw:leading-[1.65] tw:text-[#3e3533]`}>{out}</article>;
+    ? 'tw:border-0 tw:text-cali-caption tw:not-first:mt-[22px] tw:not-first:border-t tw:not-first:border-solid tw:not-first:border-cali-sand-line tw:not-first:pt-[18px]'
+    : 'tw:mx-auto tw:max-w-[860px] tw:rounded-[14px] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-[34px] tw:py-[30px] tw:text-cali-detail tw:[@media(max-width:600px)]:px-[18px] tw:[@media(max-width:600px)]:py-[22px]';
+  return <article className={`v2-legal-doc ${articleClass} tw:leading-[1.65] tw:text-cali-text`}>{out}</article>;
 }

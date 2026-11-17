@@ -7,7 +7,7 @@ function ApprovalButton({ primary = false, ...props }: Omit<ComponentPropsWithou
     {...props}
     type="button"
     variant="unstyled"
-    className={`tw:inline-flex tw:min-h-[2.77rem] tw:cursor-pointer tw:items-center tw:justify-center tw:gap-[.46rem] tw:rounded-[.69rem] tw:border tw:border-solid tw:px-[1.08rem] tw:text-[.92rem] tw:font-bold tw:disabled:cursor-default tw:disabled:opacity-45 ${primary ? 'tw:border-[#356448] tw:bg-[#356448] tw:text-white' : 'tw:border-[#dfd3ca] tw:bg-white tw:text-cali-brand'}`}
+    className={`tw:inline-flex tw:min-h-[2.77rem] tw:cursor-pointer tw:items-center tw:justify-center tw:gap-2 tw:rounded-cali-panel tw:border tw:border-solid tw:px-4.5 tw:text-cali-body tw:font-bold tw:disabled:cursor-default tw:disabled:opacity-45 ${primary ? 'tw:border-cali-success tw:bg-cali-success tw:text-cali-neutral-surface' : 'tw:border-cali-input-line tw:bg-cali-neutral-surface tw:text-cali-brand'}`}
   />;
 }
 
@@ -27,9 +27,9 @@ export function ClientSubtaskApproval({
   onAdjustmentTextChange, onPhaseChange, onApprove, onRequestAdjustment,
 }: ClientSubtaskApprovalProps) {
   return (
-    <div className={`tw:mt-[1.23rem] tw:flex tw:flex-wrap tw:justify-between tw:gap-[1.23rem] tw:rounded-[.77rem] tw:border tw:border-l-[.31rem] tw:border-solid tw:border-[#efd58b] tw:border-l-[#d9a514] tw:bg-[#fff9e8] tw:px-[1.23rem] tw:py-[1.08rem] tw:text-[.96rem] tw:text-[#5f4a12] ${phase === 'adjusting' ? 'tw:flex-col tw:items-stretch' : 'tw:items-center'}`}>
+    <div className={`tw:mt-5 tw:flex tw:flex-wrap tw:justify-between tw:gap-5 tw:rounded-xl tw:border tw:border-l-[.31rem] tw:border-solid tw:border-cali-warning-line tw:border-l-cali-gold tw:bg-cali-gold-surface tw:px-5 tw:py-4.5 tw:text-cali-body tw:text-cali-gold-strong ${phase === 'adjusting' ? 'tw:flex-col tw:items-stretch' : 'tw:items-center'}`}>
       {phase === 'adjusting' ? (
-        <label className="tw:flex tw:flex-col tw:gap-[.46rem] tw:font-bold tw:text-cali-ink">
+        <label className="tw:flex tw:flex-col tw:gap-2 tw:font-bold tw:text-cali-ink">
           O que precisa ser ajustado nesta parte?
           <textarea
             rows={3}
@@ -37,7 +37,7 @@ export function ClientSubtaskApproval({
             onChange={(event) => onAdjustmentTextChange(event.target.value)}
             placeholder="Descreva o ajuste. A CALI recebe o pedido e esta parte volta para produção."
             maxLength={4000}
-            className="tw:box-border tw:w-full tw:resize-y tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-[.92rem] tw:py-[.77rem] tw:text-[.96rem] tw:leading-[1.45] tw:font-normal"
+            className="tw:box-border tw:w-full tw:resize-y tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-3 tw:text-cali-body tw:leading-[1.45] tw:font-normal"
           />
         </label>
       ) : phase === 'confirming' ? (
@@ -49,7 +49,7 @@ export function ClientSubtaskApproval({
             : `Ajustes usados: ${adjustments} de 2.`}
         </span>
       )}
-      <span className={`tw:flex tw:flex-wrap tw:gap-[.62rem] ${phase === 'adjusting' ? 'tw:self-end' : ''}`}>
+      <span className={`tw:flex tw:flex-wrap tw:gap-2.5 ${phase === 'adjusting' ? 'tw:self-end' : ''}`}>
         {phase !== 'idle' ? (
           <ApprovalButton onClick={() => onPhaseChange('idle')}>Voltar</ApprovalButton>
         ) : adjustments < 2 && (

@@ -9,7 +9,7 @@ type Props = {
 export function PointsRangeSelect({ pageRange, range, onChange }: Props) {
   return (
     <select
-      className="tw:rounded-md tw:border tw:border-solid tw:border-[#e7ddd5] tw:bg-white tw:px-2.25 tw:py-1.5 tw:text-[0.6875rem] tw:font-semibold tw:text-cali-brand"
+      className="tw:rounded-md tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-2.25 tw:py-1.5 tw:text-cali-label tw:font-semibold tw:text-cali-brand"
       aria-label="Período deste gráfico"
       value={range}
       onChange={(event) => onChange(event.target.value as PointsRange)}

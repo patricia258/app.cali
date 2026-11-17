@@ -43,18 +43,18 @@ export function AuditedHourEntryDialog({ kind, entry, categories, onClose, onSav
     }
   }
 
-  return <div className="tw:fixed tw:inset-0 tw:z-[30000] tw:grid tw:place-items-center tw:bg-[#2019197a] tw:p-4 tw:backdrop-blur-[0.3125rem]">
+  return <div className="tw:fixed tw:inset-0 tw:z-[30000] tw:grid tw:place-items-center tw:bg-cali-burgundy-inverse/48 tw:p-4 tw:backdrop-blur-[0.3125rem]">
     <DialogForm aria-label="Confirmar alteração de horas" onSubmit={(event) => void submit(event)}
-      className="tw:max-h-[calc(100dvh-3rem)] tw:w-full tw:max-w-[35rem] tw:overflow-auto tw:rounded-[1.375rem] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:text-cali-text tw:shadow-2xl">
+      className="tw:max-h-[calc(100dvh-3rem)] tw:w-full tw:max-w-140 tw:overflow-auto tw:rounded-[1.375rem] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:text-cali-text tw:shadow-2xl">
       <header className="tw:flex tw:gap-3.5 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:px-6 tw:pt-6 tw:pb-4">
-        <span className="tw:grid tw:size-[2.625rem] tw:shrink-0 tw:place-items-center tw:rounded-xl tw:bg-[#f7eeeb] tw:text-cali-brand">{deleting ? <Trash2 size={21} aria-hidden="true" /> : <Pencil size={21} aria-hidden="true" />}</span>
+        <span className="tw:grid tw:size-10.5 tw:shrink-0 tw:place-items-center tw:rounded-xl tw:bg-cali-neutral-soft tw:text-cali-brand">{deleting ? <Trash2 size={21} aria-hidden="true" /> : <Pencil size={21} aria-hidden="true" />}</span>
         <div>
-          <h2 className="tw:m-0 tw:mb-1.5 tw:text-[1.375rem]">{deleting ? 'Excluir lançamento de horas' : 'Editar lançamento de horas'}</h2>
+          <h2 className="tw:m-0 tw:mb-1.5 tw:text-cali-title-sm">{deleting ? 'Excluir lançamento de horas' : 'Editar lançamento de horas'}</h2>
           <p className="tw:m-0 tw:text-cali-muted">{deleting ? 'O lançamento sairá do extrato, mas ficará preservado integralmente na Auditoria.' : 'A versão anterior e a nova versão ficarão registradas na Auditoria.'}</p>
         </div>
         <Button type="button" variant="close" className="tw:ml-auto tw:shrink-0" disabled={busy} onClick={onClose} aria-label="Fechar"><X size={19} /></Button>
       </header>
-      <div className="tw:grid tw:gap-3.5 tw:px-6 tw:py-5 tw:[&_label]:grid tw:[&_label]:gap-1.5 tw:[&_label]:text-sm tw:[&_label]:font-bold tw:[&_:is(input:not([type=checkbox]),select,textarea)]:w-full tw:[&_:is(input:not([type=checkbox]),select,textarea)]:rounded-xl tw:[&_:is(input:not([type=checkbox]),select,textarea)]:border tw:[&_:is(input:not([type=checkbox]),select,textarea)]:border-solid tw:[&_:is(input:not([type=checkbox]),select,textarea)]:border-cali-input-line tw:[&_:is(input:not([type=checkbox]),select,textarea)]:bg-cali-input tw:[&_:is(input:not([type=checkbox]),select,textarea)]:px-3 tw:[&_:is(input:not([type=checkbox]),select,textarea)]:py-2.5 tw:[&_textarea]:min-h-[5.5rem] tw:[&_textarea]:resize-y">
+      <div className="tw:grid tw:gap-3.5 tw:px-6 tw:py-5 tw:[&_label]:grid tw:[&_label]:gap-1.5 tw:[&_label]:text-sm tw:[&_label]:font-bold tw:[&_:is(input:not([type=checkbox]),select,textarea)]:w-full tw:[&_:is(input:not([type=checkbox]),select,textarea)]:rounded-xl tw:[&_:is(input:not([type=checkbox]),select,textarea)]:border tw:[&_:is(input:not([type=checkbox]),select,textarea)]:border-solid tw:[&_:is(input:not([type=checkbox]),select,textarea)]:border-cali-input-line tw:[&_:is(input:not([type=checkbox]),select,textarea)]:bg-cali-input tw:[&_:is(input:not([type=checkbox]),select,textarea)]:px-3 tw:[&_:is(input:not([type=checkbox]),select,textarea)]:py-2.5 tw:[&_textarea]:min-h-22 tw:[&_textarea]:resize-y">
         {!deleting && <>
           <div className="tw:grid tw:gap-3 tw:sm:grid-cols-2">
             <label>Data<input type="date" value={draft.workDate} onChange={(event) => setDraft({ ...draft, workDate: event.target.value })} /></label>
@@ -72,7 +72,7 @@ export function AuditedHourEntryDialog({ kind, entry, categories, onClose, onSav
       </div>
       <footer className="tw:flex tw:justify-end tw:gap-2.5 tw:border-0 tw:border-t tw:border-solid tw:border-cali-line tw:px-6 tw:pt-4 tw:pb-5">
         <Button type="button" variant="secondary" disabled={busy} onClick={onClose}>Cancelar</Button>
-        <Button type="submit" variant="primary" className={deleting ? 'tw:border-cali-danger! tw:bg-cali-danger! tw:text-white!' : undefined} disabled={busy || reason.trim().length < 3}>{busy ? 'Salvando…' : deleting ? 'Excluir e registrar' : 'Salvar correção'}</Button>
+        <Button type="submit" variant="primary" className={deleting ? 'tw:border-cali-danger! tw:bg-cali-danger! tw:text-cali-neutral-surface!' : undefined} disabled={busy || reason.trim().length < 3}>{busy ? 'Salvando…' : deleting ? 'Excluir e registrar' : 'Salvar correção'}</Button>
       </footer>
     </DialogForm>
   </div>;

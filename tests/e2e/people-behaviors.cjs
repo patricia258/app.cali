@@ -13,7 +13,57 @@ function endpoint(context, pathname, method, handler) {
   );
 }
 
+const score = (entries) => Object.fromEntries(entries.map(([style, raw, pct]) => [style, { raw, pct }]));
+const discResult = {
+  id: 'qa-profile',
+  person_name: 'Perfil Sintético',
+  email: 'perfil@example.invalid',
+  company_id: null,
+  company_name: 'Empresa Sintética',
+  job_title: 'QA',
+  purpose: 'desenvolvimento',
+  created_at: '2026-11-02T13:00:00Z',
+  scores: {
+    natural: score([['D', 9, 75], ['I', 3, 58], ['S', -3, 42], ['C', -9, 25]]),
+    natural6: score([['D', 4, 83], ['I', 1, 58], ['S', -2, 33], ['C', -3, 25]]),
+    pressure: score([['D', 3, 75], ['I', 2, 67], ['S', -1, 42], ['C', -4, 17]]),
+    adaptation: { D: -8, I: 9, S: 9, C: -8 },
+  },
+  primary_style: 'D',
+  secondary_style: 'I',
+  mixed: false,
+  method_version: 'cali-disc-v1.1',
+  role_profile: null,
+  team_member_id: null,
+  report_path: null,
+  protocol: 'CALI-DISC-QA',
+};
+
 const cases = [
+  {
+    id: '17-disc-evaluator-pdf',
+    role: 'admin',
+    async run({ page, context, origin, snapshot }) {
+      await endpoint(context, '/rest/v1/profile_results', 'GET', (route) => route.fulfill({
+        json: discResult,
+        headers: { 'access-control-allow-origin': origin },
+      }));
+      await page.goto(origin + '/admin/perfil-comportamental/qa-profile', { waitUntil: 'domcontentloaded' });
+      const button = page.getByRole('button', { name: 'Baixar PDF', exact: true });
+      await button.waitFor();
+      await snapshot('relatorio', page.locator('main .cpr-page').first());
+      const [file] = await Promise.all([page.waitForEvent('download', { timeout: 45000 }), button.click()]);
+      assert.equal(file.suggestedFilename(), 'perfil-comportamental-avaliador-perfil-sintetico.pdf');
+      const stream = await file.createReadStream();
+      let size = 0;
+      for await (const chunk of stream) {
+        if (size === 0) assert.equal(chunk.subarray(0, 5).toString(), '%PDF-');
+        size += chunk.length;
+      }
+      assert(size > 10000, `PDF inesperadamente pequeno (${size} bytes)`);
+      return { pdfBytes: size };
+    },
+  },
   {
     id: '17-mapa-report-mobile-actions-and-iframe',
     role: 'admin',

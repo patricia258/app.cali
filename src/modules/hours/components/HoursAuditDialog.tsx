@@ -8,12 +8,12 @@ import { useHourEntryAudit } from '../hooks/useHourEntryAudit';
 export function HoursAuditDialog({ onClose, formatMinutes }: { onClose: () => void; formatMinutes: (minutes: number) => string }) {
   const audit = useHourEntryAudit();
 
-  return <div className="tw:fixed tw:inset-0 tw:z-[30000] tw:grid tw:place-items-center tw:bg-[#2019197a] tw:p-4 tw:backdrop-blur-[0.3125rem]">
-    <DialogFrame aria-label="Auditoria de horas" className="tw:max-h-[calc(100dvh-3rem)] tw:w-full tw:max-w-[35rem] tw:overflow-auto tw:rounded-[1.375rem] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:text-cali-text tw:shadow-2xl">
+  return <div className="tw:fixed tw:inset-0 tw:z-[30000] tw:grid tw:place-items-center tw:bg-cali-burgundy-inverse/48 tw:p-4 tw:backdrop-blur-[0.3125rem]">
+    <DialogFrame aria-label="Auditoria de horas" className="tw:max-h-[calc(100dvh-3rem)] tw:w-full tw:max-w-140 tw:overflow-auto tw:rounded-[1.375rem] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:text-cali-text tw:shadow-2xl">
       <header className="tw:flex tw:gap-3.5 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:px-6 tw:pt-6 tw:pb-4">
-        <span className="tw:grid tw:size-[2.625rem] tw:shrink-0 tw:place-items-center tw:rounded-xl tw:bg-[#f7eeeb] tw:text-cali-brand"><History size={21} aria-hidden="true" /></span>
+        <span className="tw:grid tw:size-10.5 tw:shrink-0 tw:place-items-center tw:rounded-xl tw:bg-cali-neutral-soft tw:text-cali-brand"><History size={21} aria-hidden="true" /></span>
         <div>
-          <h2 className="tw:m-0 tw:mb-1.5 tw:text-[1.375rem]">Auditoria de horas</h2>
+          <h2 className="tw:m-0 tw:mb-1.5 tw:text-cali-title-sm">Auditoria de horas</h2>
           <p className="tw:m-0 tw:text-cali-muted">Edições e exclusões ficam preservadas com justificativa, usuário e data/hora.</p>
         </div>
         <Button type="button" variant="close" className="tw:ml-auto tw:shrink-0" onClick={onClose} aria-label="Fechar auditoria"><X size={19} /></Button>

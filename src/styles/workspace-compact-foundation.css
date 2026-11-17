@@ -3,8 +3,8 @@
 :where(html[data-workspace-ui='v2']) {
   font: 13px var(--cali-font-body);
   font-synthesis: none;
-  color: #322f2c;
-  background: #f1ede8;
+  color: var(--cali-color-neutral-strong);
+  background: var(--cali-color-neutral-soft);
 
   &, body {
     overscroll-behavior: none;
@@ -24,13 +24,13 @@
 
   body {
     margin: 0;
-    background: #f1ede8;
+    background: var(--cali-color-neutral-soft);
   }
 
   button { cursor: pointer; }
 
   :where(button, input, select):focus-visible {
-    outline: 2px solid #b58c52;
+    outline: 2px solid var(--cali-color-gold-accent);
     outline-offset: 2px;
   }
 
@@ -49,6 +49,6 @@
 @media print {
   html[data-workspace-ui='v2'],
   html[data-workspace-ui='v2'] :is(body, #root) {
-    background: #fffdf9 !important;
+    background: var(--cali-color-sand-surface) !important;
   }
 }

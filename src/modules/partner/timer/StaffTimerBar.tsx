@@ -87,27 +87,27 @@ export function StaffTimerBar({ me }: { me: PartnerWorkspace }) {
     {(active || recoveries.length > 0) && (
       <div
         data-staff-timer-dock=""
-        className="tw:flex tw:items-center tw:gap-2.5 tw:[@media(max-width:46.25rem)]:fixed tw:[@media(max-width:46.25rem)]:inset-x-[.92rem] tw:[@media(max-width:46.25rem)]:bottom-[max(.92rem,env(safe-area-inset-bottom))] tw:[@media(max-width:46.25rem)]:z-70 tw:[@media(max-width:46.25rem)]:grid tw:[@media(max-width:46.25rem)]:gap-2 tw:[@media(max-width:46.25rem)]:rounded-2xl tw:[@media(max-width:46.25rem)]:border tw:[@media(max-width:46.25rem)]:border-solid tw:[@media(max-width:46.25rem)]:border-cali-line tw:[@media(max-width:46.25rem)]:bg-cali-surface tw:[@media(max-width:46.25rem)]:p-2 tw:[@media(max-width:46.25rem)]:shadow-[0_.23rem_.92rem_#0000001f]"
+        className="tw:flex tw:items-center tw:gap-2.5 tw:[@media(max-width:46.25rem)]:fixed tw:[@media(max-width:46.25rem)]:inset-x-3.5 tw:[@media(max-width:46.25rem)]:bottom-[max(.92rem,env(safe-area-inset-bottom))] tw:[@media(max-width:46.25rem)]:z-70 tw:[@media(max-width:46.25rem)]:grid tw:[@media(max-width:46.25rem)]:gap-2 tw:[@media(max-width:46.25rem)]:rounded-2xl tw:[@media(max-width:46.25rem)]:border tw:[@media(max-width:46.25rem)]:border-solid tw:[@media(max-width:46.25rem)]:border-cali-line tw:[@media(max-width:46.25rem)]:bg-cali-surface tw:[@media(max-width:46.25rem)]:p-2 tw:[@media(max-width:46.25rem)]:shadow-[0_.23rem_.92rem_rgb(var(--cali-rgb-shadow)/0.1216)]"
       >
         {active && (
           <div className="tw:flex tw:min-w-0 tw:items-center" aria-label="Cronômetro">
-            <div className="tw:flex tw:h-12 tw:min-w-0 tw:items-center tw:justify-between tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-[#cfe3d6] tw:bg-[#f1f8f3] tw:pr-2 tw:pl-3.5 tw:text-[#2c5a3f] tw:[@media(max-width:46.25rem)]:w-full tw:[@media(max-width:46.25rem)]:justify-start">
+            <div className="tw:flex tw:h-12 tw:min-w-0 tw:items-center tw:justify-between tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-cali-green-soft tw:bg-cali-success-surface tw:pr-2 tw:pl-3.5 tw:text-cali-green-text tw:[@media(max-width:46.25rem)]:w-full tw:[@media(max-width:46.25rem)]:justify-start">
               <Clock3 size={15} aria-hidden="true" />
               <div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-1 tw:leading-[1.15]">
-                <strong className="tw:text-[1rem] tw:leading-[1.1] tw:text-[#234a33] tw:tabular-nums">{formatClock(elapsed)}</strong>
-                <small className="tw:max-w-[13.85rem] tw:truncate tw:text-[.77rem] tw:leading-[inherit] tw:font-medium tw:text-[#5d7a68] tw:[@media(max-width:53.125rem)]:hidden">{active.description || label(active.companyId)}</small>
+                <strong className="tw:text-base tw:leading-[1.1] tw:text-cali-green-strong tw:tabular-nums">{formatClock(elapsed)}</strong>
+                <small className="tw:max-w-[13.85rem] tw:truncate tw:text-xs tw:leading-[inherit] tw:font-medium tw:text-cali-green-accent tw:[@media(max-width:53.125rem)]:hidden">{active.description || label(active.companyId)}</small>
               </div>
-              <Button className="tw:inline-flex tw:h-[2.15rem] tw:flex-none tw:cursor-pointer tw:items-center tw:gap-1.5 tw:rounded-lg tw:border-0 tw:bg-[#356448] tw:px-3 tw:text-[.846rem] tw:leading-[inherit] tw:font-bold tw:whitespace-nowrap tw:text-white tw:[@media(max-width:46.25rem)]:ml-auto" variant="unstyled" type="button" disabled={busy} onClick={() => void updateActive('stop')}><Pause size={12} /> Pausar</Button>
+              <Button className="tw:inline-flex tw:h-8.5 tw:flex-none tw:cursor-pointer tw:items-center tw:gap-1.5 tw:rounded-lg tw:border-0 tw:bg-cali-success tw:px-3 tw:text-sm tw:leading-[inherit] tw:font-bold tw:whitespace-nowrap tw:text-cali-neutral-surface tw:[@media(max-width:46.25rem)]:ml-auto" variant="unstyled" type="button" disabled={busy} onClick={() => void updateActive('stop')}><Pause size={12} /> Pausar</Button>
             </div>
           </div>
         )}
         {warning && (
-          <div className="tw:fixed tw:right-[1.385rem] tw:bottom-[1.385rem] tw:z-70 tw:flex tw:flex-wrap tw:items-center tw:gap-2.5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-(--theme-surface-soft) tw:px-2.5 tw:py-1.5 tw:text-[.8rem] tw:leading-[inherit] tw:text-cali-text tw:shadow-[0_.23rem_.92rem_#0000001f] tw:[@media(max-width:46.25rem)]:static tw:[@media(max-width:46.25rem)]:justify-between tw:[@media(max-width:46.25rem)]:shadow-none" role="status">
+          <div className="tw:fixed tw:right-5.5 tw:bottom-5.5 tw:z-70 tw:flex tw:flex-wrap tw:items-center tw:gap-2.5 tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-(--theme-surface-soft) tw:px-2.5 tw:py-1.5 tw:text-cali-detail tw:leading-[inherit] tw:text-cali-text tw:shadow-[0_.23rem_.92rem_rgb(var(--cali-rgb-shadow)/0.1216)] tw:[@media(max-width:46.25rem)]:static tw:[@media(max-width:46.25rem)]:justify-between tw:[@media(max-width:46.25rem)]:shadow-none" role="status">
             <span>{remaining > 0 ? `Pausa em até ${remaining} min sem confirmação.` : 'Conferindo a pausa…'}</span>
-            <Button className="tw:cursor-pointer tw:rounded-lg tw:border tw:border-solid tw:border-current tw:bg-cali-surface tw:px-2.5 tw:py-1 tw:text-[.8rem] tw:leading-[inherit] tw:font-bold tw:text-cali-accent" variant="unstyled" type="button" disabled={busy || !remaining} onClick={() => void updateActive('present')}>Continuo aqui</Button>
+            <Button className="tw:cursor-pointer tw:rounded-lg tw:border tw:border-solid tw:border-current tw:bg-cali-surface tw:px-2.5 tw:py-1 tw:text-cali-detail tw:leading-[inherit] tw:font-bold tw:text-cali-accent" variant="unstyled" type="button" disabled={busy || !remaining} onClick={() => void updateActive('present')}>Continuo aqui</Button>
           </div>
         )}
-        {recoveries.length > 0 && <div className="tw:flex tw:max-h-[3.23rem] tw:flex-wrap tw:items-center tw:gap-2.5 tw:overflow-auto tw:text-[.8rem] tw:leading-[inherit]">
+        {recoveries.length > 0 && <div className="tw:flex tw:max-h-[3.23rem] tw:flex-wrap tw:items-center tw:gap-2.5 tw:overflow-auto tw:text-cali-detail tw:leading-[inherit]">
           {recoveries.map((recovery) => <Button key={recovery.id} type="button" variant="workflowSecondary" onClick={() => edit(recovery)}>
             Justificar pausa · {recovery.description || label(recovery.companyId)}
           </Button>)}

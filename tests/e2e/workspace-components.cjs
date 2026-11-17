@@ -22,6 +22,87 @@ const mockRpc = (context, origin, name, handler) =>
   mockJson(context, origin, 'rpc/' + name, 'POST', (request) => handler(request.postDataJSON()));
 
 const cases = [
+  ...[390, 1651].map((width) => ({
+    id: `admin-single-navigation-${width}`,
+    role: 'admin',
+    width,
+    async run({ page, origin, snapshot }) {
+      const topbar = page.locator('#root header.topbar');
+      const sidebar = page.locator('#root aside.sidebar');
+      await page.goto(origin + '/admin', { waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', { level: 1, name: /Visão geral/ }).waitFor();
+      assert.equal(await topbar.count(), 1, 'A Visão geral deve ter uma única barra superior.');
+      assert.equal(await sidebar.count(), 1, 'A Visão geral deve ter um único menu lateral.');
+      assert.equal(await topbar.getByRole('button', { name: 'Notificações', exact: true }).count(), 1);
+      await snapshot('overview');
+
+      const position = await topbar.boundingBox();
+      await page.evaluate(() => window.scrollTo(0, 220));
+      await page.waitForFunction(() => window.scrollY > 0);
+      assert.equal((await topbar.boundingBox()).y, position.y, 'A barra deve continuar no topo ao rolar.');
+      const menu = topbar.getByRole('button', { name: 'Abrir menu', exact: true });
+      if (width < 500) await menu.click();
+      else assert.equal(await menu.count(), 0, 'O menu lateral já está disponível no desktop.');
+      await sidebar.getByRole('link', { name: 'Horas', exact: true }).click();
+      await page.getByRole('heading', { level: 1, name: /Horas e contratos/ }).waitFor();
+      assert.equal(await topbar.count(), 1, 'A navegação deve manter uma única barra superior.');
+      assert.equal(await sidebar.count(), 1, 'A navegação deve manter um único menu lateral.');
+      assert.equal((await topbar.boundingBox()).y, position.y, 'A barra deve manter a altura na troca de página.');
+      if (width < 500) assert.equal(await menu.getAttribute('aria-expanded'), 'false');
+      await snapshot('hours');
+    },
+  })),
+  {
+    id: 'admin-visual-spacing-filters-documents-staff',
+    role: 'admin',
+    width: 1651,
+    async run({ page, context, origin, snapshot }) {
+      await page.goto(origin + '/admin/horas');
+      for (const name of ['Filtrar por cliente', 'Filtrar por tipo de atuação']) {
+        const filter = page.getByRole('combobox', { name, exact: true });
+        const style = await filter.evaluate((element) => {
+          const computed = getComputedStyle(element);
+          return {
+            appearance: computed.appearance,
+            position: computed.backgroundPositionX,
+            arrow: computed.backgroundImage,
+            left: Number.parseFloat(computed.paddingLeft),
+            right: Number.parseFloat(computed.paddingRight),
+          };
+        });
+        assert.equal(style.appearance, 'none');
+        assert.match(style.arrow, /data:image\/svg\+xml/);
+        const arrowInset = /([\d.]+)px\)?$/.exec(style.position);
+        assert.ok(arrowInset && Math.abs(Number(arrowInset[1]) - style.left) <= 0.25);
+        assert.ok(style.left >= 10 && style.right > style.left, 'A seta deve ter folga simétrica e espaço separado do texto.');
+      }
+      await page.getByRole('combobox', { name: 'Filtrar por tipo de atuação' }).selectOption('timer');
+      await snapshot('filters');
+
+      await mockJson(context, origin, 'companies', 'GET', () => ({ json: tables.companies.map((company) => ({
+        ...company, logo_url: null, logo_workspace_url: null,
+      })) }));
+      await page.goto(origin + '/admin/documentos');
+      const logo = page.locator('.v2-admin-doc-list .v2-record-logo').first();
+      const initial = logo.locator(':scope > span');
+      await initial.waitFor();
+      const outer = await logo.boundingBox();
+      const inner = await initial.boundingBox();
+      assert.ok(Math.abs((inner.x + inner.width / 2) - (outer.x + outer.width / 2)) <= 1);
+      assert.ok(Math.abs((inner.y + inner.height / 2) - (outer.y + outer.height / 2)) <= 1);
+      await snapshot('document-initial');
+
+      await page.goto(origin + '/admin/equipe-cali');
+      const notice = page.locator('.inline-notice').filter({ hasText: 'Como a pessoa entra:' });
+      const [left, right, top, rem] = await notice.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return [style.paddingLeft, style.paddingRight, style.paddingTop, getComputedStyle(document.documentElement).fontSize].map(Number.parseFloat);
+      });
+      assert.ok(left >= rem && top >= rem * 0.75, 'O aviso deve ter respiro nas bordas.');
+      assert.equal(left, right);
+      await snapshot('staff-notice');
+    },
+  },
   {
     id: 'global-timer-pause-and-finalize',
     role: 'admin',

@@ -5,14 +5,14 @@ export const ProfileInfoSection = forwardRef<HTMLElement, Omit<ComponentPropsWit
     <section
       {...props}
       ref={ref}
-      className="tw:mt-[1.077rem] tw:flex tw:flex-col tw:gap-[0.769rem]
-        tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#e8ddd4] tw:bg-[#fbf7f4]
-        tw:px-[1.231rem] tw:py-[1.077rem] tw:text-[0.962rem] tw:text-[#5f5650]
-        tw:[&_strong]:inline-flex tw:[&_strong]:items-center tw:[&_strong]:gap-[0.462rem]
-        tw:[&_strong]:text-[1rem] tw:[&_strong]:text-cali-ink
-        tw:[&_p]:mx-0 tw:[&_p]:mt-[0.308rem] tw:[&_p]:mb-0 tw:[&_p]:leading-normal
+      className="tw:mt-4.5 tw:flex tw:flex-col tw:gap-3
+        tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface-soft
+        tw:px-5 tw:py-4.5 tw:text-cali-body tw:text-cali-muted
+        tw:[&_strong]:inline-flex tw:[&_strong]:items-center tw:[&_strong]:gap-2
+        tw:[&_strong]:text-base tw:[&_strong]:text-cali-ink
+        tw:[&_p]:mx-0 tw:[&_p]:mt-1 tw:[&_p]:mb-0 tw:[&_p]:leading-normal
         tw:[&_a]:font-bold tw:[&_a]:text-cali-brand
-        tw:[&_small]:font-bold tw:[&_small]:text-[#356448]"
+        tw:[&_small]:font-bold tw:[&_small]:text-cali-success"
     />
   );
 });

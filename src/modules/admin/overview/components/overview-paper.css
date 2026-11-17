@@ -5,9 +5,9 @@
   margin: 0 auto;
   padding: 18mm 17mm 14mm;
   box-sizing: border-box;
-  background: #F7F3EE;
-  color: var(--cali-color-ink, #2b2b2b);
-  box-shadow: 0 16px 45px rgba(43,43,43,.16);
+  background: var(--cali-color-sand-soft);
+  color: var(--cali-color-ink, var(--cali-color-neutral-strong));
+  box-shadow: 0 16px 45px rgb(var(--cali-rgb-neutral-strong)/0.16);
   font-family: Inter,Arial,sans-serif;
 }
 .overview-export-document-head {
@@ -26,63 +26,63 @@
   font-size: 9px;
   letter-spacing: .14em;
   font-weight: 900;
-  color: var(--cali-color-gold, #b58c52);
+  color: var(--cali-color-gold, var(--cali-color-gold-accent));
 }
 .overview-export-document-head strong {
   font-size: 13px;
-  color: var(--cali-color-burgundy, #5a1e2d);
+  color: var(--cali-color-burgundy, var(--cali-color-burgundy-accent));
 }
 .overview-export-document-head small {
   font-size: 10px;
-  color: #80736C;
+  color: var(--cali-color-neutral-accent);
 }
 .overview-export-rule {
   height: 3px;
   margin: 15px 0 26px;
   border-radius: 99px;
-  background: linear-gradient(90deg,#5A1E2D,#B58C52,#D9C9BE);
+  background: linear-gradient(90deg,var(--cali-color-burgundy-accent),var(--cali-color-gold-accent),var(--cali-color-neutral-line));
 }
 .overview-export-title h1 {
   margin: 6px 0 7px;
-  color: var(--cali-color-ink, #2b2b2b);
+  color: var(--cali-color-ink, var(--cali-color-neutral-strong));
   font-size: 30px;
   letter-spacing: -.04em;
 }
 .overview-export-title p {
   margin: 0;
-  color: #756a64;
+  color: var(--cali-color-neutral-accent);
   font-size: 12px;
 }
 .overview-export-kpis {
   display: grid;
   grid-template-columns: repeat(4,1fr);
   margin: 26px 0;
-  border: 1px solid #e3d8d0;
+  border: 1px solid var(--cali-color-sand-line);
   border-radius: 14px;
   overflow: hidden;
-  background: #fffdfa;
+  background: var(--cali-color-sand-surface);
 }
 .overview-export-kpis div {
   display: grid;
   gap: 5px;
   padding: 14px;
-  border-right: 1px solid #e8dfd9;
+  border-right: 1px solid var(--cali-color-sand-line);
 }
 .overview-export-kpis div:last-child {
   border-right: 0;
 }
 .overview-export-kpis small {
   font-size: 9px;
-  color: #8b7d75;
+  color: var(--cali-color-sand-text);
 }
 .overview-export-kpis strong {
   font-size: 21px;
-  color: var(--cali-color-burgundy, #5a1e2d);
+  color: var(--cali-color-burgundy, var(--cali-color-burgundy-accent));
 }
 .overview-export-section {
   margin-top: 22px;
   padding-top: 15px;
-  border-top: 1px solid #ded3cc;
+  border-top: 1px solid var(--cali-color-neutral-line);
 }
 .overview-export-section-head {
   display: grid;
@@ -91,7 +91,7 @@
 }
 .overview-export-section-head strong {
   font-size: 15px;
-  color: var(--cali-color-ink, #2b2b2b);
+  color: var(--cali-color-ink, var(--cali-color-neutral-strong));
 }
 .overview-export-bars {
   display: grid;
@@ -112,19 +112,19 @@
 .overview-export-bars i {
   height: 8px;
   border-radius: 99px;
-  background: #e4d8ce;
+  background: var(--cali-color-sand-line);
   overflow: hidden;
 }
 .overview-export-bars b {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg,#5A1E2D,#B58C52);
+  background: linear-gradient(90deg,var(--cali-color-burgundy-accent),var(--cali-color-gold-accent));
 }
 .overview-export-bars>div>strong {
   text-align: right;
   font-size: 10px;
-  color: var(--cali-color-burgundy, #5a1e2d);
+  color: var(--cali-color-burgundy, var(--cali-color-burgundy-accent));
 }
 .overview-export-section table {
   width: 100%;
@@ -134,22 +134,22 @@
 .overview-export-section th {
   padding: 8px 7px;
   text-align: left;
-  color: #806f65;
+  color: var(--cali-color-neutral-accent);
   font-size: 8px;
   letter-spacing: .06em;
   text-transform: uppercase;
-  background: #efe7e1;
+  background: var(--cali-color-neutral-soft);
 }
 .overview-export-section td {
   padding: 9px 7px;
-  border-bottom: 1px solid #e7ded8;
-  color: #5f5550;
+  border-bottom: 1px solid var(--cali-color-sand-line);
+  color: var(--cali-color-neutral-text);
 }
 .overview-export-empty {
   padding: 14px;
   border-radius: 10px;
-  background: #fffdfa;
-  color: #80736c;
+  background: var(--cali-color-sand-surface);
+  color: var(--cali-color-neutral-accent);
   font-size: 11px;
 }
 .overview-export-document-foot {
@@ -158,12 +158,12 @@
   gap: 15px;
   margin-top: 30px;
   padding-top: 12px;
-  border-top: 1px solid #d9cec6;
-  color: #8a7d76;
+  border-top: 1px solid var(--cali-color-neutral-line);
+  color: var(--cali-color-sand-text);
   font-size: 8px;
 }
 .overview-export-document-foot strong {
-  color: var(--cali-color-burgundy, #5a1e2d);
+  color: var(--cali-color-burgundy, var(--cali-color-burgundy-accent));
 }
 @media screen and (max-width: 42.5rem) {
   .overview-export-print {
@@ -177,7 +177,7 @@
     border-right: 0;
   }
   .overview-export-kpis div:nth-child(-n+2) {
-    border-bottom: 1px solid #e8dfd9;
+    border-bottom: 1px solid var(--cali-color-sand-line);
   }
   .overview-export-bars>div {
     grid-template-columns: 100px minmax(0,1fr) 45px;
@@ -202,22 +202,22 @@
   print-color-adjust: exact;
 }
 .overview-export-print {
-  background: #f7f3ee !important;
-  color: var(--cali-color-ink, #2b2b2b) !important;
+  background: var(--cali-color-sand-soft) !important;
+  color: var(--cali-color-ink, var(--cali-color-neutral-strong)) !important;
 }
 .overview-export-print * {
-  color: var(--cali-color-ink, #2b2b2b) !important;
+  color: var(--cali-color-ink, var(--cali-color-neutral-strong)) !important;
 }
 .overview-export-print .overview-export-document-head span,
 .overview-export-print .overview-export-title > span,
 .overview-export-print .overview-export-section-head span {
-  color: var(--cali-color-gold, #b58c52) !important;
+  color: var(--cali-color-gold, var(--cali-color-gold-accent)) !important;
 }
 .overview-export-print .overview-export-document-head strong,
 .overview-export-print .overview-export-kpis strong,
 .overview-export-print .overview-export-bars > div > strong,
 .overview-export-print .overview-export-document-foot strong {
-  color: var(--cali-color-burgundy, #5a1e2d) !important;
+  color: var(--cali-color-burgundy, var(--cali-color-burgundy-accent)) !important;
 }
 .overview-export-print .overview-export-document-head small,
 .overview-export-print .overview-export-title p,
@@ -226,18 +226,18 @@
 .overview-export-print .overview-export-section td,
 .overview-export-print .overview-export-document-foot,
 .overview-export-print .overview-export-empty {
-  color: #756a64 !important;
+  color: var(--cali-color-neutral-accent) !important;
 }
 .overview-export-print .overview-export-title h1,
 .overview-export-print .overview-export-section-head strong {
-  color: var(--cali-color-ink, #2b2b2b) !important;
+  color: var(--cali-color-ink, var(--cali-color-neutral-strong)) !important;
 }
 .overview-export-print .overview-export-brand-logo {
   display: block !important;
   width: 106px !important;
   height: 56px !important;
   flex: 0 0 106px;
-  background: #5A1E2D !important;
+  background: var(--cali-color-burgundy-accent) !important;
   -webkit-mask: url('/brand/cali-workspace-transparent.svg') left center/contain no-repeat !important;
   mask: url('/brand/cali-workspace-transparent.svg') left center/contain no-repeat !important;
   opacity: 1 !important;
@@ -254,11 +254,11 @@
 }
 .overview-export-metric b {
   font-size: 22px;
-  color: var(--cali-color-burgundy, #5a1e2d) !important;
+  color: var(--cali-color-burgundy, var(--cali-color-burgundy-accent)) !important;
 }
 .overview-export-metric small {
   font-size: 9px;
-  color: #80736C !important;
+  color: var(--cali-color-neutral-accent) !important;
 }
 .overview-export-distribution,.overview-export-events {
   display: grid;
@@ -274,18 +274,18 @@
 .overview-export-distribution i {
   height: 6px;
   border-radius: 99px;
-  background: #e4d8ce;
+  background: var(--cali-color-sand-line);
   overflow: hidden;
 }
 .overview-export-distribution em {
   display: block;
   height: 100%;
-  background: #B58C52;
+  background: var(--cali-color-gold-accent);
   border-radius: inherit;
 }
 .overview-export-distribution small {
   text-align: right;
-  color: #80736C !important;
+  color: var(--cali-color-neutral-accent) !important;
 }
 .overview-export-events span {
   display: grid;
@@ -294,18 +294,18 @@
   font-size: 9px;
 }
 .overview-export-events b {
-  color: var(--cali-color-burgundy, #5a1e2d) !important;
+  color: var(--cali-color-burgundy, var(--cali-color-burgundy-accent)) !important;
 }
 .overview-export-events small {
-  color: #5f5550 !important;
+  color: var(--cali-color-neutral-text) !important;
 }
 .overview-export-print .overview-export-kpis,
 .overview-export-print .overview-export-empty {
-  background: #fffdfa !important;
+  background: var(--cali-color-sand-surface) !important;
 }
 .overview-export-print .overview-export-kpis div {
-  border-color: #e8dfd9 !important;
+  border-color: var(--cali-color-sand-line) !important;
 }
 .overview-export-print .overview-export-section th {
-  background: #efe7e1 !important;
+  background: var(--cali-color-neutral-soft) !important;
 }

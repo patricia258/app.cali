@@ -30,9 +30,9 @@ export function ClientProjectLifecycleBanner({ companyId, projectId }: { company
   const reason = project.lifecycle_reason || hold?.reason || 'Existe uma atualização operacional neste cronograma.';
   const resume = project.lifecycle_resume_date || hold?.resume_date;
 
-  return <section aria-label="Atualização do projeto" className="tw:mt-3 tw:mb-4 tw:grid tw:gap-1 tw:rounded-xl tw:border tw:border-solid tw:border-[#f2dfb8] tw:bg-[#fff5e0] tw:px-5 tw:py-4 tw:text-[#6b5850] tw:workspace-night:border-[#806638] tw:workspace-night:bg-[#382b20] tw:workspace-night:text-[#f6e4bd]">
-    <span className="tw:text-[.6923rem] tw:font-bold tw:tracking-[.11em] tw:text-[#967030] tw:uppercase tw:workspace-night:text-[#f0d79b]">Atualização do projeto</span>
+  return <section aria-label="Atualização do projeto" className="tw:mt-3 tw:mb-4 tw:grid tw:gap-1 tw:rounded-xl tw:border tw:border-solid tw:border-cali-warning-line tw:bg-cali-warning-surface tw:px-5 tw:py-4 tw:text-cali-sand-strong tw:workspace-night:border-cali-gold-text tw:workspace-night:bg-cali-sand-inverse tw:workspace-night:text-cali-gold-soft">
+    <span className="tw:text-cali-label tw:font-bold tw:tracking-[.11em] tw:text-cali-warning tw:uppercase tw:workspace-night:text-cali-gold-line">Atualização do projeto</span>
     <strong className="tw:text-base tw:text-cali-text">{title}</strong>
-    <p className="tw:m-0 tw:text-[.8462rem] tw:leading-[1.5]">{reason}{resume && ` · previsão de retomada ${scheduleReviewDate(resume)}`}. A qualidade e o escopo permanecem preservados. O prazo será recalculado na retomada conforme o período efetivamente interrompido.</p>
+    <p className="tw:m-0 tw:text-sm tw:leading-[1.5]">{reason}{resume && ` · previsão de retomada ${scheduleReviewDate(resume)}`}. A qualidade e o escopo permanecem preservados. O prazo será recalculado na retomada conforme o período efetivamente interrompido.</p>
   </section>;
 }

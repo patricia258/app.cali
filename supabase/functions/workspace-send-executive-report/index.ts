@@ -1,3 +1,4 @@
+import { emailColors } from '../_shared/email-colors.ts';
 import type { JsonValue } from '../_shared/json.ts';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {
@@ -44,28 +45,28 @@ function subject(company: string, period: string) {
 function html(period: string, message: string, reportId: string) {
   const url = `${APP_URL}?report=${encodeURIComponent(reportId)}`;
   const personal = message
-    ? `<div style="margin:0 0 22px;padding:14px 16px;border:1px solid #E8DDD4;border-radius:12px;background:#FBF7F3"><div style="font-size:10px;color:#B58C52;letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin-bottom:6px">Uma observação da Patrícia</div><div style="font-size:14px;color:#2B2B2B;line-height:1.55">${esc(message).replaceAll("\n", "<br>")}</div></div>`
+    ? `<div style="margin:0 0 22px;padding:14px 16px;border:1px solid ${emailColors.line};border-radius:12px;background:${emailColors.surfaceSoft}"><div style="font-size:10px;color:${emailColors.accentText};letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin-bottom:6px">Uma observação da Patrícia</div><div style="font-size:14px;color:${emailColors.text};line-height:1.55">${esc(message).replaceAll("\n", "<br>")}</div></div>`
     : "";
 
-  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#F7F3EE;font-family:Arial,Helvetica,sans-serif;color:#2B2B2B">
+  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:${emailColors.page};font-family:Arial,Helvetica,sans-serif;color:${emailColors.text}">
   <div style="display:none;max-height:0;overflow:hidden;color:transparent">O fechamento de ${esc(period)} está disponível no CALI Workspace.</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 14px">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#fff;border:1px solid #E8DDD4;border-radius:18px;overflow:hidden">
-      <tr><td style="padding:20px 26px;border-bottom:1px solid #6A2838;background:#5A1E2D">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:${emailColors.surface};border:1px solid ${emailColors.line};border-radius:18px;overflow:hidden">
+      <tr><td style="padding:20px 26px;border-bottom:1px solid ${emailColors.brandLine};background:${emailColors.brand}">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
           <td align="left" valign="middle"><img src="${LOGO_URL}" alt="CALI Workspace" width="122" style="display:block;width:122px;max-width:122px;height:auto;border:0"></td>
           <td align="right" valign="middle"><img src="${MARK_URL}" alt="" width="48" height="48" style="display:block;width:48px;height:48px;object-fit:contain;border:0"></td>
         </tr></table>
       </td></tr>
       <tr><td style="padding:30px">
-        <div style="font-size:10px;letter-spacing:.12em;color:#B58C52;font-weight:700;margin-bottom:8px;text-transform:uppercase">FECHAMENTO EXECUTIVO · ${esc(period)}</div>
-        <h1 style="font-family:Georgia,serif;font-size:25px;line-height:1.25;font-weight:400;color:#5A1E2D;margin:0 0 14px">Seu fechamento está disponível</h1>
+        <div style="font-size:10px;letter-spacing:.12em;color:${emailColors.accentText};font-weight:700;margin-bottom:8px;text-transform:uppercase">FECHAMENTO EXECUTIVO · ${esc(period)}</div>
+        <h1 style="font-family:Georgia,serif;font-size:25px;line-height:1.25;font-weight:400;color:${emailColors.brand};margin:0 0 14px">Seu fechamento está disponível</h1>
         ${personal}
         <p style="font-size:15px;line-height:1.65;margin:0 0 24px">A leitura do período já está no CALI Workspace.</p>
-        <div style="text-align:center;margin:0 0 24px"><a href="${esc(url)}" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir no Workspace</a></div>
-        <div style="height:1px;background:#EAE1D8;margin-bottom:18px"></div>
-        <p style="font-size:12px;color:#8C807A;margin:0"><strong>APP CALI Workspace</strong></p>
-        <p style="font-size:12px;line-height:1.6;color:#8C807A;margin:8px 0 0">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_BASE}" style="color:#5A1E2D;text-decoration:underline">Workspace</a>.</p>
+        <div style="text-align:center;margin:0 0 24px"><a href="${esc(url)}" style="display:inline-block;background:${emailColors.brand};color:${emailColors.onBrand};text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir no Workspace</a></div>
+        <div style="height:1px;background:${emailColors.line};margin-bottom:18px"></div>
+        <p style="font-size:12px;color:${emailColors.textMuted};margin:0"><strong>APP CALI Workspace</strong></p>
+        <p style="font-size:12px;line-height:1.6;color:${emailColors.textMuted};margin:8px 0 0">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_BASE}" style="color:${emailColors.brand};text-decoration:underline">Workspace</a>.</p>
       </td></tr>
     </table>
   </td></tr></table></body></html>`;

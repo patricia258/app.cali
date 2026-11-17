@@ -57,7 +57,7 @@ test('abas do entregável preservam botões e anunciam a seção selecionada', (
 
 test('badges de entrega e complexidade carregam suas variantes sem folha de Projetos', () => {
   const review = render(StatusBadge, { variant: 'delivery', tone: 'review', children: 'Aguardando você' });
-  assert.match(review, /dv-status[^"]*tw:bg-\[#fff0d9\][^"]*">Aguardando você/);
+  assert.match(review, /dv-status[^"]*tw:bg-cali-warning-surface[^"]*">Aguardando você/);
   const mc = render(ProjectComplexityBadge, { code: 'MC2', explain: true });
   assert.match(mc, /aria-label="MC2: [^"]+" data-tip="[^"]+">MC2<\/b>/);
   const old = render(ProjectComplexityBadge, { code: 'Antiga', explain: true });

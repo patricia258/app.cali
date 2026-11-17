@@ -1,3 +1,4 @@
+import { caliPalette } from '../../../../supabase/functions/_shared/cali-palette';
 import { useQuery } from '@tanstack/react-query';
 import { isSupabaseConfigured } from '../../../api/access/session';
 import { readGoogleCalendarEvents, type GoogleCalendarEvent } from '../../../api/calendar/connections';
@@ -20,7 +21,7 @@ function mapGoogleEvent(row: GoogleCalendarEvent): WorkspaceCalendarEvent {
     endsAt: row.allDay && row.end ? `${row.end}T12:00:00-03:00` : row.end,
     allDay: Boolean(row.allDay),
     type: 'other',
-    color: /^#[0-9a-f]{6}$/i.test(row.color) ? row.color : '#8D7354',
+    color: /^#[0-9a-f]{6}$/i.test(row.color) ? row.color : caliPalette.sand.darker,
     textColor: row.textColor ?? undefined,
     location: row.location,
     description: row.description,

@@ -30,17 +30,17 @@ export function ClientSchedulingRequests() {
       {actionable.length > 0 && (
         <section id="scheduling-v65-client-host" className="
           tw:my-3.5 tw:overflow-hidden tw:rounded-2xl tw:border tw:border-l-[0.25rem] tw:border-solid
-          tw:border-[#dfc7a1] tw:border-l-cali-gold tw:bg-[color:var(--theme-surface,#fff)]
-          tw:workspace-night:border-[#80662e] tw:workspace-night:text-[#f2e8ea] tw:workspace-night:border-l-[#d2a650]
-          tw:workspace-night:bg-[linear-gradient(135deg,#44361f,#322719)]
+          tw:border-cali-gold-line tw:border-l-cali-gold tw:bg-[color:var(--theme-surface,var(--cali-color-neutral-surface))]
+          tw:workspace-night:border-cali-gold-text tw:workspace-night:text-cali-red-surface tw:workspace-night:border-l-cali-orange-line
+          tw:workspace-night:bg-[linear-gradient(135deg,var(--cali-color-gold-inverse),var(--cali-color-gold-inverse))]
         ">
-          <header className="tw:border-0 tw:border-b tw:border-solid tw:border-[#5a1e2d1a] tw:px-5 tw:py-4">
+          <header className="tw:border-0 tw:border-b tw:border-solid tw:border-cali-brand/10 tw:px-5 tw:py-4">
             <small className="tw:block tw:text-sm/[inherit] tw:font-black tw:tracking-[.13em] tw:text-cali-gold">AGENDA</small>
-            <h2 className="tw:mb-1 tw:text-[1.375rem]/[1.15] tw:text-cali-text">
+            <h2 className="tw:mb-1 tw:text-cali-title-sm/[1.15] tw:text-cali-text">
               {actionable.some((request) => request.status === 'client_review') ? 'A Paty enviou novas datas' : 'Orçamento para sua reunião online'}
             </h2>
           </header>
-          <div className="tw:grid tw:border-0 tw:border-t tw:border-solid tw:border-[#5a1e2d1a] tw:workspace-night:border-[#d8b15c2e] tw:px-5 tw:pt-3 tw:pb-5">
+          <div className="tw:grid tw:border-0 tw:border-t tw:border-solid tw:border-cali-brand/10 tw:workspace-night:border-cali-orange-line/18 tw:px-5 tw:pt-3 tw:pb-5">
             {data && actionable.map((request) => {
               const needsAck = request.status === 'client_review' && requiresAcknowledgement(request, data);
               return (

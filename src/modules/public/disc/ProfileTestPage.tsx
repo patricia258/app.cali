@@ -38,22 +38,22 @@ const STEPS: Step[] = [
   { kind: 'review' },
 ];
 
-const screen = `${ui.screen} tw:max-w-[47.5rem]`;
+const screen = `${ui.screen} tw:max-w-190`;
 const centered = `${screen} ${ui.center}`;
-const description = `${ui.description} ${ui.richText} tw:[&_b]:font-bold tw:[&_b]:text-[#2b2024]! tw:[&_em]:italic`;
-const company = 'tw:mt-[1.375rem] tw:text-[0.9375rem] tw:text-[#6b5d63]';
+const description = `${ui.description} ${ui.richText} tw:[&_b]:font-bold tw:[&_b]:text-cali-text! tw:[&_em]:italic`;
+const company = 'tw:mt-5.5 tw:text-cali-body tw:text-cali-muted';
 const row = 'tw:grid tw:grid-cols-[1fr_auto_auto] tw:items-center tw:rounded-xl tw:border tw:border-solid tw:[transition:border-color_.15s,background_.15s] tw:max-[641px]:grid-cols-2';
-const rowTone = { more: 'tw:border-[#4f7a5b] tw:bg-[#eef5ef]', less: 'tw:border-[#b9897a] tw:bg-[#faf0ec]', default: 'tw:border-cali-brand/22 tw:bg-white/75' };
-const choice = 'tw:h-[2.375rem] tw:min-w-[4.5rem] tw:rounded-[0.5625rem] tw:border tw:border-solid tw:font-cali-body tw:text-[0.875rem]! tw:leading-[normal] tw:font-semibold tw:cursor-pointer tw:max-[641px]:min-w-0 tw:max-[641px]:w-full';
-const choiceTone = { more: 'tw:border-[#4f7a5b] tw:bg-[#4f7a5b] tw:text-white', less: 'tw:border-[#9e5b4a] tw:bg-[#9e5b4a] tw:text-white', default: 'tw:border-cali-brand/28 tw:bg-white tw:text-cali-brand' };
-const formLabel = 'tw:mt-[1.375rem] tw:block';
-const fieldCaption = 'tw:block tw:text-[0.8125rem] tw:font-semibold tw:text-[#2b2024]';
-const optionalCaption = 'tw:ml-[0.375rem] tw:font-medium tw:text-[#6b5d63] tw:not-italic';
-const introEmphasis = 'tw:bg-[linear-gradient(transparent_62%,#f3e3e8_62%)] tw:text-cali-brand tw:not-italic';
-const inlineChoice = 'tw:inline-block tw:rounded-md tw:px-2 tw:text-[0.8125rem] tw:text-white!';
-const sampleRow = `${row} tw:gap-[0.3125rem] tw:py-[0.375rem] tw:pr-[0.375rem] tw:pl-[0.625rem]`;
-const sampleText = 'tw:text-[0.8125rem] tw:leading-[1.35] tw:text-[#2b2024] tw:max-[641px]:col-span-full';
-const sampleChoice = 'tw:rounded-[0.4375rem] tw:border tw:border-solid tw:px-2 tw:py-1 tw:text-[0.6875rem] tw:font-semibold tw:not-italic';
+const rowTone = { more: 'tw:border-cali-green-accent tw:bg-cali-success-surface', less: 'tw:border-cali-red-line tw:bg-cali-neutral-soft', default: 'tw:border-cali-brand/22 tw:bg-cali-neutral-surface/75' };
+const choice = 'tw:h-9.5 tw:min-w-18 tw:rounded-lg tw:border tw:border-solid tw:font-cali-body tw:text-sm! tw:leading-[normal] tw:font-semibold tw:cursor-pointer tw:max-[641px]:min-w-0 tw:max-[641px]:w-full';
+const choiceTone = { more: 'tw:border-cali-green-accent tw:bg-cali-green-accent tw:text-cali-neutral-surface', less: 'tw:border-cali-red-text tw:bg-cali-red-text tw:text-cali-neutral-surface', default: 'tw:border-cali-brand/28 tw:bg-cali-neutral-surface tw:text-cali-brand' };
+const formLabel = 'tw:mt-5.5 tw:block';
+const fieldCaption = 'tw:block tw:text-cali-detail tw:font-semibold tw:text-cali-text';
+const optionalCaption = 'tw:ml-1.5 tw:font-medium tw:text-cali-muted tw:not-italic';
+const introEmphasis = 'tw:bg-[linear-gradient(transparent_62%,var(--cali-color-burgundy-surface)_62%)] tw:text-cali-brand tw:not-italic';
+const inlineChoice = 'tw:inline-block tw:rounded-md tw:px-2 tw:text-cali-detail tw:text-cali-neutral-surface!';
+const sampleRow = `${row} tw:gap-1 tw:py-1.5 tw:pr-1.5 tw:pl-2.5`;
+const sampleText = 'tw:text-cali-detail tw:leading-[1.35] tw:text-cali-text tw:max-[641px]:col-span-full';
+const sampleChoice = 'tw:rounded-md tw:border tw:border-solid tw:px-2 tw:py-1 tw:text-cali-label tw:font-semibold tw:not-italic';
 
 export function ProfileTestPage() {
   const route = useProfileTestRoute();
@@ -171,9 +171,9 @@ function ProfileTest({ slug, preview, inviteToken }: { slug: string; preview: bo
     return <div className={`${screen} ${direction === 'next' ? ui.forward : ui.back}`} key={`${step.key}-${step.block}`}>
       <small className={ui.eyebrow}>{step.key === 'natural' ? 'Dia comum de trabalho' : 'Semana difícil'} · bloco {step.index} de {step.of}</small>
       <h2 className={ui.heading}>Qual frase <em className="tw:border-b-2 tw:border-solid tw:border-current tw:text-cali-brand tw:not-italic">mais</em> combina com você, e qual <em className="tw:border-b-2 tw:border-solid tw:border-current tw:text-cali-brand tw:not-italic">menos</em> combina?</h2>
-      <div className="tw:mt-6 tw:flex tw:flex-col tw:gap-[0.625rem]" role="group" aria-label="Frases do bloco">
-        {blockItems(step.block, step.key === 'pressure').map((item) => <div key={item.style} className={`${row} tw:gap-2 tw:py-[0.625rem] tw:pr-[0.625rem] tw:pl-4 tw:max-[641px]:p-3 ${rowTone[answer.mais === item.style ? 'more' : answer.menos === item.style ? 'less' : 'default']}`}>
-          <span className="tw:text-[1.0625rem] tw:leading-[1.35] tw:text-[#2b2024] tw:max-[641px]:col-span-full tw:max-[641px]:text-base">{item.text}</span>
+      <div className="tw:mt-6 tw:flex tw:flex-col tw:gap-2.5" role="group" aria-label="Frases do bloco">
+        {blockItems(step.block, step.key === 'pressure').map((item) => <div key={item.style} className={`${row} tw:gap-2 tw:py-2.5 tw:pr-2.5 tw:pl-4 tw:max-[641px]:p-3 ${rowTone[answer.mais === item.style ? 'more' : answer.menos === item.style ? 'less' : 'default']}`}>
+          <span className="tw:text-base tw:leading-[1.35] tw:text-cali-text tw:max-[641px]:col-span-full tw:max-[641px]:text-base">{item.text}</span>
           <button type="button" aria-pressed={answer.mais === item.style} className={`${choice} ${choiceTone[answer.mais === item.style ? 'more' : 'default']}`} onClick={() => mark('mais', item.style)}>Mais</button>
           <button type="button" aria-pressed={answer.menos === item.style} className={`${choice} ${choiceTone[answer.menos === item.style ? 'less' : 'default']}`} onClick={() => mark('menos', item.style)}>Menos</button>
         </div>)}
@@ -190,29 +190,29 @@ function ProfileTest({ slug, preview, inviteToken }: { slug: string; preview: bo
     <header className={ui.header}><img className={ui.logo} src="/brand/cali-rh-bordo.png" alt="CALI RH" />{preview && <span className={ui.preview}>Prévia · nada é enviado</span>}</header>
     <main className={ui.stage} ref={stageRef}>
       {state === 'loading' && <div className={centered}><span className={ui.spinner} aria-label="Carregando" /></div>}
-      {state === 'missing' && <div className={`${centered} ${ui.enter}`}><small className={ui.eyebrow}>PERFIL COMPORTAMENTAL</small><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>Link não encontrado</h1><p className={`${ui.description} tw:max-w-[38.75rem]`}>Confira o link que você recebeu ou fale com a CALI RH.</p></div>}
-      {state === 'ready' && link?.status === 'closed' && <div className={`${centered} ${ui.enter}`}><small className={ui.eyebrow}>PERFIL COMPORTAMENTAL</small><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>{link.title}</h1><p className={`${ui.description} tw:max-w-[38.75rem]`}>Este link não está mais recebendo respostas.</p></div>}
+      {state === 'missing' && <div className={`${centered} ${ui.enter}`}><small className={ui.eyebrow}>PERFIL COMPORTAMENTAL</small><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>Link não encontrado</h1><p className={`${ui.description} tw:max-w-155`}>Confira o link que você recebeu ou fale com a CALI RH.</p></div>}
+      {state === 'ready' && link?.status === 'closed' && <div className={`${centered} ${ui.enter}`}><small className={ui.eyebrow}>PERFIL COMPORTAMENTAL</small><h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>{link.title}</h1><p className={`${ui.description} tw:max-w-155`}>Este link não está mais recebendo respostas.</p></div>}
       {state === 'ready' && link?.status === 'open' && invite && !inviteOpen && <div className={`${centered} ${ui.enter}`}><small className={ui.eyebrow}>PERFIL COMPORTAMENTAL</small>
         <h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>{invite.state === 'completed' ? 'Você já respondeu' : invite.state === 'expired' ? 'Este convite expirou' : invite.state === 'declined' ? 'Convite encerrado' : 'Convite ainda não liberado'}</h1>
-        <p className={`${ui.description} tw:max-w-[38.75rem]`}>{invite.state === 'completed' ? 'Suas respostas foram registradas e o relatório foi enviado para o seu e-mail.' : invite.state === 'expired' ? `O prazo terminou ${invite.deadline_at ? deadlineLabel(invite.deadline_at) : ''}. Se ainda quiser responder, fale com quem enviou o convite.` : invite.state === 'declined' ? 'Você pediu para não participar. Se mudou de ideia, fale com quem enviou o convite.' : 'Este convite ainda não foi enviado. Aguarde o e-mail.'}</p></div>}
+        <p className={`${ui.description} tw:max-w-155`}>{invite.state === 'completed' ? 'Suas respostas foram registradas e o relatório foi enviado para o seu e-mail.' : invite.state === 'expired' ? `O prazo terminou ${invite.deadline_at ? deadlineLabel(invite.deadline_at) : ''}. Se ainda quiser responder, fale com quem enviou o convite.` : invite.state === 'declined' ? 'Você pediu para não participar. Se mudou de ideia, fale com quem enviou o convite.' : 'Este convite ainda não foi enviado. Aguarde o e-mail.'}</p></div>}
       {state === 'ready' && link?.status === 'open' && inviteOpen && <>
-        {step.kind === 'welcome' && <div className={`${ui.screen} ${ui.enter} tw:max-w-[55rem]`} key="welcome">
+        {step.kind === 'welcome' && <div className={`${ui.screen} ${ui.enter} tw:max-w-220`} key="welcome">
           <small className={ui.eyebrow}>{link.title}{link.company_name ? ` · ${link.company_name}` : ''}</small>
           <h1 className={`${ui.title} tw:text-[clamp(1.75rem,4.2vw,2.625rem)]`}>Boas-vindas ao nosso levantamento de perfil comportamental <span className="tw:text-[.8em]" aria-hidden="true">🤍</span></h1>
           <p className={description}>Queremos <b>conhecer mais sobre você</b>: como você <b>decide</b>, como se <b>comunica</b> e como <b>reage</b> em diferentes situações do trabalho.</p>
-          <ul className="tw:mx-0 tw:mt-[0.375rem] tw:mb-0 tw:flex tw:max-w-[45rem] tw:list-none tw:flex-col tw:gap-2 tw:p-0 tw:[&_b]:text-[#2b2024] tw:[&_li]:flex tw:[&_li]:items-center tw:[&_li]:gap-[0.625rem] tw:[&_li]:text-[0.9375rem] tw:[&_li]:leading-[1.5] tw:[&_li]:text-[#6b5d63] tw:[&_svg]:flex-none tw:[&_svg]:text-cali-brand">
+          <ul className="tw:mx-0 tw:mt-1.5 tw:mb-0 tw:flex tw:max-w-180 tw:list-none tw:flex-col tw:gap-2 tw:p-0 tw:[&_b]:text-cali-text tw:[&_li]:flex tw:[&_li]:items-center tw:[&_li]:gap-2.5 tw:[&_li]:text-cali-body tw:[&_li]:leading-[1.5] tw:[&_li]:text-cali-muted tw:[&_svg]:flex-none tw:[&_svg]:text-cali-brand">
             <li><LayoutList size={16} /><span><b>24 blocos</b> de 4 frases curtas, em média <b>12 a 20 minutos</b></span></li>
             <li><Mail size={16} /><span>Ao final, você recebe o <b>seu relatório por e-mail</b></span></li>
             {invite?.deadline_at && <li><CalendarClock size={16} /><span>Responda até <b>{deadlineLabel(invite.deadline_at)}</b></span></li>}
           </ul>
-          <div className="tw:mt-[1.375rem] tw:flex tw:max-w-[45rem] tw:items-start tw:gap-[0.875rem] tw:max-[641px]:flex-col">
-            <span className="tw:grid tw:size-[3.25rem] tw:flex-none tw:place-items-center tw:rounded-full tw:bg-[#f3e3e8] tw:text-cali-brand tw:max-[641px]:size-11" aria-hidden="true"><Handshake size={26} /></span>
-            <label className="tw:flex tw:max-w-[42.5rem] tw:flex-1 tw:items-start tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-cali-brand/20 tw:bg-white/70 tw:px-4 tw:py-[0.875rem] tw:cursor-pointer"><input className="tw:mt-[0.1875rem] tw:size-[1.125rem] tw:flex-none tw:accent-cali-brand" type="checkbox" checked={consent} onChange={(event) => { setConsent(event.target.checked); setError(''); }} /><span className="tw:text-[0.84375rem]! tw:leading-[1.55] tw:text-[#6b5d63] tw:[&_b]:font-bold tw:[&_b]:text-[#2b2024]! tw:[&_em]:italic"><span><RichText value={CONSENT_TEXT} /></span><b className="tw:mt-2 tw:block tw:text-cali-brand!">Li e concordo em participar.</b></span></label>
+          <div className="tw:mt-5.5 tw:flex tw:max-w-180 tw:items-start tw:gap-3.5 tw:max-[641px]:flex-col">
+            <span className="tw:grid tw:size-13 tw:flex-none tw:place-items-center tw:rounded-full tw:bg-cali-burgundy-surface tw:text-cali-brand tw:max-[641px]:size-11" aria-hidden="true"><Handshake size={26} /></span>
+            <label className="tw:flex tw:max-w-170 tw:flex-1 tw:items-start tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-cali-brand/20 tw:bg-cali-neutral-surface/70 tw:px-4 tw:py-3.5 tw:cursor-pointer"><input className="tw:mt-1 tw:size-4.5 tw:flex-none tw:accent-cali-brand" type="checkbox" checked={consent} onChange={(event) => { setConsent(event.target.checked); setError(''); }} /><span className="tw:text-cali-detail! tw:leading-[1.55] tw:text-cali-muted tw:[&_b]:font-bold tw:[&_b]:text-cali-text! tw:[&_em]:italic"><span><RichText value={CONSENT_TEXT} /></span><b className="tw:mt-2 tw:block tw:text-cali-brand!">Li e concordo em participar.</b></span></label>
           </div>
           {error && <p className={ui.error} role="alert">{error}</p>}
           <div className={ui.actions}><button type="button" className={ui.primary} onClick={next}>Vamos começar? <ArrowRight size={18} /></button></div>
         </div>}
-        {step.kind === 'identify' && <div className={`${ui.screen} ${ui.enter} tw:max-w-[55rem]`} key="identify">
+        {step.kind === 'identify' && <div className={`${ui.screen} ${ui.enter} tw:max-w-220`} key="identify">
           <small className={ui.eyebrow}>ANTES DE COMEÇAR</small>
           <h2 className={ui.heading}>Quem está respondendo?</h2>
           {invite ? <p className={company}>Convite para <b>{invite.person_name}</b> · o relatório chega em <b>{invite.email}</b></p> : <>
@@ -224,15 +224,15 @@ function ProfileTest({ slug, preview, inviteToken }: { slug: string; preview: bo
           {error && <p className={ui.error} role="alert">{error}</p>}
           <div className={ui.actions}><button type="button" className={ui.primary} onClick={next}>Continuar <ArrowRight size={18} /></button></div>
         </div>}
-        {step.kind === 'intro' && <div className={`${ui.screen} ${ui.enter} tw:max-w-[55rem]`} key={`intro-${step.key}`}>
+        {step.kind === 'intro' && <div className={`${ui.screen} ${ui.enter} tw:max-w-220`} key={`intro-${step.key}`}>
           <small className={ui.eyebrow}>{step.key === 'natural' ? 'PARTE 1 DE 2' : 'PARTE 2 DE 2'}</small>
           <h2 className={ui.heading}>{step.key === 'natural' ? <>Pense em um <em className={introEmphasis}>dia comum</em> de trabalho</> : <>Agora, uma <em className={introEmphasis}>semana mais puxada</em></>}</h2>
           <p className={description}><RichText value={step.key === 'natural' ? NATURAL_INSTRUCTION : PRESSURE_INSTRUCTION} /></p>
-          {step.key === 'natural' ? <div className="tw:mt-[1.125rem] tw:grid tw:max-w-[47.5rem] tw:grid-cols-2 tw:items-start tw:gap-[1.125rem] tw:rounded-[0.875rem] tw:border tw:border-solid tw:border-cali-brand/14 tw:bg-white/70 tw:px-[1.125rem] tw:py-4 tw:max-[641px]:grid-cols-1">
-            <strong className="tw:col-span-full tw:text-[0.8125rem] tw:tracking-[.08em] tw:text-cali-gold tw:uppercase">Como responder</strong>
-            <ol className="tw:m-0 tw:pl-5 tw:text-[0.9375rem] tw:leading-[1.75] tw:text-[#6b5d63] tw:[&_b]:text-[#2b2024]"><li>Leia as <b>4 frases</b> do bloco.</li><li>Toque em <b className={`${inlineChoice} tw:bg-[#4f7a5b]`}>Mais</b> na frase que <b>mais combina</b> com você.</li><li>Toque em <b className={`${inlineChoice} tw:bg-[#9e5b4a]`}>Menos</b> na que <b>menos combina</b>.</li><li>As outras duas ficam <b>sem marcação</b>. Não existe resposta certa.</li></ol>
-            <div className="tw:flex tw:flex-col tw:gap-[0.375rem]" aria-hidden="true">
-              <span className="tw:text-[0.6875rem] tw:font-bold tw:tracking-[.1em] tw:text-[#6b5d63] tw:uppercase">Exemplo</span>
+          {step.key === 'natural' ? <div className="tw:mt-4.5 tw:grid tw:max-w-190 tw:grid-cols-2 tw:items-start tw:gap-4.5 tw:rounded-[0.875rem] tw:border tw:border-solid tw:border-cali-brand/14 tw:bg-cali-neutral-surface/70 tw:px-4.5 tw:py-4 tw:max-[641px]:grid-cols-1">
+            <strong className="tw:col-span-full tw:text-cali-detail tw:tracking-[.08em] tw:text-cali-gold tw:uppercase">Como responder</strong>
+            <ol className="tw:m-0 tw:pl-5 tw:text-cali-body tw:leading-[1.75] tw:text-cali-muted tw:[&_b]:text-cali-text"><li>Leia as <b>4 frases</b> do bloco.</li><li>Toque em <b className={`${inlineChoice} tw:bg-cali-green-accent`}>Mais</b> na frase que <b>mais combina</b> com você.</li><li>Toque em <b className={`${inlineChoice} tw:bg-cali-red-text`}>Menos</b> na que <b>menos combina</b>.</li><li>As outras duas ficam <b>sem marcação</b>. Não existe resposta certa.</li></ol>
+            <div className="tw:flex tw:flex-col tw:gap-1.5" aria-hidden="true">
+              <span className="tw:text-cali-label tw:font-bold tw:tracking-[.1em] tw:text-cali-muted tw:uppercase">Exemplo</span>
               <div className={`${sampleRow} ${rowTone.more}`}><span className={sampleText}>Gosto de metas difíceis</span><i className={`${sampleChoice} ${choiceTone.more}`}>Mais</i><i className={`${sampleChoice} ${choiceTone.default}`}>Menos</i></div>
               <div className={`${sampleRow} ${rowTone.default}`}><span className={sampleText}>Trabalho bem em grupo</span><i className={`${sampleChoice} ${choiceTone.default}`}>Mais</i><i className={`${sampleChoice} ${choiceTone.default}`}>Menos</i></div>
               <div className={`${sampleRow} ${rowTone.less}`}><span className={sampleText}>Prefiro rotina previsível</span><i className={`${sampleChoice} ${choiceTone.default}`}>Mais</i><i className={`${sampleChoice} ${choiceTone.less}`}>Menos</i></div>
@@ -243,13 +243,13 @@ function ProfileTest({ slug, preview, inviteToken }: { slug: string; preview: bo
         {blockScreen}
         {step.kind === 'review' && !previewResult && <div className={`${centered} ${ui.enter}`} key="review">
           {allDone ? <>
-            <span className="tw:relative tw:mb-3 tw:grid tw:size-[5.25rem] tw:place-items-center tw:rounded-full tw:bg-cali-brand tw:text-white tw:shadow-[0_0.875rem_2.125rem_rgba(90,30,45,.22)] tw:after:absolute tw:after:inset-[-0.5rem] tw:after:rounded-full tw:after:border-2 tw:after:border-solid tw:after:border-cali-brand/35 tw:after:animate-[profile-review-pulse_1.8s_ease-out_infinite]"><Check size={34} /></span>
+            <span className="tw:relative tw:mb-3 tw:grid tw:size-21 tw:place-items-center tw:rounded-full tw:bg-cali-brand tw:text-cali-neutral-surface tw:shadow-[0_0.875rem_2.125rem_rgb(var(--cali-rgb-burgundy-accent)/0.22)] tw:after:absolute tw:after:-inset-2 tw:after:rounded-full tw:after:border-2 tw:after:border-solid tw:after:border-cali-brand/35 tw:after:animate-[profile-review-pulse_1.8s_ease-out_infinite]"><Check size={34} /></span>
             <h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>Tudo respondido!</h1>
             <p className={description}>Pronto para enviar suas respostas? O seu relatório chega por e-mail, em PDF, logo depois do envio.</p>
           </> : <>
             <h1 className={`${ui.title} tw:text-[clamp(1.875rem,5vw,2.875rem)]`}>Falta pouco</h1>
             <p className={description}>Ainda há bloco sem resposta. Volte e marque <b>Mais</b> e <b>Menos</b> nele.</p>
-            <button type="button" className="tw:mt-2 tw:border-0 tw:bg-transparent tw:font-cali-body tw:text-[0.875rem]! tw:leading-[normal] tw:font-semibold tw:text-cali-brand tw:underline tw:cursor-pointer" onClick={() => jump(STEPS.findIndex((item) => item.kind === 'block' && !complete((item.key === 'natural' ? natural : pressure)[item.block])))}>Ir para o bloco que falta</button>
+            <button type="button" className="tw:mt-2 tw:border-0 tw:bg-transparent tw:font-cali-body tw:text-sm! tw:leading-[normal] tw:font-semibold tw:text-cali-brand tw:underline tw:cursor-pointer" onClick={() => jump(STEPS.findIndex((item) => item.kind === 'block' && !complete((item.key === 'natural' ? natural : pressure)[item.block])))}>Ir para o bloco que falta</button>
           </>}
           {error && <p className={ui.error} role="alert">{error}</p>}
           <div className={`${ui.actions} tw:justify-center`}><button type="button" className={`${ui.primary} tw:disabled:opacity-50! tw:disabled:cursor-not-allowed!`} disabled={!allDone || sending} onClick={() => void submit()}>{sending ? 'Enviando…' : preview ? <>Ver o relatório da prévia <Check size={18} /></> : <>Enviar respostas <Check size={18} /></>}</button></div>
@@ -259,6 +259,6 @@ function ProfileTest({ slug, preview, inviteToken }: { slug: string; preview: bo
     {state === 'ready' && link?.status === 'open' && inviteOpen && stepIndex > 0 && !previewResult && <nav className={ui.nav} aria-label="Navegar"><button type="button" aria-label="Voltar" className={ui.navButton} onClick={() => go(-1)}><ArrowLeft size={18} /></button></nav>}
     <footer className={`${ui.footer} tw:max-[641px]:hidden`}><a className={ui.footerLink} href="https://calirh.com" target="_blank" rel="noopener noreferrer">CALI RH</a><span>·</span><a className={ui.footerLink} href="/privacidade" target="_blank" rel="noopener noreferrer">Privacidade</a></footer>
   </div>
-    {previewResult && <div className="tw:fixed tw:inset-0 tw:z-20 tw:overflow-auto tw:bg-cali-day-canvas"><div className="tw:sticky tw:top-0 tw:z-2 tw:flex tw:items-center tw:justify-between tw:gap-3 tw:border-b tw:border-solid tw:border-[#f2dfb8] tw:bg-[#fff5e0] tw:px-5 tw:py-3 tw:font-cali-body tw:text-[0.8125rem] tw:leading-[normal] tw:font-semibold tw:text-[#7a5418]"><span>Prévia do relatório da pessoa · nada foi salvo nem enviado</span><button type="button" className="tw:rounded-lg tw:border-0 tw:bg-cali-brand tw:px-3 tw:py-2 tw:font-cali-body tw:text-[0.875rem]! tw:leading-[normal] tw:font-semibold tw:text-white tw:cursor-pointer" onClick={() => setPreviewResult(null)}>Fechar prévia</button></div><div className="tw:flex tw:justify-center tw:px-3 tw:py-6" style={{ zoom: Math.min(1, (window.innerWidth - 24) / 794) }}><RespondentReport result={previewResult} /></div></div>}
+    {previewResult && <div className="tw:fixed tw:inset-0 tw:z-20 tw:overflow-auto tw:bg-cali-day-canvas"><div className="tw:sticky tw:top-0 tw:z-2 tw:flex tw:items-center tw:justify-between tw:gap-3 tw:border-b tw:border-solid tw:border-cali-warning-line tw:bg-cali-warning-surface tw:px-5 tw:py-3 tw:font-cali-body tw:text-cali-detail tw:leading-[normal] tw:font-semibold tw:text-cali-gold-text"><span>Prévia do relatório da pessoa · nada foi salvo nem enviado</span><button type="button" className="tw:rounded-lg tw:border-0 tw:bg-cali-brand tw:px-3 tw:py-2 tw:font-cali-body tw:text-sm! tw:leading-[normal] tw:font-semibold tw:text-cali-neutral-surface tw:cursor-pointer" onClick={() => setPreviewResult(null)}>Fechar prévia</button></div><div className="tw:flex tw:justify-center tw:px-3 tw:py-6" style={{ zoom: Math.min(1, (window.innerWidth - 24) / 794) }}><RespondentReport result={previewResult} /></div></div>}
   </>;
 }

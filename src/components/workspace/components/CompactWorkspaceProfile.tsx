@@ -38,25 +38,25 @@ export function CompactWorkspaceProfile({ role, partnerHasOccurrences, resetKey,
     action();
   }
 
-  const menuItem = 'tw:flex tw:items-center tw:justify-between tw:border-0 tw:border-t tw:border-solid tw:border-[#efeae7] tw:bg-transparent tw:px-[0.308rem] tw:py-[0.923rem] tw:font-semibold tw:text-cali-brand';
-  const metaItem = 'tw:flex tw:justify-between tw:gap-[0.615rem] tw:text-[0.769rem]/[inherit] tw:text-[#a09389]';
-  const metaValue = 'tw:text-right tw:text-[#574a45]';
-  const avatarStyle = 'tw:grid tw:shrink-0 tw:place-items-center tw:overflow-hidden tw:rounded-[0.538rem] tw:bg-[#eadbd5] tw:font-bold tw:text-cali-brand';
+  const menuItem = 'tw:flex tw:items-center tw:justify-between tw:border-0 tw:border-t tw:border-solid tw:border-cali-neutral-soft tw:bg-transparent tw:px-1 tw:py-3.5 tw:font-semibold tw:text-cali-brand';
+  const metaItem = 'tw:flex tw:justify-between tw:gap-2.5 tw:text-xs/[inherit] tw:text-cali-sand-text';
+  const metaValue = 'tw:text-right tw:text-cali-neutral-text';
+  const avatarStyle = 'tw:grid tw:shrink-0 tw:place-items-center tw:overflow-hidden tw:rounded-lg tw:bg-cali-sand-line tw:font-bold tw:text-cali-brand';
   const roleLabel = role === 'admin' ? 'Administradora' : role === 'partner' ? 'Partner · Equipe CALI' : 'Cliente';
 
   return <div className="tw:relative" ref={root}>
     <DirectProfileControl role={role} partnerHasOccurrences={partnerHasOccurrences} trigger={({ profile, avatar, companyName, openEditor }) => <>
-      <button type="button" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen(!open)} className="profile tw:flex tw:items-center tw:gap-[0.615rem] tw:border-0 tw:bg-transparent tw:text-[0.846rem]/[inherit] tw:text-[#554b47]">
-        <span className={`avatar small ${avatarStyle} tw:rounded-[0.538rem] tw:[&>*]:rounded-[0.538rem] tw:[&_:is(img,video)]:block tw:[&_:is(img,video)]:size-full tw:[&_:is(img,video)]:object-cover tw:size-[2.077rem] tw:text-[0.692rem]/[inherit]`}>{avatar}</span>
+      <button type="button" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen(!open)} className="profile tw:flex tw:items-center tw:gap-2.5 tw:border-0 tw:bg-transparent tw:text-sm/[inherit] tw:text-cali-neutral-text">
+        <span className={`avatar small ${avatarStyle} tw:rounded-lg tw:[&>*]:rounded-lg tw:[&_:is(img,video)]:block tw:[&_:is(img,video)]:size-full tw:[&_:is(img,video)]:object-cover tw:size-8.5 tw:text-cali-label/[inherit]`}>{avatar}</span>
         <span className="tw:[@media(max-width:53.125rem)]:hidden">{profile.full_name}</span>
         <ChevronDown size={13} className="tw:[@media(max-width:53.125rem)]:hidden" />
       </button>
-      {open && <div className="profile-dropdown v2-profile tw:absolute tw:top-[calc(100%+1.077rem)] tw:right-0 tw:z-45 tw:flex tw:min-w-[20.231rem] tw:flex-col tw:rounded-[0.692rem] tw:border tw:border-solid tw:border-[#e9ded6] tw:bg-white tw:p-4 tw:shadow-[0_12px_30px_#34202121]" role="menu">
-        <div className="tw:flex tw:items-center tw:gap-[0.846rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#efe6e1] tw:px-[0.308rem] tw:pt-[0.385rem] tw:pb-[1.077rem]">
-          <span className={`avatar small ${avatarStyle} tw:rounded-[0.538rem] tw:[&>*]:rounded-[0.538rem] tw:[&_:is(img,video)]:block tw:[&_:is(img,video)]:size-full tw:[&_:is(img,video)]:object-cover tw:size-[2.923rem] tw:text-[0.769rem]/[inherit]`}>{avatar}</span>
-          <span className="tw:flex tw:flex-col tw:gap-[0.385rem] tw:text-[#867c75]"><strong className="tw:text-[0.923rem]/[inherit]">{profile.full_name}</strong><small className="tw:text-[0.769rem]/[inherit] tw:text-[#93867d]">{profile.job_title || (role === 'admin' ? 'Administradora geral' : role === 'client' ? 'Perfil cliente' : roleLabel)}</small></span>
+      {open && <div className="profile-dropdown v2-profile tw:absolute tw:top-[calc(100%+1.077rem)] tw:right-0 tw:z-45 tw:flex tw:min-w-[20.231rem] tw:flex-col tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:p-4 tw:shadow-[0_12px_30px_rgb(var(--cali-rgb-red-inverse)/0.1294)]" role="menu">
+        <div className="tw:flex tw:items-center tw:gap-3.5 tw:border-0 tw:border-b tw:border-solid tw:border-cali-neutral-soft tw:px-1 tw:pt-1.5 tw:pb-4.5">
+          <span className={`avatar small ${avatarStyle} tw:rounded-lg tw:[&>*]:rounded-lg tw:[&_:is(img,video)]:block tw:[&_:is(img,video)]:size-full tw:[&_:is(img,video)]:object-cover tw:size-11.5 tw:text-xs/[inherit]`}>{avatar}</span>
+          <span className="tw:flex tw:flex-col tw:gap-1.5 tw:text-cali-sand-text"><strong className="tw:text-cali-body/[inherit]">{profile.full_name}</strong><small className="tw:text-xs/[inherit] tw:text-cali-sand-text">{profile.job_title || (role === 'admin' ? 'Administradora geral' : role === 'client' ? 'Perfil cliente' : roleLabel)}</small></span>
         </div>
-        <div className="tw:flex tw:flex-col tw:gap-[0.846rem] tw:px-[0.308rem] tw:py-4">
+        <div className="tw:flex tw:flex-col tw:gap-3.5 tw:px-1 tw:py-4">
           {companyName && <span className={metaItem}>Empresa <b className={metaValue}>{companyName}</b></span>}
           <span className={metaItem}>Acesso <b className={metaValue}>{roleLabel}</b></span>
         </div>
