@@ -45,6 +45,8 @@ O ESLint usa configuração plana com as regras recomendadas de JavaScript, Type
 
 O relatório de cobertura Node tem como denominador os arquivos instrumentados. A matriz de navegação e os testes de navegador têm resultados próprios. Componentes internos podem ser exercitados pela página que os monta. Cada contrato SQL identifica as operações de banco e os perfis exercitados. Consulte as fichas de fluxo e o inventário das Edges para os cenários que exigem homologação com provedores externos.
 
+O contrato autocontido [admin-identity.sql](../tests/contracts/admin-identity.sql) integra `run-sql.sh` após os contratos que usam `fixture-actors.sql`. Executa com transação e rollback em PostgreSQL local isolado, usando as guardas reais de sessão e MFA. Verifica troca de e-mail com UUID e TOTP preservados, corte da sessão anterior, novo login elegível e negativas de papel, identidade e segundo fator. Não depende de identidades ou endereços reais de produção.
+
 A [comparação visual](VISUAL_QA.md) documenta os dois workflows locais, a referência e as jornadas adicionais de componentes de fluxo.
 
 ## Ambiente
