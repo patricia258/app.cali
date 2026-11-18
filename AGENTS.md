@@ -28,6 +28,13 @@
 - Dados de demonstração pertencem às fixtures de teste. Carregamento, base vazia e falha de leitura usam os estados correspondentes.
 - Ao revisar interfaces, confira identidades e valores de negócio fixados como substitutos de dados. Registre e comunique as ocorrências encontradas.
 
+## Compatibilidade e corte
+
+- Antes do merge de produção, restaure o catálogo de referência isolado, carregue fixtures representativas da versão anterior **antes** das migrations e compare IDs, campos, vínculos, históricos, anexos, acessos e operações em andamento depois do upgrade. Testes semeados apenas após o upgrade não comprovam migração dos dados antigos.
+- Verifique separadamente a preservação dos dados, os contratos dos consumidores antigos durante a implantação e a configuração operacional do destino. Assinatura de RPC preservada não prova compatibilidade de resposta, autorização, estado ou efeito externo.
+- Migrations de reconciliação são aditivas e reexecutáveis. Copie somente vínculos comprováveis, preserve a origem e reporte conflitos. Não reative convites, atribua usuários ou invente autores e datas para tornar o ensaio verde.
+- Mudanças de login, termos, Storage e payloads exigem sequência de transição documentada e ensaiada. A revisão antiga só pode ser caminho de retorno se funcionar contra o backend já migrado. Registre os bloqueadores e os limites de cada prova em [Compatibilidade](docs/COMPATIBILITY.md).
+
 ## Comunicação
 
 Use a skill `caveman` em modo `full` para respostas. Preserve a precisão técnica e a clareza em decisões de escopo. Mantenha o modo até o usuário pedir `normal mode` ou `stop caveman`.

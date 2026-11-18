@@ -36,7 +36,7 @@ A aba Conversas mantém rascunhos separados para o canal Cliente e para notas in
 
 **Aceite.** Abrir detalhe, ajustar, aprovar, avaliar e reabrir. Testar nota baixa sem justificativa, ajuste em estado inelegível via RPC e acesso a bytes retirados por URL direta. Reliberar e confirmar que a aprovação anterior não aprova a revisão nova. Conferir subtarefas e retorno ao objeto de origem.
 
-**Evidência e lacunas.** Provas locais cobriram correção, retirada de visibilidade, nova aprovação e ajuste com estado obsoleto. Playwright verificou ajuste por clique, toque e teclado. Conferir negativas para bytes e URLs assinadas no catálogo hospedado. [Jornadas](../../tests/e2e/journeys.cjs)
+**Evidência e lacunas.** Provas locais cobriram correção, retirada de visibilidade, nova aprovação e ajuste com estado obsoleto. Playwright verificou ajuste por clique, toque e teclado. O backfill de avaliações do piloto copia apenas autor Cliente, empresa e revisão comprováveis, preserva a origem e os IDs de acompanhamento e não gera novos avisos. Conflitos e autores sem vínculo ficam pendentes de reconciliação. Conferir negativas para bytes e URLs assinadas no catálogo hospedado. [Jornadas](../../tests/e2e/journeys.cjs) · [Contrato do feedback legado](../../tests/contracts/legacy-feedback-upgrade.sql)
 
 ## FLOW-11
 

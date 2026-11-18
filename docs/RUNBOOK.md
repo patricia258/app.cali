@@ -18,7 +18,7 @@ Configure a URL e a chave pública do Supabase de teste conforme [o exemplo de a
 
 1. Obtenha a estrutura do destino em leitura. Inclua schemas e dependências, grants, políticas, funções e triggers. Inventarie separadamente Edge Functions, Storage, Realtime, jobs e configurações de Auth.
 2. Restaure o dump de estrutura do CALI MAPA no destino isolado, aplique as migrations da branch e reconcilie o catálogo. O dump é a base do replay aceito. [Evidência do catálogo](DATA_CONTRACTS.md#autoridade-e-níveis-de-evidência)
-3. Carregue dados sintéticos representativos do legado. Inclua empresa, acessos, IDs, estados, anexos, links emitidos e alterações equivalentes às da versão publicada.
+3. No ensaio de upgrade, carregue dados sintéticos representativos do legado antes das migrations da candidata. Inclua empresa, acessos, IDs, estados, anexos, links emitidos e operações em andamento. Fotografe os vínculos e compare depois da instalação. Mantenha separado o laboratório de funcionalidades que recebe fixtures após as migrations.
 4. Verifique os alvos dos efeitos antes da execução. Registre revisão do app, schema e função Edge usados nas provas. Valide restauração e retorno à versão anterior quando houver alteração de dados.
 
 ## Ambiente local desta consolidação
@@ -46,4 +46,4 @@ Os hooks `edge_url_workspace_notification_email_hook`, `edge_url_workspace_admin
 
 Em homologação, `partner_timer_admin_email` identifica a conta Admin de teste que recebe o alerta do cronômetro. A configuração padrão é a Patrícia. O resumo diário usa `0 22 * * *` no catálogo em UTC, correspondente a 19h de Brasília.
 
-Em um corte futuro de produção, reconcilie as gravações da última janela, verifique vínculos e contagens e confirme o caminho de retorno. Preserve os contratos utilizados pela revisão anterior durante a transição. [Migração e compatibilidade](DATA_CONTRACTS.md#migração-e-compatibilidade)
+Em um corte futuro de produção, siga primeiro a [matriz de compatibilidade](COMPATIBILITY.md). A `main` de referência não pode continuar operando sem adaptação contra todas as guardas e Edges novas. A transição precisa cobrir sessão, aceite, downloads autenticados e payloads de envio, além de exigir recarga das abas antigas. Drene os códigos emitidos pela Edge anterior e reconcilie as gravações da última janela. O retorno usa frontend compatível com o backend migrado; republicar a `main` original não é rollback suficiente. [Migração e compatibilidade](DATA_CONTRACTS.md#migração-e-compatibilidade)

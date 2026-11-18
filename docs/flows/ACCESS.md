@@ -16,7 +16,7 @@ O código vale por dez minutos e pode ser usado uma vez. Se a Edge aceitar o có
 
 **Aceite.** Testar emissão concorrente, código errado ou expirado, consumo único, callback e retorno seguro. Validar falha e retry de MFA/termos, login de cada papel, troca de sessão, refresh e logout. Tentar o mesmo JWT antes e depois de revogar e reativar. Cliente A e B devem permanecer isolados em UI e nas superfícies diretas.
 
-**Evidência e lacunas.** O laboratório executou Auth, emissão para o Mailpit, MFA, aceite, isolamento entre empresas e negativas de sessão revogada. O catálogo hospedado e a emissão para contas externas de teste dependem da configuração do destino. URLs assinadas emitidas antes de um corte continuam sujeitas à expiração. [QA local e Preview](../DATA_CONTRACTS.md#qa-local-e-preview)
+**Evidência e lacunas.** O laboratório executou Auth, emissão para o Mailpit, MFA, aceite, isolamento entre empresas e negativas de sessão revogada. O adaptador novo aceita `token_hash` ou `session`; o JavaScript da `main` de referência aceita apenas `token_hash` e não funciona com a Edge nova sem transição. O upgrade também detecta convite ativo sem acesso à plataforma e Partner sem vínculo Auth. Esses acessos exigem preflight e reconciliação explícita, sem reativação automática. O catálogo hospedado e a emissão para contas externas de teste dependem da configuração do destino. URLs assinadas emitidas antes de um corte continuam sujeitas à expiração. [QA local e Preview](../DATA_CONTRACTS.md#qa-local-e-preview) · [Compatibilidade e corte](../COMPATIBILITY.md)
 
 ## FLOW-02
 

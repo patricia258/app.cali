@@ -10,6 +10,8 @@ A `main` publicada continua no ambiente de produção atual. Nesta entrega, a co
 
 A validação usa registros representativos do legado com dados sanitizados. Inclui valores nulos, estados antigos, IDs, vínculos, anexos, históricos e links emitidos. Em uma troca futura, o backfill precisa incluir as gravações feitas pela `main` até o corte e aceitar reexecução. Preservar os contratos antigos enquanto houver consumidores ativos e conferir o retorno à revisão anterior com os dados já processados.
 
+A [revisão de compatibilidade](COMPATIBILITY.md) registra os contratos que impedem instalar toda a branch mantendo o JavaScript anterior em uso. O aceite de produção exige fixtures anteriores às migrations, preflight do destino, reconciliação de acessos e prova da transição de frontend, Edge e políticas. Conservar os dados não torna automaticamente os consumidores antigos compatíveis. O corte fica pendente enquanto houver bloqueadores nessa matriz.
+
 A rodada de execução avança pelos critérios abaixo até o aceite local e o Preview previsto. Cada checkpoint registra o resultado e alimenta o lote seguinte. A execução continua após verificações e correções recuperáveis. Um bloqueio que depende de informação, acesso ou decisão externa exige comunicar o que falta e concluir o trabalho independente. O [ambiente de partida](RUNBOOK.md#ambiente-local-desta-consolidação) usa o schema restaurado e dados sintéticos.
 
 ## Critérios de encerramento
