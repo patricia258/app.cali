@@ -4,6 +4,10 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 base="${1:?Informe a revisão de referência do dump.}"
 upgrade="${2:-}"
+if [[ $# -gt 2 ]]; then
+  printf 'Informe somente a revisão e, opcionalmente, --upgrade-fixtures.\n' >&2
+  exit 2
+fi
 if [[ -n "$upgrade" && "$upgrade" != --upgrade-fixtures ]]; then
   printf 'Opção desconhecida: %s\n' "$upgrade" >&2
   exit 2
@@ -20,7 +24,8 @@ git rev-parse --verify "$base^{commit}" >/dev/null
 git merge-base --is-ancestor "$base" HEAD
 
 migration_list=$(mktemp "${TMPDIR:-/tmp}/cali-replay-migrations.XXXXXX")
-trap 'rm -f "$migration_list"' EXIT
+gate_log=$(mktemp "${TMPDIR:-/tmp}/cali-replay-gate.XXXXXX")
+trap 'rm -f "$migration_list" "$gate_log"' EXIT
 python3 - "$base" > "$migration_list" <<'PY'
 import re
 import subprocess
@@ -43,7 +48,7 @@ container=$(docker run --detach --pull=never --network none --user postgres --en
     -c shared_preload_libraries=pg_cron,pg_net,pg_stat_statements -c wal_level=logical \
     -c output_plugin_libraries=wal2json,pgoutput -c cron.database_name=postgres -c cron.launch_active_jobs=off
 ')
-trap 'docker rm --force --volumes "$container" >/dev/null; rm -f "$migration_list"' EXIT
+trap 'docker rm --force --volumes "$container" >/dev/null; rm -f "$migration_list" "$gate_log"' EXIT
 test "$(docker inspect "$container" --format '{{.HostConfig.NetworkMode}} {{json .HostConfig.PortBindings}}')" = 'none {}'
 
 db=(docker exec -i "$container")
@@ -69,6 +74,42 @@ test "$count" -gt 0
 if [[ "$upgrade" == --upgrade-fixtures ]]; then
   "${db[@]}" "${psql[@]}" < tests/contracts/upgrade-preflight.sql
   "${db[@]}" "${psql[@]}" < tests/contracts/upgrade-after.sql
+
+  # Provar o próprio gate: negar um acesso elegível ou liberar o controle
+  # negativo precisa tornar o replay vermelho. A substituição vive apenas na
+  # transação desta conexão, dentro do container sem rede, e é revertida ao sair.
+  for probe in eligible-denied ineligible-admitted; do
+    if [[ "$probe" == eligible-denied ]]; then
+      profile_number=1
+      forced_access=false
+    else
+      profile_number=4
+      forced_access=true
+    fi
+    if {
+      cat <<SQL
+begin;
+alter function cali_workspace.workspace_login_eligible_v2(uuid) rename to workspace_login_eligible_probe_original;
+create function cali_workspace.workspace_login_eligible_v2(p_user_id uuid)
+returns boolean language sql stable security definer set search_path = '' as \$probe\$
+  select case when p_user_id = 'a17e0000-0000-4000-8000-00000000000${profile_number}'::uuid
+    then ${forced_access} else cali_workspace.workspace_login_eligible_probe_original(p_user_id) end
+\$probe\$;
+SQL
+      cat tests/contracts/upgrade-after.sql
+    } | "${db[@]}" "${psql[@]}" > "$gate_log" 2>&1; then
+      printf 'FAIL gate aceitou alteração de acesso %s\n' "$probe" >&2
+      cat "$gate_log" >&2
+      exit 1
+    fi
+    if ! rg -q "login:upgrade-${profile_number}@example[.]test[[:space:]]+[|][[:space:]]+f" "$gate_log" \
+      || ! rg -q 'FAIL upgrade:' "$gate_log"; then
+      printf 'FAIL gate %s não chegou à asserção esperada\n' "$probe" >&2
+      cat "$gate_log" >&2
+      exit 1
+    fi
+    printf 'PASS gate recusa regressão %s e reverte a alteração\n' "$probe"
+  done
 fi
 printf 'PASS dump e %s migrations com Postgres sem rede e cron desativado\n' "$count"
 "${db[@]}" "${psql[@]}" -Atc "select count(*) from pg_class where relnamespace='cali_workspace'::regnamespace and relkind in ('r','p')"

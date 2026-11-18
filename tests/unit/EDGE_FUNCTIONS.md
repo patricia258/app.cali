@@ -23,3 +23,5 @@
 | `workspace-sync-scheduled-event` | Consulta o evento com a sessão do Cliente antes do acesso privilegiado, recusa convidado externo, cria Meet sem notificar convidados e reutiliza o ID remoto no retry com provedor interceptado. | RLS efetiva e corrida de cancelamento e sincronização com agenda real. |
 
 O [README dos contratos](../contracts/README.md) descreve a execução com Auth, PostgREST, Storage, Realtime e Mailpit locais.
+
+Nesta rodada, o SDK do lockfile do app era `2.116.0`, enquanto as fontes Deno fixavam `2.112.3`. Os unitários continuam exercitando o primeiro; os bundles do laboratório HTTP agora usam o segundo, instalado em diretório isolado e verificado por `tests/contracts/build-edges.mjs`. Não apresentar o resultado de uma versão como prova de execução da outra. O recibo de build e o ensaio HTTP após reiniciar o worker devem acompanhar a revisão validada.

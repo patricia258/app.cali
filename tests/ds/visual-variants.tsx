@@ -97,7 +97,7 @@ export function VisualVariants() {
         <tbody><tr><td>Planejamento</td><td><StatusBadge variant="delivery" as="b">Em revisão</StatusBadge></td></tr></tbody>
       </DataTable>
       <SensitiveDataNote />
-      <DocumentAutoCover logo={logo} name="Empresa QA" />
+      <div className="fixture-document-cover"><DocumentAutoCover logo={logo} name="Empresa QA" /></div>
     </section>
     <section aria-label="Capacidade mensal" className="fixture-visual-card">
       <h2>Capacidade mensal</h2>

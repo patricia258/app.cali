@@ -569,6 +569,7 @@ async function main() {
     console.log(JSON.stringify({ total: tasks.length, tasks }, null, 2));
     return;
   }
+  checkBrowserResources();
   assert(!values.resume || values.output, '--resume exige --output');
   const output = values.output ? resolve(values.output) : await fs.mkdtemp(join(tmpdir(), 'cali-visual-pages-'));
   await fs.mkdir(output, { recursive: true });

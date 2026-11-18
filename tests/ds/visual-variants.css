@@ -24,6 +24,8 @@
 .fixture-close-controls { position: relative; display: flex; gap: 8px; align-items: center; }
 .fixture-close-controls .modal-close { position: static; }
 .fixture-dark-capacity { padding: 16px; border-radius: 10px; background: #431520; color: #fff; }
+.fixture-dark-capacity h3 { color: inherit; }
+.fixture-document-cover { position: relative; width: 160px; height: 112px; margin-top: 16px; }
 .fixture-visual .v2-doc-autocover { display: inline-grid; place-items: center; min-width: 88px; min-height: 60px; }
 .fixture-dialog-overlay { position: fixed; inset: 0; display: grid; place-items: center; z-index: 10; background: #2b18186b; padding: 16px; }
 .fixture-dialog-overlay .wf-modal { width: min(100%, 520px); }

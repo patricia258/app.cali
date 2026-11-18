@@ -64,6 +64,7 @@ function main() {
     existsSync(values.chrome),
     'Chrome ausente. Instale Chromium com npx playwright-core install chromium ou indique CALI_E2E_CHROME.',
   );
+  checkBrowserResources();
 
   if (!values.dist) {
     const npm = process.env.npm_execpath ? [process.execPath, process.env.npm_execpath] : ['npm'];

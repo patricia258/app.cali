@@ -20,9 +20,17 @@ begin
 end $$;
 
 insert into upgrade_results
-select 'login:' || p.email,cali_workspace.workspace_login_eligible_v2(p.id),
-  'Perfil ativo que o resolvedor da Edge legada admitia'
-from cali_workspace.profiles p where p.id::text like 'a17e0000-%';
+select 'login:' || p.email,cali_workspace.workspace_login_eligible_v2(p.id) = e.allowed,e.reason
+from cali_upgrade_probe.expected_access e join cali_workspace.profiles p on p.id=e.profile_id;
+
+-- Uma configuração como estas em produção continua sendo bloqueador de corte.
+-- Aqui os estados são controles negativos explícitos, não contas a reativar.
+insert into upgrade_results values('login:disabled-invite-not-reactivated',exists(
+  select 1 from cali_workspace.client_invites where id='a17e0000-0000-4000-8000-000000000204'
+    and active and not platform_access),'Upgrade não habilita plataforma por inferência');
+insert into upgrade_results values('login:partner-auth-link-not-invented',exists(
+  select 1 from cali_workspace.staff_members where id='a17e0000-0000-4000-8000-000000000306'
+    and active and user_id is null),'Upgrade não atribui identidade Auth pelo e-mail');
 
 insert into upgrade_results
 select 'record:closure-backfill',count(*)=1,'Encerramento legado mantém uma avaliação ligada ao evento'
@@ -78,6 +86,20 @@ select 'partner:external-assignment-absent',count(*)=0,'Partner sem vínculo com
 from cali_workspace.staff_company_assignments
 where staff_id='a17e0000-0000-4000-8000-000000000306' and company_id='a17e0000-0000-4000-8000-000000000102';
 
+do $$
+declare
+  expected cali_upgrade_probe.expected_access;
+  session_id uuid;
+begin
+  for expected in select * from cali_upgrade_probe.expected_access order by profile_id loop
+    select id into strict session_id from auth.sessions where user_id=expected.profile_id;
+    perform set_config('request.jwt.claims',jsonb_build_object('sub',expected.profile_id,
+      'session_id',session_id,'role','authenticated','aal','aal1')::text,true);
+    insert into upgrade_results values('session:legacy:' || expected.profile_id,
+      cali_workspace.workspace_session_live_v2() = expected.allowed,expected.reason);
+  end loop;
+end $$;
+
 -- Sessão antiga de Cliente A mantém acesso de inicialização, antes de aceitar os novos termos.
 select set_config('request.jwt.claims',jsonb_build_object('sub','a17e0000-0000-4000-8000-000000000001',
   'session_id','a17e0000-0000-4000-8000-000000000401','role','authenticated','aal','aal1')::text,true);
@@ -85,6 +107,64 @@ insert into upgrade_results values('session:ordinary-client-retained',cali_works
   'JWT/sessão anterior ao upgrade continua vigente para Cliente elegível');
 insert into upgrade_results values('session:terms-required',not cali_workspace.workspace_private_access_v2(),
   'Nova publicação exige novo aceite, preservando acesso de inicialização');
+
+select set_config('request.jwt.claims',jsonb_build_object('sub','a17e0000-0000-4000-8000-000000000004',
+  'session_id','a17e0000-0000-4000-8000-000000000404','role','authenticated','aal','aal1')::text,true);
+insert into upgrade_results values('session:disabled-client-rejected',
+  not cali_workspace.workspace_session_live_v2() and not cali_workspace.workspace_private_access_v2(),
+  'Sessão antiga não contorna convite sem acesso à plataforma');
+select set_config('request.jwt.claims',jsonb_build_object('sub','a17e0000-0000-4000-8000-000000000006',
+  'session_id','a17e0000-0000-4000-8000-000000000406','role','authenticated','aal','aal1')::text,true);
+insert into upgrade_results values('session:unlinked-partner-rejected',
+  not cali_workspace.workspace_session_live_v2() and not cali_workspace.workspace_private_access_v2(),
+  'Sessão antiga não contorna ausência de vínculo Auth do Partner');
+
+-- O escritor atualizado conserva a chamada antiga de Forms e seus anexos. A
+-- autoridade calcula o ramo alcançado; __visited vindo do navegador não libera
+-- resposta de outro ramo nem anexo pertencente à empresa vizinha.
+do $$
+declare
+  payload jsonb;
+  before_count bigint;
+begin
+  select count(*) into before_count from cali_workspace.form_responses
+    where form_id='a17e0000-0000-4000-8000-000000001101';
+  set local role anon;
+  perform set_config('request.jwt.claims','{"role":"anon"}',true);
+  payload := public.cali_form_submit('upgrade-form-a',
+    '{"choice":"Com arquivo","attachment":"a17e0000-0000-4000-8000-000000001101/legacy.pdf","__visited":["choice","attachment"]}');
+  reset role;
+  insert into upgrade_results values('forms:two-argument-attachment',
+    payload @> '{"ok":true,"thank_you":"Resposta legada recebida","confirmation":false}'::jsonb
+      and (select count(*)=before_count+1 from cali_workspace.form_responses
+        where form_id='a17e0000-0000-4000-8000-000000001101'),
+    'Payload legado mantém resposta, confirmação e arquivo anterior ao upgrade');
+  set local role anon;
+  payload := public.cali_form_submit('upgrade-form-a','{"choice":"Sem arquivo","__visited":["choice"]}');
+  reset role;
+  insert into upgrade_results values('forms:two-argument-conditional-skip',payload->>'ok'='true',
+    'Ramo legado que pula arquivo obrigatório continua válido');
+  set local role anon;
+  begin
+    perform public.cali_form_submit('upgrade-form-a',
+      '{"choice":"Com arquivo","attachment":"a17e0000-0000-4000-8000-000000001102/legacy.pdf"}');
+    raise exception 'Chamada legada aceitou anexo do formulário vizinho.';
+  exception when invalid_parameter_value then null;
+  end;
+  begin
+    perform public.cali_form_submit('upgrade-form-a',
+      '{"choice":"Sem arquivo","attachment":"a17e0000-0000-4000-8000-000000001101/legacy.pdf","__visited":["choice","attachment"]}');
+    raise exception 'Chamada legada aceitou resposta de ramo não alcançado.';
+  exception when invalid_parameter_value then null;
+  end;
+  reset role;
+  insert into upgrade_results values('forms:two-argument-isolation',
+    (select count(*)=before_count+2 from cali_workspace.form_responses
+      where form_id='a17e0000-0000-4000-8000-000000001101')
+    and not exists(select 1 from cali_workspace.form_submission_receipts
+      where form_id='a17e0000-0000-4000-8000-000000001101'),
+    'Chamadas recusadas não persistem; ausência de request_id legado não cria recibo fictício');
+end $$;
 
 select check_name,passed,detail from upgrade_results order by passed,check_name;
 do $$

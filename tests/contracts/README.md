@@ -8,9 +8,22 @@ npm run test:contracts
 
 Execute em sequência com o stack de QA isolado. O teste HTTP usa as variáveis locais `CALI_QA_PUBLISHABLE_KEY`, `CALI_QA_SERVICE_ROLE_KEY` e `CALI_QA_TEST_PASSWORD`. O cenário do timer usa a configuração local `partner_timer_admin_email` com o Admin sintético.
 
+### Compilação das Edges do laboratório
+
+O SDK do app vem do lockfile e pode diferir do pin Deno das fontes das Edges. Os bundles HTTP devem usar `@supabase/supabase-js@2.112.3` em dependência isolada; resolver esse import pelo `node_modules` do app produziria outra evidência. Prepare as dependências sem executar scripts de instalação e compile:
+
+```sh
+npm install --prefix .cali-db-schema.local/qa/edge-sdk @supabase/supabase-js@2.112.3 pdf-lib@1.17.1 --save-exact --ignore-scripts --cache /private/tmp/cali-edge-npm-cache --no-audit --no-fund
+node tests/contracts/build-edges.mjs all
+```
+
+O [builder versionado](build-edges.mjs) aceita `all`, `access`, `material`, `google` ou `public`. Confere os pins nas fontes e nos pacotes instalados e recusa resolução de qualquer pacote Supabase fora de `edge-sdk`. Substitui somente os caminhos de envio conhecidos por Mailpit com destinatários `@example.test`, mantendo a rede interna e o fake Google como fronteiras de integração. Mudança na quantidade desses caminhos interrompe o build para revisão; nenhum worker é reiniciado ou publicado pelo comando.
+
+Os bundles, a dependência e seu lockfile ficam ignorados em `.cali-db-schema.local/qa`. O recibo `edge-build-<grupo>.json` registra o hash do lockfile isolado, das fontes e de cada bundle. Depois de recompilar, reinicie somente os workers locais conhecidos antes do ensaio HTTP. Sucesso no builder comprova a origem dos artefatos; somente o teste HTTP após o reinício comprova a execução deles. Mailpit e Google simulado continuam distintos dos provedores de produção.
+
 O ensaio `bash tests/contracts/replay-dump.sh 773c9d4` confirma o checksum e restaura o dump de estrutura com as migrations adicionadas desde a revisão de referência. Ele usa um container sem rede e limpa a instância ao terminar. Os testes com fixtures usam o laboratório local persistente descrito no [runbook](../../docs/RUNBOOK.md#ambiente-local-desta-consolidação).
 
-Use `bash tests/contracts/replay-dump.sh 773c9d4 --upgrade-fixtures` para criar dados sintéticos no schema legado antes de aplicar as migrations. O runner inclui migrations versionadas e novas ainda fora do índice, em ordem de nome. Compara IDs, campos e vínculos nas duas empresas, sessões anteriores, anexos, avaliações por encerramento e revisão e recuperação de timers sobrepostos. O gate também exige reconciliar dois casos permitidos pela Edge antiga e recusados pela guarda nova, um convite ativo com `platform_access=false` e um Partner ativo cujo cadastro de equipe não possui `user_id`. A falha desses casos retorna status diferente de zero. A reconciliação exige conferir a intenção de acesso antes do corte.
+Use `bash tests/contracts/replay-dump.sh 773c9d4 --upgrade-fixtures` para criar dados sintéticos no schema legado antes de aplicar as migrations. O runner inclui migrations versionadas e novas ainda fora do índice, em ordem de nome. Compara IDs, campos e vínculos nas duas empresas, sessões anteriores, anexos, avaliações por encerramento e revisão e recuperação de timers sobrepostos. A fixture separa quatro acessos elegíveis e dois controles negativos: convite ativo com `platform_access=false` e Partner ativo cujo cadastro de equipe não possui `user_id`. Os quatro elegíveis continuam admitidos; os dois controles devem ser recusados sem reativar convites nem inventar vínculos. Duas transações adicionais alteram deliberadamente o predicado para provar que o gate falha ao negar um elegível ou admitir um inelegível e revertem essas alterações. O preflight do destino continua exigindo reconciliação de qualquer ocorrência real dos dois estados, porque a Edge antiga os admitia. Um teste verde desses controles não autoriza cortar acesso real sem conferência.
 
 Execute `psql -X -v ON_ERROR_STOP=1 -f tests/contracts/upgrade-preflight.sql` com conexão de leitura já configurada para inventariar esses dois casos e a presença da configuração operacional. O script usa transação somente leitura e retorna IDs privados e contagens. Os segredos permanecem no banco. Guarde resultados fora do Git. O replay usa usuário local de restauração com privilégios elevados. A permissão do papel real para configurar o pre-request, alterar policies de Storage e gerenciar publicação/cron precisa de prova própria no ambiente de destino.
 
@@ -38,6 +51,7 @@ O inventário inclui `.rpc`, os dispatchers legados com chamadas literais e `ano
 | `team` | Clientes equivalentes, importação inválida/repetida, snapshot, campos privados, abertura e preenchimento de vaga, arquivamento e trilhas de vaga e métricas. | Gestor e corrida de importações no mesmo mês. |
 | `legacy-reports-notifications`, `notice` | Ciência legada, contagem de abertura/PDF, dúvida, retirada antes de leitura, revisão oculta, marcação de notificação própria e publicação de aviso após revisão. | Readiness de relatório, modelos de notificação, resumos e alertas de cada movimento. |
 | `public-forms-disc` | Ramo de Forms calculado no servidor, anexos A/B, recibo idempotente, restore preservando IDs, e convite DISC com progresso, prazo, consentimento, recusa e agradecimento sem resultado público. | Gestão de campanhas, renovação e envio focal DISC. Storage neste SQL usa metadados sintéticos. |
+| `public-legacy-http` | Leitura pública, upload anônimo com prefixo usado pela `main`, chamada Forms de dois argumentos, ramo condicional, negativas de anexo e ramo e comparação dos bytes reais do PDF. | A jornada visual da página antiga e o transporte de e-mail exigem provas próprias. A preimagem anterior às migrations é coberta pelo replay SQL. |
 | `mapa-delivery`, `material-review` | Revisão do Partner, destinatário, PDF oficial, versão obsoleta e idempotência. | Provedor de produção e destinatários reais de homologação. |
 | `privacy`, `commercial-retention`, `mapa-retention` | Pedidos LGPD, resposta, exportação A/B, manifesto de PDFs, dois jobs intercalados e preservação de arquivos vizinhos no catálogo. | Prova de bytes do Storage e cópias Google e externas sob controle do destinatário. |
 | `forms-elimination` | Anexos de formulários ativos e da lixeira pelo UUID, slug colidindo com UUID vizinho, cercas de propriedade/upload, lote e finalização sem rearquivo. | Manifestos concluídos antigos sem IDs e bytes físicos do Storage exigem reconciliação separada. |
@@ -51,3 +65,11 @@ node --env-file .cali-db-schema.local/qa/stack.env tests/contracts/commercial-ht
 ```
 
 O teste usa sessão AAL2 sintética do Admin de QA com aceite vigente, confere a rede interna, rejeita destinatário e versão divergentes e verifica a negativa de envio com revisão Partner pendente. Comprova recibo idempotente para os três materiais e reaproveitamento do PDF oficial no reenvio deliberado do Mapa. Remove os registros e arquivos que criou e preserva as mensagens sintéticas no Mailpit para inspeção.
+
+Para testar somente o contrato público legado pelo transporte real, execute:
+
+```sh
+node --env-file .cali-db-schema.local/qa/stack.env tests/contracts/public-legacy-http.mjs
+```
+
+O destino é fixo no loopback e o teste recusa rede Docker externa ou cron ativo. Cria dois formulários e dois objetos sintéticos, usa a API anônima nas operações públicas e remove somente os registros e arquivos criados no `finally`. Não contém credenciais de produção nem acessa o CALI MAPA.

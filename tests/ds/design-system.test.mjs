@@ -23,6 +23,7 @@ const browserBatch = Number(process.env.CALI_QA_BROWSER_BATCH ?? 4);
 assert(Number.isInteger(browserBatch) && browserBatch > 0, 'Lote de navegador inválido');
 
 before(async () => {
+  browserResources.checkBrowserResources();
   outDir = await mkdtemp(join(tmpdir(), 'cali-ds-'));
   await build({
     root,
@@ -209,6 +210,15 @@ for (const [viewport, width, height] of [
       const cover = gallery.getByRole('img', { name: 'Logo de Empresa QA', exact: true });
       await cover.waitFor();
       await page.waitForFunction(() => document.querySelector('.fixture-visual .v2-doc-autocover')?.style.background === 'rgb(90, 30, 45)');
+      const coverGeometry = await gallery.locator('.v2-doc-autocover').evaluate((element) => {
+        const cover = element.getBoundingClientRect();
+        const owner = element.closest('section').getBoundingClientRect();
+        return { width: cover.width, height: cover.height, contained: cover.top >= owner.top && cover.left >= owner.left && cover.right <= owner.right && cover.bottom <= owner.bottom };
+      });
+      assert.equal(coverGeometry.width, 160);
+      assert.equal(coverGeometry.height, 112);
+      assert(coverGeometry.contained, 'A capa deve ficar contida na seção da galeria');
+      await actions.getByRole('button', { name: 'Primário', exact: true }).click({ trial: true });
       const signatures = gallery.getByRole('region', { name: 'Assinaturas do relatório', exact: true });
       assert.equal(await signatures.locator('.report-signature-generated-v55').count(), 14);
       await signatures.getByRole('img', { name: 'Assinatura de Pessoa QA', exact: true }).waitFor();

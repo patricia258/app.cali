@@ -23,6 +23,11 @@ create table cali_upgrade_probe.expected_rows (
   ignored text[] not null default '{}',
   primary key(relation, row_id)
 );
+create table cali_upgrade_probe.expected_access (
+  profile_id uuid primary key,
+  allowed boolean not null,
+  reason text not null
+);
 
 insert into auth.users(id, email, aud, role, created_at, updated_at, email_confirmed_at)
 select ('a17e0000-0000-4000-8000-' || lpad(number::text, 12, '0'))::uuid,
@@ -42,6 +47,17 @@ select u.id,
   case when number in (5,6) then 'partner' else 'client' end, true, number in (1,3)
 from generate_series(1,6) number join auth.users u
   on u.id = ('a17e0000-0000-4000-8000-' || lpad(number::text,12,'0'))::uuid;
+
+-- Estes dois estados eram admitidos pelo resolvedor antigo, mas não constituem
+-- autorização válida no contrato novo. O ensaio deve provar a recusa sem
+-- alterar o convite, criar vínculo Auth ou esconder esses casos do preflight.
+insert into cali_upgrade_probe.expected_access(profile_id,allowed,reason)
+select p.id,number not in (4,6),case number
+  when 4 then 'Controle negativo: convite sem acesso à plataforma'
+  when 6 then 'Controle negativo: Partner sem vínculo Auth comprovado'
+  else 'Acesso elegível anterior preservado' end
+from generate_series(1,6) number join cali_workspace.profiles p
+  on p.id = ('a17e0000-0000-4000-8000-' || lpad(number::text,12,'0'))::uuid;
 
 -- Cliente 4 já entra pelo perfil ativo e possui convite ativo sem platform_access.
 insert into cali_workspace.client_invites(id, company_id, email, full_name, active, platform_access, is_primary)
@@ -119,13 +135,30 @@ values
     'documents/a17e0000-0000-4000-8000-000000000102/legacy-b.pdf',true);
 -- O dump schema-only não contém as linhas de configuração dos buckets.
 insert into storage.buckets(id,name,public)
-values ('cali-workspace-private','cali-workspace-private',false)
+values ('cali-workspace-private','cali-workspace-private',false),('cali-forms','cali-forms',false)
 on conflict(id) do nothing;
 insert into storage.objects(id,bucket_id,name,owner_id)
 select ('a17e0000-0000-4000-8000-' || lpad((910+number)::text,12,'0'))::uuid,
   'cali-workspace-private', f.storage_path,'a17e0000-0000-4000-8000-000000000001'
 from generate_series(1,2) number join cali_workspace.files f
   on f.id = ('a17e0000-0000-4000-8000-' || lpad((900+number)::text,12,'0'))::uuid;
+
+-- Formulário, anexo e resposta existem antes da migration de recibos. A chamada
+-- usa exatamente os dois argumentos e o caminho __visited da interface antiga.
+insert into cali_workspace.forms(id,slug,title,company_id,status,confirm_email,thank_you,questions)
+values
+  ('a17e0000-0000-4000-8000-000000001101','upgrade-form-a','Formulário legado A',
+    'a17e0000-0000-4000-8000-000000000101','open',false,'Resposta legada recebida',
+    '[{"id":"choice","label":"Escolha","kind":"single_choice","required":true,"logic":[{"when":"Sem arquivo","goTo":"__end"}]},{"id":"attachment","label":"Arquivo","kind":"file","required":true}]'),
+  ('a17e0000-0000-4000-8000-000000001102','upgrade-form-b','Formulário legado B',
+    'a17e0000-0000-4000-8000-000000000102','open',false,'Resposta vizinha recebida','[]');
+insert into storage.objects(id,bucket_id,name,owner_id) values
+  ('a17e0000-0000-4000-8000-000000001111','cali-forms','a17e0000-0000-4000-8000-000000001101/legacy.pdf',null),
+  ('a17e0000-0000-4000-8000-000000001112','cali-forms','a17e0000-0000-4000-8000-000000001102/legacy.pdf',null);
+set local role anon;
+select public.cali_form_submit('upgrade-form-a',
+  '{"choice":"Com arquivo","attachment":"a17e0000-0000-4000-8000-000000001101/legacy.pdf","__visited":["choice","attachment"]}');
+reset role;
 
 -- Dois timers simultâneos válidos no legado. O mais antigo deve virar recuperação, sem perder segundos.
 insert into cali_workspace.work_timers(id,company_id,project_id,user_id,status,started_at,last_seen_at,description)
@@ -145,7 +178,8 @@ begin
   foreach relation in array array['auth.users','auth.sessions','cali_workspace.companies','cali_workspace.profiles',
     'cali_workspace.client_invites','cali_workspace.staff_members','cali_workspace.projects','cali_workspace.deliverables',
     'cali_workspace.nps_responses','cali_workspace.account_records','cali_workspace.account_record_messages',
-    'cali_workspace.account_record_feedback','cali_workspace.files','storage.objects','cali_workspace.work_timers']
+    'cali_workspace.account_record_feedback','cali_workspace.files','storage.objects','cali_workspace.work_timers',
+    'cali_workspace.forms']
   loop
     ignored := case relation
       when 'cali_workspace.deliverables' then array['updated_at']
@@ -155,6 +189,10 @@ begin
       select %L,id,to_jsonb(t),%L::text[] from %s t where id::text like ''a17e0000-%%''',relation,ignored,relation);
   end loop;
 end $$;
+
+insert into cali_upgrade_probe.expected_rows(relation,row_id,original)
+select 'cali_workspace.form_responses',r.id,to_jsonb(r) from cali_workspace.form_responses r
+where r.form_id in ('a17e0000-0000-4000-8000-000000001101','a17e0000-0000-4000-8000-000000001102');
 
 create table cali_upgrade_probe.expected_notifications as
 select count(*) as count from cali_workspace.notifications where entity_type='nps_response';

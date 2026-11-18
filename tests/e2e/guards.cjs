@@ -19,6 +19,7 @@ const { values } = parseArgs({
     dist: { type: 'string', default: path.resolve('dist') },
     chrome: { type: 'string', default: process.env.CALI_E2E_CHROME || defaultChrome() },
     output: { type: 'string' },
+    'browser-batch': { type: 'string', default: process.env.CALI_QA_BROWSER_BATCH || '4' },
     'auth-ref': { type: 'string', default: 'cali-local-qa' },
     'terms-version': { type: 'string', default: currentTermsVersion },
     'terms-hash': { type: 'string', default: currentTermsHash },
@@ -650,6 +651,8 @@ async function main() {
     return;
   }
   assert(values.output, '--output obrigatório');
+  const browserBatch = Number(values['browser-batch']);
+  assert(Number.isInteger(browserBatch) && browserBatch > 0, 'Lote de navegador inválido');
   const proxy = await denyProxy();
   let server;
   let browser;
@@ -658,7 +661,7 @@ async function main() {
     const results = [];
     for (const [index, test] of cases.entries()) {
       checkBrowserResources();
-      if (index % 4 === 0) {
+      if (index % browserBatch === 0) {
         await closeBrowser(browser);
         browser = await launchBrowser(values.chrome, proxy);
       }
