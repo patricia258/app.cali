@@ -29,6 +29,14 @@ O app abre em `http://127.0.0.1:56430`, com API local em `http://127.0.0.1:56431
 
 O smoke de partida cobriu login por código, MFA, aceite e isolamento por empresa na API, no Storage e no Realtime. O preflight do Auth no proxy local deve autorizar `x-supabase-api-version` para `http://127.0.0.1:56430`. O teste de navegador verifica esse cabeçalho e usa a rede real do laboratório para autenticar. O aceite de todas as jornadas segue a [matriz local](CONSOLIDATION_ACCEPTANCE.md).
 
+## Limpeza de dados de teste
+
+Delimite cada limpeza por IDs e origem comprovada, incluindo as exclusões pedidas pelo responsável. Nome contendo “teste”, autoria do desenvolvedor ou associação indireta não bastam para autorizar uma remoção. O manifesto distingue empresas, dependentes, arquivos, identidades Auth e configuração global.
+
+Antes de gravar, copie o recorte para um diretório local privado e ignorado pelo Git, incluindo binários e objetos Storage. Preserve a representação textual dos valores JSON para manter a escala numérica. Confira tamanhos e hashes e ensaie restauração e exclusão em banco isolado sem rede. Uma cópia parcial não autoriza a remoção da parte ainda sem backup.
+
+A execução usa transação, hashes de preimagem e comparação dos registros fora do manifesto. Resolva ciclos de FK apenas nos registros do escopo e mantenha constraints e triggers de produção ativos. Confira também cópias geradas na lixeira. No Storage, valide IDs, caminhos completos e versões antes de remover os objetos específicos, preservando os demais. Resposta ambígua de mutação exige leitura do estado antes de qualquer nova tentativa. Guarde o recibo e os resultados de verificação junto do backup, sem dados privados ou credenciais no PR.
+
 ## Preview e corte
 
 O Preview usa a branch revisada, backend de homologação e credenciais e callbacks próprios. Depois de passar a validação local, confirme o commit, o ambiente Vercel, as rotas públicas e o login com contas autorizadas de teste. Registre URL e roteiro de aceite.
