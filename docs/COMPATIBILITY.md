@@ -73,3 +73,11 @@ Em 17/11/2026, o token operacional disponível listou somente `CALI STAGING`; n�
 - Nenhuma interface foi alterada neste lote; não houve nova rodada visual ou Playwright. Também não houve publicação, merge ou mutação no CALI MAPA.
 
 A auditoria não instalou migrations, alterou dados ou executou chamadas no CALI MAPA.
+
+### Última conferência do commit 7362e58d
+
+O commit local e a origem remota coincidiram, com árvore limpa e os PRs #98 para `main` e #100 para `staging` ainda em rascunho. A referência da `main` continuou em `773c9d42`.
+
+Lint, tipos, build, 135 testes, catálogo de RPCs, 18 contratos SQL e duas suítes HTTP passaram novamente. O replay com dados anteriores repetiu 60/62 verificações aprovadas e status 3 pelos mesmos dois acessos incompatíveis.
+
+A tentativa adicional dos 39 testes de componentes com `CALI_QA_BROWSER_BATCH=1` foi bloqueada antes da abertura dos navegadores pela proteção de pressão de memória do macOS. Nenhum desses 39 casos recebeu aprovação nesta conferência. A validação de componentes/visual desta rodada permanece pendente; não se desativou a proteção para forçar o resultado. Os bloqueadores de produção descritos acima continuam vigentes.
