@@ -17,12 +17,36 @@ with correction_order as (
 )
 update cali_session_guard.phase4_delivery_corrections c set review_revision = o.revision
 from correction_order o where o.id = c.id;
-with latest as (
-  select c.delivery_id, max(c.review_revision) as revision
-  from cali_session_guard.phase4_delivery_corrections c group by c.delivery_id
-)
-update cali_workspace.deliverables d set review_revision = l.revision
-from latest l where l.delivery_id = d.id;
+-- O número da revisão é um backfill, não uma edição de negócio. O ALTER acima
+-- mantém ACCESS EXCLUSIVE até o COMMIT; suspenda apenas o toque de updated_at e
+-- restaure inclusive modos ALWAYS/REPLICA/DISABLED. Qualquer falha reverte tudo.
+do $delivery_revision_backfill$
+declare
+  touch_mode "char";
+begin
+  select t.tgenabled into strict touch_mode
+  from pg_trigger t
+  where t.tgrelid = 'cali_workspace.deliverables'::regclass
+    and t.tgname = 'deliverables_touch_updated_at' and not t.tgisinternal
+    and t.tgfoid = 'cali_workspace.touch_updated_at()'::regprocedure;
+  alter table cali_workspace.deliverables disable trigger deliverables_touch_updated_at;
+
+  with latest as (
+    select c.delivery_id, max(c.review_revision) as revision
+    from cali_session_guard.phase4_delivery_corrections c group by c.delivery_id
+  )
+  update cali_workspace.deliverables d set review_revision = l.revision
+  from latest l where l.delivery_id = d.id;
+
+  case touch_mode
+    when 'O' then alter table cali_workspace.deliverables enable trigger deliverables_touch_updated_at;
+    when 'A' then alter table cali_workspace.deliverables enable always trigger deliverables_touch_updated_at;
+    when 'R' then alter table cali_workspace.deliverables enable replica trigger deliverables_touch_updated_at;
+    when 'D' then null;
+    else raise exception 'Modo do trigger de updated_at desconhecido.';
+  end case;
+end;
+$delivery_revision_backfill$;
 update cali_session_guard.phase4_delivery_corrections c set released_at = d.approval_requested_at
 from cali_workspace.deliverables d
 where d.id = c.delivery_id and d.review_revision = c.review_revision

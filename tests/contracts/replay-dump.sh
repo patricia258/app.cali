@@ -41,6 +41,7 @@ for path in sorted(paths):
     sys.stdout.buffer.write(path + b"\0")
 PY
 test -s "$migration_list"
+expected_count=$(python3 -c 'import pathlib,sys; print(len(pathlib.Path(sys.argv[1]).read_bytes().split(b"\0"))-1)' "$migration_list")
 
 container=$(docker run --detach --pull=never --network none --user postgres --entrypoint sh "$image" -ec '
   initdb -D /var/lib/postgresql/data -U cali_restore_admin --locale=C.UTF-8 --encoding=UTF8 --auth=trust
@@ -64,13 +65,54 @@ if [[ "$upgrade" == --upgrade-fixtures ]]; then
   "${db[@]}" "${psql[@]}" < tests/contracts/upgrade-before.sql
 fi
 
+probe_delivery_backfill() {
+  local migration="$1" original_mode mode action
+  original_mode=$("${db[@]}" "${psql[@]}" -Atc "select tgenabled from pg_trigger where tgrelid='cali_workspace.deliverables'::regclass and tgname='deliverables_touch_updated_at'")
+  for mode in O A R D; do
+    case "$mode" in
+      O) action=enable ;;
+      A) action='enable always' ;;
+      R) action='enable replica' ;;
+      D) action=disable ;;
+    esac
+    "${db[@]}" "${psql[@]}" -c "alter table cali_workspace.deliverables $action trigger deliverables_touch_updated_at"
+    node tests/contracts/delivery-backfill-probe.mjs "$migration" "$mode" success | "${db[@]}" "${psql[@]}"
+    if node tests/contracts/delivery-backfill-probe.mjs "$migration" "$mode" failure | "${db[@]}" "${psql[@]}" > "$gate_log" 2>&1; then
+      printf 'FAIL backfill não interrompeu após falha forçada no modo %s\n' "$mode" >&2
+      exit 1
+    fi
+    if ! rg -q 'QA_BACKFILL_FAILURE' "$gate_log"; then
+      printf 'FAIL backfill não chegou à falha forçada no modo %s\n' "$mode" >&2
+      cat "$gate_log" >&2
+      exit 1
+    fi
+    test "$("${db[@]}" "${psql[@]}" -Atc "select tgenabled from pg_trigger where tgrelid='cali_workspace.deliverables'::regclass and tgname='deliverables_touch_updated_at'")" = "$mode"
+    test "$("${db[@]}" "${psql[@]}" -Atc "select not exists(select 1 from information_schema.columns where table_schema='cali_workspace' and table_name='deliverables' and column_name='review_revision')")" = t
+    printf 'PASS backfill mantém updated_at e modo %s, inclusive após rollback da falha\n' "$mode"
+  done
+  case "$original_mode" in
+    O) action=enable ;;
+    A) action='enable always' ;;
+    R) action='enable replica' ;;
+    D) action=disable ;;
+    *) printf 'Modo original de trigger inválido\n' >&2; exit 1 ;;
+  esac
+  "${db[@]}" "${psql[@]}" -c "alter table cali_workspace.deliverables $action trigger deliverables_touch_updated_at"
+}
+
 count=0
-while IFS= read -r -d '' migration; do
+while IFS= read -r -d '' migration <&3; do
   printf 'Apply %s\n' "$migration"
+  if [[ "$upgrade" == --upgrade-fixtures && "$migration" == supabase/migrations/20261112153000_deliverable_review_cycles.sql ]]; then
+    probe_delivery_backfill "$migration"
+  fi
   "${db[@]}" "${psql[@]}" < "$migration"
   count=$((count + 1))
-done < "$migration_list"
-test "$count" -gt 0
+done 3< "$migration_list"
+if [[ "$count" -ne "$expected_count" ]]; then
+  printf 'FAIL replay aplicou %s de %s migrations esperadas\n' "$count" "$expected_count" >&2
+  exit 1
+fi
 if [[ "$upgrade" == --upgrade-fixtures ]]; then
   "${db[@]}" "${psql[@]}" < tests/contracts/upgrade-preflight.sql
   "${db[@]}" "${psql[@]}" < tests/contracts/upgrade-after.sql

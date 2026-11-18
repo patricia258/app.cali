@@ -182,7 +182,6 @@ begin
     'cali_workspace.forms']
   loop
     ignored := case relation
-      when 'cali_workspace.deliverables' then array['updated_at']
       when 'cali_workspace.work_timers' then array['status','stopped_at','paused_at','minutes']
       else '{}'::text[] end;
     execute format('insert into cali_upgrade_probe.expected_rows
