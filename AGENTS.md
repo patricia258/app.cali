@@ -35,6 +35,8 @@
 - Migrations de reconciliação são aditivas e reexecutáveis. Copie somente vínculos comprováveis, preserve a origem e reporte conflitos. Não reative convites, atribua usuários ou invente autores e datas para tornar o ensaio verde.
 - Mudanças de login, termos, Storage e payloads exigem sequência de transição documentada e ensaiada. A revisão antiga só pode ser caminho de retorno se funcionar contra o backend já migrado. Registre os bloqueadores e os limites de cada prova em [Compatibilidade](docs/COMPATIBILITY.md).
 
+- O aceite desta revisão está limitado à compatibilidade das migrations e à preservação de dados existentes. A única operadora fará uma pausa combinada com Felipe na implantação. Não introduza telas de manutenção, bloqueio de versões ou automação de corte por iniciativa própria. Acompanhe a execução quando Felipe a iniciar e informe o resultado verificado.
+
 ## Comunicação
 
 Use a skill `caveman` em modo `full` para respostas. Preserve a precisão técnica e a clareza em decisões de escopo. Mantenha o modo até o usuário pedir `normal mode` ou `stop caveman`.

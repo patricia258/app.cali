@@ -1,8 +1,10 @@
 # Compatibilidade durante o corte
 
-A auditoria compara o frontend publicado em `origin/main` (`773c9d42`) com a implementação em `f1bfbb95` e as correções aditivas deste lote. A matriz de consumidores veio dos arquivos versionados; o replay abaixo executa o upgrade no Postgres local. O cenário completo com o JavaScript da `main` e o backend novo ainda exige ensaio próprio. Estado do corte: **bloqueado**, sem autorização de compatibilidade integral.
+A referência é a `main` em `773c9d42`, comparada à branch `codex/cali-consolidacao`. Esta revisão verifica se as migrations preservam os dados anteriores, seus vínculos e as operações já registradas. O ambiente de teste parte do dump de estrutura do CALI MAPA, recebe os dados legados antes das migrations e compara o resultado após o upgrade.
 
-Aplicar todas as migrations e trocar as Edge Functions enquanto navegadores continuam na `main` causa falhas de login, acesso privado, download e envio. Preservar nomes de tabelas e assinaturas de RPC cobre somente parte da compatibilidade. Resposta, autorização, política de Storage e estados também fazem parte do contrato.
+O responsável informou que existe uma única pessoa operando o sistema e combinará diretamente a pausa de uso. Não serão acrescentados tela de manutenção, bloqueio de versão, protocolo de cliente ou automação de corte. O acompanhamento da implantação será feito quando Felipe a executar; esta rodada não faz merge, deploy nem aplica migrations em produção.
+
+Os contratos da versão anterior que mudam estão inventariados abaixo para orientar a atualização conjunta do frontend e backend durante essa pausa. Eles não exigem implementar coexistência de versões enquanto ninguém utiliza o sistema.
 
 ## Matriz dos contratos
 
@@ -22,24 +24,13 @@ Aplicar todas as migrations e trocar as Edge Functions enquanto navegadores cont
 | E-mails automáticos | Triggers antigos embutiam URL de Edge. | A [migration de despacho](../supabase/migrations/20261112152100_isolate_workspace_email_hooks.sql#L5) passa a ler `runtime_secrets.edge_url_*`. Ausência de destino encerra silenciosamente o despacho. Forms e DISC também usam destinos próprios de fila. | Configurar e validar os destinos aprovados antes de ativar os novos despachos. Testar aviso, digest, Forms e DISC por transporte isolado e confirmar o recibo do provedor. |
 | Portal e Mapa administrativos | Frontend antigo lê tabelas e RPCs no schema `public`. | As [políticas e RPCs](../supabase/migrations/20261112152400_guard_portal_admin_access.sql#L5) passam a exigir MFA, sessão e aceite privado atual. | Mesma barreira de termos e sessão se aplica ao Portal e à revisão do Mapa. Testar GET/PATCH e RPC diretamente com JWT AAL2 legado antes e depois do novo aceite. |
 
-## Ponte de autenticação e sequência de corte
+## Atualização acompanhada com pausa combinada
 
-O caminho preferido exige um frontend de transição antes da troca da Edge. Esse frontend recebe `session` com `auth.setSession` e mantém o fallback de `token_hash` com `verifyOtp`. O adaptador da branch já contém esses dois caminhos. A ponte deve ser publicada e provada contra a Edge antiga antes de instalar o novo protocolo.
+Felipe avisará a única pessoa que utiliza o sistema e combinará a interrupção do uso durante a atualização. A pessoa deve salvar o trabalho e fechar as abas anteriores; depois da atualização, abrirá novamente o aplicativo. Não haverá tela de manutenção nem bloqueio novo por versão.
 
-A Edge nova continua gerando, consumindo e admitindo uma única sessão e devolve seus tokens. Retornar também o mesmo `token_hash` depois de `verifyOtp` produz um código Auth já consumido e mantém a falha no JavaScript antigo. Gerar um segundo magiclink separa a sessão do navegador daquela admitida e também exige um protocolo adicional de admissão.
+Quando Felipe iniciar a implantação, o acompanhamento confere o backup, aplica a sequência aprovada, verifica preservação dos dados e testa os registros já existentes na versão publicada. O frontend e as Edges precisam corresponder à mesma revisão antes da retomada. A `main` original não deve ser republicada isoladamente contra contratos novos como tentativa de retorno.
 
-Abas antigas precisam receber versão mínima e recarga antes da ativação das guardas novas. A ponte precisa incluir a aceitação dos termos atuais, o download autenticado e os novos payloads de envio. Apenas alterar o adaptador de login resolve uma parte do corte. O frontend de origem `773c9d42` não contém esse controle de atualização.
-
-Suporte obrigatório a JavaScript antigo sem recarga exigiria um protocolo legado independente com token ainda não consumido e vínculo seguro da sessão criada posteriormente à prova de código. Esse mecanismo não existe nesta branch e precisaria de desenho e teste próprios antes do corte.
-
-1. Preparar e testar localmente a ponte e a versão mínima contra o backend anterior, incluindo login, MFA e renovação de sessão.
-2. Separar migrations aditivas das guardas e mudanças de contrato. A instalação da publicação nova de termos e das políticas privadas é um ponto de corte para consumidores antigos.
-3. Ensaiar a mesma sequência com dump e dados sintéticos representativos. Manter escritores antigos ativos durante a primeira fase, depois exigir a versão atualizada e reconciliar as gravações finais.
-4. Configurar destinos de integração, conferir vínculos Auth/perfil/convite, estado de timers e acesso aos arquivos anteriores antes de liberar operações novas.
-5. Ativar guardas e Edge após os ensaios cruzados. Executar os casos da matriz com o frontend atualizado e comprovar que abas anteriores recebem orientação de recarga.
-6. Ensaiar retorno do frontend com o backend já migrado. O retorno precisa usar a ponte, porque a `main` original deixa de satisfazer os contratos acima.
-
-Os códigos emitidos pela Edge anterior não possuem os marcadores de ator e entrega exigidos pelo novo consumo. Drenar instâncias e aguardar o vencimento dos códigos pendentes antes de trocar o protocolo; o preflight retorna contagem e última expiração. A reserva também pode recusar reemissão por dois minutos desde a criação anterior. A ponte e a recarga obrigatória ainda não foram implementadas/publicadas como uma entrega independente; esta sequência é requisito de corte, não evidência de implantação concluída.
+A configuração operacional dos envios continua sendo parte da implantação existente. Os destinos e credenciais precisam estar corretos para a entrega funcionar. Essa constatação não autoriza provisioná-los nesta revisão nem criar controles de manutenção adicionais. A rodada atual permanece local e em leitura no CALI MAPA.
 
 ## Dados legados e pendências de prova
 
@@ -54,30 +45,32 @@ Os backfills de encerramentos, avaliações, revisões de entrega e timers usam 
 
 `bash tests/contracts/replay-dump.sh 773c9d4 --upgrade-fixtures` restaura o dump de estrutura de 12/11/2026 sem rede, cria fixtures no schema antigo e depois instala as 42 migrations da candidata. O ensaio registra a preimagem de 42 linhas em 15 relações e três atribuições de Partner, além da correção histórica. Não contém cópia dos dados de produção nem bytes reais do Storage.
 
-Resultado: **60 de 62 verificações passaram**. IDs, campos e vínculos cobertos foram preservados; avaliação por encerramento, projeção do feedback antigo, sessão Cliente elegível e recuperação de 3.600 segundos do timer sobreposto passaram. O gate retorna erro SQL e status 3 pelos dois estados de acesso incompatíveis:
+Resultado atualizado: **80 de 80 verificações passaram**, com dump e **42 migrations**, sem rede e com cron desligado. O ensaio preserva 47 linhas anteriores em 17 relações, três atribuições de Partner e o feedback histórico. Confere as seis sessões legadas, quatro acessos elegíveis, recuperação dos 3.600 segundos sobrepostos e duas recusas esperadas.
 
-1. Cliente ativo com convite ativo, mas `platform_access=false`.
-2. Partner ativo com cadastro ativo ligado apenas por e-mail e `staff_members.user_id` ausente.
+As duas recusas representam Cliente com `platform_access=false` e Partner sem vínculo Auth comprovado. O teste anterior exigia entrada para esses dois casos e produzia 60/62. O teste corrigido verifica a autorização definida sem reativar convites ou atribuir identidades. O próprio gate é exercitado com duas regressões injetadas: negar um elegível e admitir um inelegível. Ambas precisam produzir erro e rollback.
 
-Não há backfill automático desses acessos. Reativar convite ou atribuir identidade exige conferir a intenção e a correspondência no destino. O [preflight somente leitura](../tests/contracts/upgrade-preflight.sql) inventaria esses casos, códigos pendentes, presença da configuração operacional e manifestos concluídos sem os novos IDs. Resultados contêm IDs privados e ficam fora do Git. Uma execução verde dos contratos atuais não elimina esses bloqueadores de upgrade.
+O [preflight somente leitura](../tests/contracts/upgrade-preflight.sql) identifica esses estados no destino. A leitura do CALI MAPA em 17/11/2026 encontrou **zero incompatibilidades Client/Partner e zero códigos pendentes** naquele momento. A restrição anterior do token foi superada; o resultado deve ser conferido novamente na implantação.
 
-Em 17/11/2026, o token operacional disponível listou somente `CALI STAGING`; não foi possível confirmar o catálogo nem os agregados atuais do `CALI MAPA`. O replay usa papel local de restauração com privilégios elevados. Privilégios reais de instalação, dados atuais, bytes de arquivos, credenciais e destinos externos precisam de validação própria antes do corte.
+A limpeza autorizada das três empresas de teste teve backup e verificação próprios. Não instalou migrations nem alterou o schema produtivo. O experimento posterior de manutenção/protocolo foi retirado desta entrega; a guarda aplicada apenas no QA também foi retirada, restaurando o guard anterior.
 
-### Validação local da rodada de 17/11/2026
+## Validação local desta revisão
 
-- `npm run check`: lint sem avisos, tipos e build aprovados. O build mantém o aviso de tamanho de chunks já existente.
-- `npm test`: 135 testes aprovados. O novo caso exercita o adaptador da branch recebendo `token_hash` da Edge anterior, além do caso existente com `session` da Edge nova. Isso prova os formatos no adapter, não uma ponte já publicada.
-- `npm run test:contracts`: catálogo de RPCs, 18 contratos SQL com rollback e duas suítes HTTP aprovados. Inclui Auth, MFA, termos, isolamento A/B, Storage, OAuth simulado, Realtime, revogação, logout e entrega idempotente dos três materiais por Mailpit. A primeira tentativa HTTP encontrou OAuth local parado (503); após retomar o simulador, a suíte completa passou.
-- Replay schema-only com 42 migrations aprovado; replay com fixtures antigas bloqueado nos dois acessos descritos acima, com erro efetivo. Os containers descartáveis do ensaio foram removidos, preservando o laboratório.
-- As migrations corretivas foram reaplicadas com sucesso no QA. Os testes cobrem falha forçada do backfill, preservação da origem, acesso de outra empresa e finalização Forms. O ensaio transacional adicional de manifesto antigo retirou apenas a entrada incorreta da fila, preservou o objeto vizinho e incluiu o objeto próprio.
-- Nenhuma interface foi alterada neste lote; não houve nova rodada visual ou Playwright. Também não houve publicação, merge ou mutação no CALI MAPA.
+- Replay: **80/80**, dump e **42 migrations**, incluindo dados anteriores à instalação e dois autotestes que rejeitam regressões de autorização.
+- Forms pelo transporte real: leitura pública, upload anônimo, payload antigo com dois argumentos, ramo condicional, isolamento e bytes do anexo. A fixture remove seus próprios registros e arquivos.
+- Os bundles HTTP usam o SDK **2.112.3** fixado nas fontes das Edges; os unitários usam o SDK **2.116.0** do lockfile do app. O builder local verifica a resolução da dependência e impede usar uma versão como evidência da outra.
+- Lint sem erros ou avisos, tipos e build aprovados; **135 testes** da suíte base passaram. Permanece o aviso preexistente de tamanho de chunk no build.
+- **18 contratos SQL e três suítes HTTP** aprovados no laboratório isolado: sessão/OTP/MFA/termos, isolamento A/B, Storage, OAuth simulado, Realtime, revogação e logout; entrega idempotente dos três materiais pelo Mailpit; Forms legado e bytes do anexo.
+- **290/290 E2E e 39/39 DS**, com um navegador por caso. A execução final foi retomada em lotes de 196 e 94 casos quando a pressão de memória normalizou. O build restaurado é idêntico ao `6b4117aa`, usado nas 22 comparações contra a `main`, com diferenças intencionais revisadas. [Comparação e proveniência](VISUAL_QA.md)
+- A repetição final do backfill cobre **oito cenários**: modos normal, always, replica e disabled do trigger, com sucesso e falha forçada. A data original e o modo do trigger são preservados; a falha reverte a transação. O teste não ignora mais `deliverables.updated_at`.
 
-A auditoria não instalou migrations, alterou dados ou executou chamadas no CALI MAPA.
+### Conferência com os registros históricos do backup
 
-### Última conferência do commit 7362e58d
+Foi restaurado, antes das 42 migrations, o recorte autorizado de **922 registros em 88 relações** das três empresas históricas de teste já removidas. Não se trata de clone completo dos clientes reais atuais. O ensaio usou container sem rede ou portas, cron desligado e artefatos privados; o container foi removido ao terminar.
 
-O commit local e a origem remota coincidiram, com árvore limpa e os PRs #98 para `main` e #100 para `staging` ainda em rascunho. A referência da `main` continuou em `773c9d42`.
+O primeiro ensaio revelou uma regressão: o backfill de revisão do entregável disparava `deliverables_touch_updated_at`, alterando uma data exibida ao Cliente sem ação humana. A [migration da candidata](../supabase/migrations/20261112153000_deliverable_review_cycles.sql) foi corrigida no commit `27fddd1b` para suspender somente esse trigger durante o backfill, sob o lock já mantido pelo ALTER, e restaurar exatamente seu modo anterior. Guards, FKs e auditoria permanecem habilitados. O arquivo ainda não foi instalado no CALI MAPA; nenhuma data perdida foi inferida ou reconstruída por aproximação.
 
-Lint, tipos, build, 135 testes, catálogo de RPCs, 18 contratos SQL e duas suítes HTTP passaram novamente. O replay com dados anteriores repetiu 60/62 verificações aprovadas e status 3 pelos mesmos dois acessos incompatíveis.
+Após a correção: **922/922 IDs e hashes dos campos originais idênticos**, zero campos originais alterados, **158 binários não nulos e três campos binários nulos preservados**, sem novas referências órfãs. Nove dependências de pais externos ao recorte ficaram iguais antes/depois; as quatro FKs acrescentadas não produziram órfãos. Colunas novas são verificadas separadamente dos campos originais.
 
-A tentativa adicional dos 39 testes de componentes com `CALI_QA_BROWSER_BATCH=1` foi bloqueada antes da abertura dos navegadores pela proteção de pressão de memória do macOS. Nenhum desses 39 casos recebeu aprovação nesta conferência. A validação de componentes/visual desta rodada permanece pendente; não se desativou a proteção para forçar o resultado. Os bloqueadores de produção descritos acima continuam vigentes.
+Recibo privado: `.cali-db-schema.local/qa/historical-upgrade/summary.json`. Logs: `.cali-db-schema.local/qa/historical-upgrade-run.log`, `/private/tmp/cali-upgrade-preserve-timestamp.log`, `/private/tmp/cali-data-final-check.log`, `/private/tmp/cali-data-final-unit.log`, `/private/tmp/cali-data-scope-contracts.log` e `/private/tmp/cali-merge-e2e-scoped-final-20261117/summary.json`. Dados pessoais e bytes não integram o Git. Evidências do experimento de manutenção retirado não contam como validação do estado final.
+
+Nenhum merge, deploy, mudança de secrets ou instalação de migration no CALI MAPA foi executado nesta revisão. A ausência de perda nos recortes testados não equivale a executar a implantação em produção.

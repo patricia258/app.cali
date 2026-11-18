@@ -55,3 +55,7 @@ Os hooks `edge_url_workspace_notification_email_hook`, `edge_url_workspace_admin
 Em homologação, `partner_timer_admin_email` identifica a conta Admin de teste que recebe o alerta do cronômetro. A configuração padrão é a Patrícia. O resumo diário usa `0 22 * * *` no catálogo em UTC, correspondente a 19h de Brasília.
 
 Em um corte futuro de produção, siga primeiro a [matriz de compatibilidade](COMPATIBILITY.md). A `main` de referência não pode continuar operando sem adaptação contra todas as guardas e Edges novas. A transição precisa cobrir sessão, aceite, downloads autenticados e payloads de envio, além de exigir recarga das abas antigas. Drene os códigos emitidos pela Edge anterior e reconcilie as gravações da última janela. O retorno usa frontend compatível com o backend migrado; republicar a `main` original não é rollback suficiente. [Migração e compatibilidade](DATA_CONTRACTS.md#migração-e-compatibilidade)
+
+## Implantação acompanhada
+
+Felipe combinará a pausa com a única pessoa que usa o aplicativo. A pessoa salva o trabalho e fecha as abas anteriores. Quando Felipe iniciar a implantação, o acompanhamento confere backup, migrations, versão publicada e os registros existentes; ao terminar, informa o resultado das verificações. Não há tela de manutenção ou bloqueio novo de versão. Esta orientação não executa nem autoriza merge, deploy ou alteração em produção nesta rodada.

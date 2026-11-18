@@ -52,3 +52,11 @@ A [comparação visual](VISUAL_QA.md) documenta os dois workflows locais, a refe
 Use o Chrome instalado ou execute `npx playwright-core install chromium`. O runner E2E gera um build com endpoint sintético e inicia um servidor loopback. Os testes diretos dos componentes montam fixtures locais. Ambos bloqueiam rede externa. [Opções do Playwright](../tests/e2e/README.md)
 
 Para os contratos, suba o [banco e os serviços de QA](RUNBOOK.md#ambiente-local-desta-consolidação) e aplique as migrations da revisão. A suíte confere o destino local antes de rodar. A [matriz de aceite](CONSOLIDATION_ACCEPTANCE.md) inclui comparações visuais e ensaios de recuperação e entrega. Mantenha capturas, logs, dumps e dados descartáveis fora da branch.
+
+## Conferência de dados anteriores às migrations
+
+O replay `bash tests/contracts/replay-dump.sh 773c9d4 --upgrade-fixtures` restaura o dump de estrutura isolado, carrega as preimagens no schema anterior e aplica as migrations da candidata. Preservação e autorização são verificadas separadamente: não altere convites ou vínculos para tornar a fixture verde. Os controles do próprio teste devem falhar quando um acesso elegível é negado ou um inelegível é admitido.
+
+`public-legacy-http.mjs` acrescenta o contrato Forms antigo com dois argumentos e bytes reais de um anexo sintético. Os bundles HTTP devem ser recompilados com o [builder e pin documentados](../tests/contracts/README.md) antes de reiniciar os workers locais. Esses testes não utilizam produção e não acrescentam controles de implantação ao produto.
+
+O replay também exercita o backfill de revisões em quatro modos do trigger de timestamp, com sucesso e falha forçada em cada um. A fixture compara `updated_at` sem exceção. Uma regressão nessa data é visível ao Cliente e deve falhar. A lista de migrations usa descritor próprio, e a contagem aplicada deve coincidir com a lista esperada; processos de teste não podem consumir sua entrada e pular arquivos. [Resultados e recorte histórico de 922 registros](COMPATIBILITY.md#conferência-com-os-registros-históricos-do-backup)

@@ -70,3 +70,9 @@ A revisão de campos reutilizáveis começou após a rodada do TanStack Query. I
 - [Matriz de aceite](CONSOLIDATION_ACCEPTANCE.md) cobre perfis, cenários e evidência de teste.
 
 A [base versionada de testes](TESTING.md) permanece na branch. Capturas, dumps e scripts descartáveis ficam fora do repositório.
+
+## Escopo da conferência final — 17/11/2026
+
+O objetivo desta rodada é validar migrations e dados já registrados. Felipe combinará uma pausa de uso com a única pessoa que opera o sistema e solicitará acompanhamento quando fizer a implantação. Não há implementação de tela de manutenção, bloqueio por versão ou automação de corte. O experimento desses controles foi retirado da candidata, incluindo a migration adicional de protocolo. As 42 migrations de produto e as correções anteriores permanecem.
+
+O replay cria as preimagens antes de instalar as migrations, compara IDs, campos, vínculos, históricos, anexos e acessos e prova que o teste rejeita tanto perda de autorização válida quanto liberação indevida. As diferenças de contrato durante a implantação são informativas para a sequência acompanhada; não exigem manter versões antigas operando simultaneamente. [Provas e limites](COMPATIBILITY.md)
