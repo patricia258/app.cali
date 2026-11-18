@@ -1,3 +1,5 @@
+import { paletteColorWithAlpha } from '../lib/paletteColorWithAlpha';
+import { caliPalette } from '../../supabase/functions/_shared/cali-palette';
 export type CalendarView = 'month' | 'week' | 'agenda';
 export type CalendarEventType = 'meeting' | 'validation' | 'deadline' | 'milestone' | 'training' | 'internal' | 'other';
 export type CalendarVisibility = 'internal' | 'client';
@@ -19,6 +21,7 @@ export type WorkspaceCalendarEvent = {
   companyId?: string | null;
   company?: string | null;
   companyLogo?: string | null;
+  companyLogoFallback?: string | null;
   projectId?: string | null;
   project?: string | null;
   type: CalendarEventType;
@@ -50,46 +53,14 @@ export type WorkspaceCalendarEvent = {
 };
 
 export const calendarTypeMeta: Record<CalendarEventType, { label: string; color: string; soft: string }> = {
-  meeting: { label: 'Reunião', color: '#6D2338', soft: 'rgba(109,35,56,.12)' },
-  validation: { label: 'Validação', color: '#B58C52', soft: 'rgba(181,140,82,.14)' },
-  deadline: { label: 'Prazo', color: '#A85B3A', soft: 'rgba(168,91,58,.13)' },
-  milestone: { label: 'Marco', color: '#70545C', soft: 'rgba(112,84,92,.12)' },
-  training: { label: 'Treinamento', color: '#7B6A43', soft: 'rgba(123,106,67,.12)' },
-  internal: { label: 'Interno CALI', color: '#59616B', soft: 'rgba(89,97,107,.12)' },
-  other: { label: 'Outro', color: '#8A7E78', soft: 'rgba(138,126,120,.12)' },
+  meeting: { label: 'Reunião', color: caliPalette.red.darker, soft: paletteColorWithAlpha(caliPalette.red.darker, 0.12) },
+  validation: { label: 'Validação', color: caliPalette.gold.base, soft: paletteColorWithAlpha(caliPalette.gold.base, 0.14) },
+  deadline: { label: 'Prazo', color: caliPalette.orange.dark, soft: paletteColorWithAlpha(caliPalette.orange.dark, 0.13) },
+  milestone: { label: 'Marco', color: caliPalette.neutral.dark, soft: paletteColorWithAlpha(caliPalette.neutral.dark, 0.12) },
+  training: { label: 'Treinamento', color: caliPalette.sand.darker, soft: paletteColorWithAlpha(caliPalette.sand.darker, 0.12) },
+  internal: { label: 'Interno CALI', color: caliPalette.neutral.base, soft: paletteColorWithAlpha(caliPalette.neutral.base, 0.12) },
+  other: { label: 'Outro', color: caliPalette.sand.dark, soft: paletteColorWithAlpha(caliPalette.sand.dark, 0.12) },
 };
-
-export const previewCalendarEvents: WorkspaceCalendarEvent[] = [
-  {
-    id: 'cal-1', protocol: 'CALI-EVT-2026-000031', title: 'Reunião mensal · Grupo Aurora', companyId: 'aurora', company: 'Grupo Aurora', type: 'meeting', color: '#6D2338',
-    startsAt: '2026-08-31T09:30:00-03:00', endsAt: '2026-08-31T10:30:00-03:00', allDay: false, mode: 'remote', location: 'Google Meet',
-    meetingUrl: 'https://meet.google.com/', description: 'Fechamento do ciclo, indicadores e prioridades para setembro.', visibility: 'client', reminderMinutes: 30, autoTranscription: true,
-    attendees: [{ name: 'Marina Costa', email: 'marina@grupoaurora.com.br', status: 'accepted' }], sourceType: 'manual', syncStatus: 'local',
-  },
-  {
-    id: 'cal-2', protocol: 'CALI-EVT-2026-000032', title: 'Validação de indicadores', companyId: 'aurora', company: 'Grupo Aurora', type: 'validation', color: '#B58C52',
-    startsAt: '2026-09-03T14:00:00-03:00', endsAt: '2026-09-03T15:00:00-03:00', allDay: false, mode: 'remote', location: 'Google Meet',
-    description: 'Decisão do cliente sobre a estrutura de indicadores.', visibility: 'client', reminderMinutes: 30, autoTranscription: true, attendees: [{ name: 'Marina Costa', email: 'marina@grupoaurora.com.br', status: 'pending' }], sourceType: 'manual', syncStatus: 'local',
-  },
-  {
-    id: 'cal-3', title: 'Ritual de gestão · prazo', companyId: 'studio-norte', company: 'Studio Norte', type: 'deadline', color: '#A85B3A',
-    startsAt: '2026-09-05T18:00:00-03:00', allDay: false, description: 'Prazo do entregável Ritual de gestão com lideranças.', visibility: 'internal', attendees: [], sourceType: 'deliverable', sourceEntityId: 'deliverable-preview-1', sourceProtocol: 'CALI-ENT-2026-000018', synthetic: true,
-  },
-  {
-    id: 'cal-4', protocol: 'CALI-EVT-2026-000033', title: 'Checkpoint executivo', companyId: 'novatech', company: 'Novatech', type: 'meeting', color: '#6D2338',
-    startsAt: '2026-09-08T10:00:00-03:00', endsAt: '2026-09-08T10:45:00-03:00', allDay: false, mode: 'remote', location: 'Google Meet',
-    description: 'Checkpoint do advisory com liderança.', visibility: 'client', reminderMinutes: 30, autoTranscription: true, attendees: [{ name: 'Ricardo Martins', email: 'ricardo@novatech.com.br', status: 'pending' }], sourceType: 'manual', syncStatus: 'local',
-  },
-  {
-    id: 'cal-5', title: 'Estrutura de governança · prazo', companyId: 'aurora', company: 'Grupo Aurora', type: 'deadline', color: '#A85B3A',
-    startsAt: '2026-09-08T18:00:00-03:00', allDay: false, description: 'Prazo do entregável Estrutura de governança.', visibility: 'internal', attendees: [], sourceType: 'deliverable', sourceEntityId: 'deliverable-preview-2', sourceProtocol: 'CALI-ENT-2026-000019', synthetic: true,
-  },
-  {
-    id: 'cal-6', protocol: 'CALI-EVT-2026-000034', title: 'Workshop de liderança', companyId: 'studio-norte', company: 'Studio Norte', type: 'training', color: '#7B6A43',
-    startsAt: '2026-09-11T13:30:00-03:00', endsAt: '2026-09-11T16:30:00-03:00', allDay: false, mode: 'in_person', location: 'Sede do cliente',
-    description: 'Encontro presencial com lideranças.', visibility: 'client', reminderMinutes: 30, autoTranscription: false, attendees: [], sourceType: 'manual', syncStatus: 'local',
-  },
-];
 
 export function dateKey(date: Date) {
   const y = date.getFullYear();
@@ -98,7 +69,27 @@ export function dateKey(date: Date) {
   return `${y}-${m}-${d}`;
 }
 
-export function eventDateKey(event: WorkspaceCalendarEvent) { return event.startsAt.slice(0, 10); }
+const calendarTimeZone = 'America/Sao_Paulo';
+const calendarDayFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: calendarTimeZone, year: 'numeric', month: '2-digit', day: '2-digit',
+});
+const calendarTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: calendarTimeZone, hour: '2-digit', minute: '2-digit', hour12: false,
+});
+const calendarDateFormatter = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: calendarTimeZone, day: '2-digit', month: 'short', year: 'numeric',
+});
+const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/;
+
+export function calendarDateKey(value: string) {
+  if (dateOnlyPattern.test(value)) return value;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : calendarDayFormatter.format(date);
+}
+
+export function eventDateKey(event: WorkspaceCalendarEvent) {
+  return calendarDateKey(event.startsAt);
+}
 
 export function startOfCalendarWeek(date: Date) {
   const copy = new Date(date);
@@ -125,12 +116,12 @@ export function formatCalendarTime(value: string | null | undefined) {
   if (!value) return 'Dia inteiro';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(date);
+  return calendarTimeFormatter.format(date);
 }
 
 export function formatCalendarDate(value: string) {
-  const date = new Date(value);
-  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(date).replace('.', '');
+  const date = new Date(dateOnlyPattern.test(value) ? `${value}T12:00:00Z` : value);
+  return Number.isNaN(date.getTime()) ? '' : calendarDateFormatter.format(date).replace('.', '');
 }
 
 export function googleCalendarTemplate(event: WorkspaceCalendarEvent) {
@@ -164,3 +155,26 @@ export function downloadCalendarIcs(event: WorkspaceCalendarEvent) {
   anchor.click();
   URL.revokeObjectURL(url);
 }
+
+export type ReportAgendaCompliance = {
+  label?: string | null;
+  requiredTotal?: number | null;
+  occurredCount?: number | null;
+  notOccurredCount?: number | null;
+  pendingOutcomeCount?: number | null;
+  extraCount?: number | null;
+  extraOccurredCount?: number | null;
+  remoteOccurredCount?: number | null;
+  inPersonOccurredCount?: number | null;
+  remoteContractualCount?: number | null;
+  inPersonContractualCount?: number | null;
+  items?: Array<{
+    startsAt?: string | null;
+    outcome?: string | null;
+    reasonCategory?: string | null;
+    note?: string | null;
+    scheduleClass?: string | null;
+    billingApplies?: boolean | null;
+    mode?: string | null;
+  } | null> | null;
+};

@@ -1,3 +1,6 @@
+import { emailColors } from '../_shared/email-colors.ts';
+import type { JsonValue } from '../_shared/json.ts';
+import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 
@@ -6,12 +9,12 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const FROM_EMAIL = "APP CALI RH <workspace@calirh.com>";
 const REPLY_TO = "nao-responda@calirh.com";
-const APP_URL = "https://app.calirh.com";
+const APP_URL = deliveryAppOrigin;
 const LOGO_URL = `${APP_URL}/brand/cali-workspace-transparent.svg`;
 const MARK_URL = `${APP_URL}/brand/cali-oak-mark.svg`;
 const headers = { "Content-Type": "application/json" };
 
-const esc = (value: unknown) => String(value ?? "")
+const esc = (value: JsonValue | undefined) => String(value ?? "")
   .replaceAll("&", "&amp;")
   .replaceAll("<", "&lt;")
   .replaceAll(">", "&gt;")
@@ -29,36 +32,37 @@ type NotificationRow = {
   id: string; user_id: string; company_id: string; entity_id?: string | null;
   action_url?: string | null; created_at: string;
 };
+type ProfileRow = { id: string; active: boolean; email: string | null; full_name: string | null };
 type RecordRow = { id: string; protocol?: string | null; title: string; record_type: string; company_id: string };
 type Thread = { recordId: string; protocol: string; title: string; type: string; count: number; url: string; companyId: string };
 
 function digestHtml(name: string, companyLabel: string, totalMessages: number, threads: Thread[]) {
   const rows = threads.slice(0, 10).map((thread) => `
-    <tr><td style="padding:14px 0;border-bottom:1px solid #EEE4DD">
-      <div style="font-size:10px;letter-spacing:.08em;color:#B58C52;font-weight:700;text-transform:uppercase">${esc(thread.protocol)} · ${esc(thread.type)}</div>
-      <div style="font-size:15px;line-height:1.4;color:#2B2B2B;font-weight:700;margin:4px 0">${esc(thread.title)}</div>
-      <div style="font-size:12px;color:#7D716B">${thread.count} mensagem${thread.count === 1 ? "" : "s"} nova${thread.count === 1 ? "" : "s"}</div>
-      <div style="margin-top:8px"><a href="${esc(thread.url)}" style="font-size:12px;color:#5A1E2D;font-weight:700;text-decoration:none">Abrir conversa →</a></div>
+    <tr><td style="padding:14px 0;border-bottom:1px solid ${emailColors.lineSoft}">
+      <div style="font-size:10px;letter-spacing:.08em;color:${emailColors.accentText};font-weight:700;text-transform:uppercase">${esc(thread.protocol)} · ${esc(thread.type)}</div>
+      <div style="font-size:15px;line-height:1.4;color:${emailColors.text};font-weight:700;margin:4px 0">${esc(thread.title)}</div>
+      <div style="font-size:12px;color:${emailColors.textMuted}">${thread.count} mensagem${thread.count === 1 ? "" : "s"} nova${thread.count === 1 ? "" : "s"}</div>
+      <div style="margin-top:8px"><a href="${esc(thread.url)}" style="font-size:12px;color:${emailColors.brand};font-weight:700;text-decoration:none">Abrir conversa →</a></div>
     </td></tr>`).join("");
-  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#F7F3EE;font-family:Arial,Helvetica,sans-serif;color:#2B2B2B">
+  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:${emailColors.page};font-family:Arial,Helvetica,sans-serif;color:${emailColors.text}">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 14px">
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#fff;border:1px solid #E8DDD4;border-radius:18px;overflow:hidden">
-      <tr><td style="padding:20px 26px;border-bottom:1px solid #E8DDD4;background:#FFFDFB">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:${emailColors.surface};border:1px solid ${emailColors.line};border-radius:18px;overflow:hidden">
+      <tr><td style="padding:20px 26px;border-bottom:1px solid ${emailColors.line};background:${emailColors.surfaceSoft}">
         <table width="100%" cellpadding="0" cellspacing="0"><tr>
           <td align="left"><img src="${LOGO_URL}" alt="CALI Workspace" width="150" style="display:block;max-width:150px;height:auto"></td>
           <td align="right"><img src="${MARK_URL}" alt="" width="34" height="34" style="display:block;width:34px;height:34px;object-fit:contain"></td>
         </tr></table>
       </td></tr>
       <tr><td style="padding:30px 30px 26px">
-        <div style="font-size:10px;letter-spacing:.12em;color:#B58C52;font-weight:700;margin-bottom:8px">RESUMO DO SEU CANAL COM A CALI</div>
-        <h1 style="font-family:Georgia,serif;font-size:25px;line-height:1.25;font-weight:400;color:#5A1E2D;margin:0 0 12px">Você tem mensagens novas no Workspace</h1>
+        <div style="font-size:10px;letter-spacing:.12em;color:${emailColors.accentText};font-weight:700;margin-bottom:8px">RESUMO DO SEU CANAL COM A CALI</div>
+        <h1 style="font-family:Georgia,serif;font-size:25px;line-height:1.25;font-weight:400;color:${emailColors.brand};margin:0 0 12px">Você tem mensagens novas no Workspace</h1>
         <p style="font-size:15px;line-height:1.65;margin:0 0 8px">Olá, ${esc(name || "tudo bem?")}. Há <strong>${totalMessages}</strong> mensagem${totalMessages === 1 ? "" : "s"} nova${totalMessages === 1 ? "" : "s"} em ${threads.length} conversa${threads.length === 1 ? "" : "s"} que ainda não foram lidas.</p>
-        <p style="font-size:13px;line-height:1.55;color:#7D716B;margin:0 0 22px">${esc(companyLabel)}</p>
+        <p style="font-size:13px;line-height:1.55;color:${emailColors.textMuted};margin:0 0 22px">${esc(companyLabel)}</p>
         <table width="100%" cellpadding="0" cellspacing="0">${rows}</table>
-        <div style="text-align:center;margin:26px 0 18px"><a href="${APP_URL}" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir CALI Workspace</a></div>
-        <div style="height:1px;background:#EAE1D8;margin-bottom:16px"></div>
-        <p style="font-size:12px;color:#8C807A;margin:0">Este é o resumo diário das conversas. Novas mensagens continuam chegando em tempo real dentro da plataforma, sem gerar um e-mail a cada resposta.</p>
-        <p style="font-size:12px;line-height:1.6;color:#8C807A;margin:10px 0 0">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_URL}" style="color:#5A1E2D;text-decoration:underline">Workspace</a>.</p>
+        <div style="text-align:center;margin:26px 0 18px"><a href="${APP_URL}" style="display:inline-block;background:${emailColors.brand};color:${emailColors.onBrand};text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir CALI Workspace</a></div>
+        <div style="height:1px;background:${emailColors.line};margin-bottom:16px"></div>
+        <p style="font-size:12px;color:${emailColors.textMuted};margin:0">Este é o resumo diário das conversas. Novas mensagens continuam chegando em tempo real dentro da plataforma, sem gerar um e-mail a cada resposta.</p>
+        <p style="font-size:12px;line-height:1.6;color:${emailColors.textMuted};margin:10px 0 0">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_URL}" style="color:${emailColors.brand};text-decoration:underline">Workspace</a>.</p>
       </td></tr>
     </table>
   </td></tr></table></body></html>`;
@@ -86,7 +90,7 @@ Deno.serve(async (req: Request) => {
 
     const userIds = [...new Set(rows.map((row) => row.user_id).filter(Boolean))];
     const companyIds = [...new Set(rows.map((row) => row.company_id).filter(Boolean))];
-    const recordIds = [...new Set(rows.map((row) => row.entity_id).filter(Boolean))] as string[];
+    const recordIds = [...new Set(rows.map((row) => row.entity_id).filter((id): id is string => Boolean(id)))];
     const [profilesResult, companiesResult, recordsResult] = await Promise.all([
       ws.from("profiles").select("id,email,full_name,active").in("id", userIds),
       ws.from("companies").select("id,display_name").in("id", companyIds),
@@ -96,16 +100,16 @@ Deno.serve(async (req: Request) => {
     if (companiesResult.error) throw companiesResult.error;
     if (recordsResult.error) throw recordsResult.error;
 
-    const profiles = new Map((profilesResult.data || []).map((row: any) => [row.id, row]));
-    const companies = new Map((companiesResult.data || []).map((row: any) => [row.id, row.display_name]));
+    const profiles = new Map<string, ProfileRow>((profilesResult.data || []).map((row) => [row.id, row]));
+    const companies = new Map<string, string | null>((companiesResult.data || []).map((row) => [row.id, row.display_name]));
     const records = new Map(((recordsResult.data || []) as RecordRow[]).map((row) => [row.id, row]));
     const grouped = new Map<string, NotificationRow[]>();
     rows.forEach((row) => grouped.set(row.user_id, [...(grouped.get(row.user_id) || []), row]));
 
     let sent = 0;
     for (const [userId, userRows] of grouped) {
-      const profile: any = profiles.get(userId);
-      if (!profile?.active || !profile.email) continue;
+      const profile = profiles.get(userId);
+      if (!profile?.active || !profile.email || !emailDestinationsAllowed([String(profile.email)])) continue;
       const threadMap = new Map<string, Thread>();
       for (const notification of userRows) {
         const record = notification.entity_id ? records.get(notification.entity_id) : undefined;
@@ -123,7 +127,7 @@ Deno.serve(async (req: Request) => {
         });
       }
       const threads = [...threadMap.values()];
-      const companyNames = [...new Set(threads.map((thread) => companies.get(thread.companyId)).filter(Boolean))] as string[];
+      const companyNames = [...new Set(threads.map((thread) => companies.get(thread.companyId)).filter((name): name is string => Boolean(name)))];
       const companyLabel = companyNames.length === 1 ? companyNames[0] : companyNames.length > 1 ? companyNames.join(" · ") : "Sua conta CALI";
       const total = userRows.length;
       const subject = `CALI Workspace · ${companyLabel} · ${total} mensagem${total === 1 ? "" : "s"} pendente${total === 1 ? "" : "s"}`;

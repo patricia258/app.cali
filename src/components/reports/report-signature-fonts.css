@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Allura&family=Bodoni+Moda:ital,wght@1,500&family=Cormorant+Garamond:ital,wght@1,500&family=Italianno&family=Libre+Caslon+Text:ital@1&family=Mrs+Saint+Delafield&family=Pinyon+Script&family=Sacramento&display=swap');
+
+/* V59 · assinatura profissional: lista suspensa compacta + presets adultos */
+@reference "../../styles/tailwind.css";
+
+/* Os novos presets evitam fontes infantis e usam famílias caligráficas/editoriais de registro. */
+.signature-style-executive,.signature-style-executive span{font-family:"Cormorant Garamond",Baskerville,Georgia,serif!important;@apply tw:italic!;font-weight:500!important;letter-spacing:-.025em!important}
+.signature-style-editorial,.signature-style-editorial span{font-family:"Bodoni Moda",Didot,"Times New Roman",serif!important;@apply tw:italic!;font-weight:500!important;letter-spacing:-.035em!important}
+.signature-style-notarial,.signature-style-notarial span{font-family:"Libre Caslon Text",Baskerville,Georgia,serif!important;@apply tw:italic!;font-weight:400!important;letter-spacing:-.02em!important}
+.signature-style-heritage,.signature-style-heritage span{font-family:"Pinyon Script","Snell Roundhand",cursive!important;@apply tw:not-italic!;font-weight:400!important;letter-spacing:0!important}
+.signature-style-calligraphic,.signature-style-calligraphic span{font-family:"Mrs Saint Delafield","Apple Chancery",cursive!important;@apply tw:not-italic!;font-weight:400!important;letter-spacing:.01em!important}
+.signature-style-autograph,.signature-style-autograph span{font-family:"Allura","Monotype Corsiva",cursive!important;@apply tw:not-italic!;font-weight:400!important;letter-spacing:0!important}
+.signature-style-contemporary,.signature-style-contemporary span{font-family:"Sacramento","Segoe Script",cursive!important;@apply tw:not-italic!;font-weight:400!important;letter-spacing:-.01em!important}
+.signature-style-italian,.signature-style-italian span{font-family:"Italianno","Apple Chancery",cursive!important;@apply tw:not-italic!;font-weight:400!important;letter-spacing:.005em!important}
+.signature-style-minimal,.signature-style-minimal span{font-family:"Playfair Display",Baskerville,Georgia,serif!important;@apply tw:italic!;font-weight:600!important;letter-spacing:-.045em!important}
+.signature-style-personal,.signature-style-personal span{font-family:"Alex Brush","Snell Roundhand",cursive!important;@apply tw:not-italic!;font-weight:400!important;letter-spacing:0!important}
+
+.report-signature-generated-v55.signature-style-executive,.report-signature-generated-v55.signature-style-editorial,.report-signature-generated-v55.signature-style-notarial,.report-signature-generated-v55.signature-style-heritage,.report-signature-generated-v55.signature-style-calligraphic,.report-signature-generated-v55.signature-style-autograph,.report-signature-generated-v55.signature-style-contemporary,.report-signature-generated-v55.signature-style-italian,.report-signature-generated-v55.signature-style-minimal,.report-signature-generated-v55.signature-style-personal{@apply tw:text-cali-brand!;text-rendering:geometricPrecision}
+.report-signature-generated-v55.signature-style-calligraphic{font-size:20pt!important}
+.report-signature-generated-v55.signature-style-heritage,.report-signature-generated-v55.signature-style-autograph,.report-signature-generated-v55.signature-style-personal{font-size:18pt!important}
+
+@media print{
+  .report-signature-generated-v55.signature-style-executive,.report-signature-generated-v55.signature-style-editorial,.report-signature-generated-v55.signature-style-notarial,.report-signature-generated-v55.signature-style-heritage,.report-signature-generated-v55.signature-style-calligraphic,.report-signature-generated-v55.signature-style-autograph,.report-signature-generated-v55.signature-style-contemporary,.report-signature-generated-v55.signature-style-italian,.report-signature-generated-v55.signature-style-minimal,.report-signature-generated-v55.signature-style-personal{@apply tw:text-cali-brand!}
+}
+.report-signature-generated-v55{font-family:"Segoe Script","Bradley Hand","Snell Roundhand",cursive;@apply tw:text-[29px] tw:italic;@apply tw:text-cali-brand}
+.report-signature-image-v55{max-width:160px;max-height:34px;@apply tw:object-contain}
+@media print{
+.report-signature-generated-v55{@apply tw:text-cali-brand!}}
+@media print{
+.report-signature-image-v55{filter:none!important}}
+.signature-style-classic,.signature-style-classic span{font-family:"Snell Roundhand","Segoe Script","Brush Script MT",cursive!important;@apply tw:italic}
+.signature-style-fluid,.signature-style-fluid span{font-family:"Apple Chancery","Monotype Corsiva","URW Chancery L",cursive!important;@apply tw:italic}
+.signature-style-delicate,.signature-style-delicate span{font-family:"Segoe Print","Bradley Hand","Lucida Handwriting",cursive!important;@apply tw:not-italic}
+.signature-style-formal,.signature-style-formal span{font-family:Baskerville,"Times New Roman",serif!important;@apply tw:italic;@apply tw:font-medium}
+.report-signature-generated-v55.signature-style-classic,.report-signature-generated-v55.signature-style-fluid,.report-signature-generated-v55.signature-style-delicate,.report-signature-generated-v55.signature-style-formal{@apply tw:text-cali-brand!}
+@media print{
+.report-signature-generated-v55.signature-style-classic,.report-signature-generated-v55.signature-style-fluid,.report-signature-generated-v55.signature-style-delicate,.report-signature-generated-v55.signature-style-formal{@apply tw:text-cali-brand!}}

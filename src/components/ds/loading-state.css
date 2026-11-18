@@ -1,0 +1,12 @@
+@reference "../../styles/tailwind.css";
+/* Carregamento padrão do Workspace (combinado com a Patricia): a lima e a folha da marca, pequenas e suaves, alternando.
+   Vale para todo aviso de carregamento das páginas V2 — o texto fica só para leitores de tela. */
+html[data-workspace-ui='v2'] :is(.data-loading,.portal-admin-loading){@apply tw:relative! tw:block!;min-height:140px!important;@apply tw:m-0 tw:p-0!;border:0!important;background:transparent!important;box-shadow:none!important;@apply tw:text-transparent!;font-size:0!important;line-height:0!important;@apply tw:overflow-hidden}
+html[data-workspace-ui='v2'] :is(.page,.v2-client-module,.wf,section).data-loading:not(.panel){min-height:46vh!important}
+html[data-workspace-ui='v2'] :is(.data-loading,.portal-admin-loading)>*{@apply tw:hidden!}
+html[data-workspace-ui='v2'] :is(.data-loading,.portal-admin-loading)::before,html[data-workspace-ui='v2'] :is(.data-loading,.portal-admin-loading)::after{content:'';@apply tw:absolute tw:top-[50%];@apply tw:left-[50%];width:var(--cali-loader-size);height:var(--cali-loader-size);margin:calc(var(--cali-loader-size) / -2) 0 0 calc(var(--cali-loader-size) / -2);opacity:0;-webkit-mask:center/contain no-repeat;mask:center/contain no-repeat}
+html[data-workspace-ui='v2'] :is(.data-loading,.portal-admin-loading)::before{background:var(--cali-color-burgundy);-webkit-mask-image:url('/brand/cali-lime-mark.svg');mask-image:url('/brand/cali-lime-mark.svg');animation:v2-loading-lime var(--cali-loader-cycle) ease-in-out infinite}
+html[data-workspace-ui='v2'] :is(.data-loading,.portal-admin-loading)::after{background:var(--cali-color-gold);-webkit-mask-image:url('/brand/cali-oak-mark.svg');mask-image:url('/brand/cali-oak-mark.svg');animation:v2-loading-oak var(--cali-loader-cycle) ease-in-out infinite}
+@keyframes v2-loading-lime{0%,8%{opacity:0;transform:scale(.9) rotate(-5deg)}18%,44%{opacity:.7;transform:none}54%,100%{opacity:0;transform:scale(.94) rotate(3deg)}}
+@keyframes v2-loading-oak{0%,46%{opacity:0;transform:scale(.9) rotate(4deg)}58%,84%{opacity:.7;transform:none}94%,100%{opacity:0;transform:scale(.94) rotate(-3deg)}}
+@media(prefers-reduced-motion:reduce){html[data-workspace-ui='v2'] :is(.data-loading,.portal-admin-loading)::before{animation:none;opacity:.7}html[data-workspace-ui='v2'] :is(.data-loading,.portal-admin-loading)::after{animation:none}}

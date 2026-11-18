@@ -1,0 +1,129 @@
+/* Document-shell tokens and document-root behavior for screen, portals and print. */
+:where(html[data-workspace-surface='admin-documents']) {
+  --surface: rgb(var(--cali-rgb-sand-surface)/0.88);
+  --document-canvas: var(--cali-color-neutral-soft);
+  --document-root: var(--cali-color-sand-surface);
+
+  &:root {
+    min-height: 100%;
+    height: auto;
+    overflow-x: clip;
+    overflow-y: auto;
+    overscroll-behavior: none;
+    background: var(--document-canvas);
+    scroll-behavior: smooth;
+  }
+
+  &, * {
+    scrollbar-width: none;
+  }
+
+  &:root body {
+    min-height: 100vh;
+    height: auto;
+    overflow-x: clip;
+    overflow-y: visible;
+    overscroll-behavior: none;
+    background: var(--document-canvas);
+    color: var(--graphite);
+    font-family: var(--cali-font-body);
+    font-size: .875rem;
+
+    &.workspace-modal-open {
+      overflow: hidden;
+
+      #root {
+        overflow: visible;
+      }
+    }
+  }
+
+  #root {
+    min-height: 100vh;
+    background: var(--document-root);
+  }
+
+  :is(button, input, select, textarea):not(.v2-client-module *, [data-document-action]) {
+    font-size: .875rem !important;
+  }
+
+  :is(input, select, textarea) {
+    transition:
+      background-color .22s ease,
+      background .22s ease,
+      color .22s ease,
+      border-color .22s ease,
+      box-shadow .22s ease,
+      transform .18s ease;
+  }
+
+  .app-shell[data-visual-system='v2'][data-workspace-role] {
+    --v2-canvas: var(--cali-color-sand-soft);
+    --v2-surface: var(--cali-color-neutral-surface);
+    --v2-text: var(--cali-color-neutral-strong);
+    --v2-muted: var(--cali-color-neutral-accent);
+    --v2-line: var(--cali-color-sand-line);
+    --v2-accent: var(--cali-color-burgundy-accent);
+    --v2-gold: var(--cali-color-gold-accent);
+  }
+
+  &[data-workspace-theme='night'] {
+    --document-canvas: var(--cali-color-neutral-inverse);
+    --document-root: var(--theme-page);
+
+    &, body, #root {
+      color: var(--theme-text);
+    }
+
+    .app-shell[data-visual-system='v2'][data-workspace-role] {
+      --v2-canvas: var(--cali-color-burgundy-inverse);
+      --v2-surface: var(--cali-color-burgundy-strong);
+      --v2-text: var(--cali-color-sand-soft);
+      --v2-muted: var(--cali-color-sand-accent);
+      --v2-line: var(--cali-color-neutral-text);
+      --v2-accent: var(--cali-color-burgundy-soft);
+      --v2-gold: var(--cali-color-orange-soft);
+    }
+
+    :is(h1, h2, h3, h4), .main :is(strong, b) {
+      color: var(--theme-text) !important;
+    }
+
+    .main :is(p, small, label, .muted) {
+      color: var(--theme-muted) !important;
+    }
+
+    :is(tr, td, th) {
+      border-color: var(--theme-line) !important;
+    }
+
+    :is(input, select, textarea) {
+      background-color: var(--theme-input) !important;
+      border-color: var(--theme-input-border) !important;
+      color: var(--theme-text) !important;
+      caret-color: var(--theme-accent);
+
+      &::placeholder {
+        color: var(--cali-color-sand-text);
+      }
+
+      &:focus {
+        border-color: rgb(var(--cali-rgb-burgundy-line)/0.48) !important;
+        box-shadow: 0 0 0 .1875rem rgb(var(--cali-rgb-burgundy-line)/0.09);
+      }
+    }
+
+    select {
+      color-scheme: dark;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &, *, *::before, *::after {
+      scroll-behavior: auto !important;
+      transition-duration: .01ms !important;
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+}

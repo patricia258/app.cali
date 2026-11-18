@@ -1,0 +1,10 @@
+@keyframes cali-loading-lime {
+  0%, 8% { opacity: 0; transform: scale(.88) rotate(-6deg); }
+  18%, 44% { opacity: .88; transform: scale(1) rotate(0); }
+  54%, 100% { opacity: 0; transform: scale(.93) rotate(4deg); }
+}
+@keyframes cali-loading-oak {
+  0%, 46% { opacity: 0; transform: scale(.9) rotate(5deg); }
+  58%, 84% { opacity: .88; transform: scale(1) rotate(0); }
+  94%, 100% { opacity: 0; transform: scale(.92) rotate(-4deg); }
+}

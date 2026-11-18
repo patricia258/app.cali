@@ -1,0 +1,67 @@
+export type CategorySlug = 'policy' | 'manual' | 'flow' | 'guide' | 'report' | 'onboarding' | 'deliverable' | 'schedule' | 'contract' | 'reference' | 'other';
+export type DocumentStatus = 'draft' | 'published' | 'archived';
+export type WorkflowStage = 'preparation' | 'awaiting_final_file' | 'ready_to_publish' | 'published' | 'archived';
+export type SourceMode = 'upload' | 'drive';
+export type EditorMode = 'new' | 'complete' | 'revision';
+
+export type CompanyOption = { id: string; name: string; logoUrl?: string | null };
+export type ProjectOption = { id: string; companyId: string; name: string };
+export type DeliverableOption = { id: string; companyId: string; projectId?: string | null; title: string; status?: string | null; protocol?: string | null; parts?: number };
+export type ProfileOption = { id: string; companyId?: string | null; role: string; active: boolean };
+export type DriveConnection = { id: string; accountEmail?: string | null; rootFolderName?: string | null; lastSyncAt?: string | null; status: string };
+export type FileComment = { id: string; body: string; clientVisible: boolean; createdAt: string };
+
+export type DocumentRow = {
+  id: string;
+  title: string;
+  companyId: string;
+  company: string;
+  companyLogo?: string | null;
+  projectId?: string | null;
+  project?: string | null;
+  deliverableId?: string | null;
+  deliverable?: string | null;
+  category: CategorySlug;
+  kind: string;
+  version: string;
+  updatedAt: string;
+  publishedAt?: string | null;
+  sourceType: 'workspace' | 'google_drive' | 'external';
+  status: DocumentStatus;
+  workflowStage: WorkflowStage;
+  workflowOrigin: 'manual' | 'deliverable' | 'project_attachment';
+  clientVisible: boolean;
+  protocol: string;
+  coverUrl?: string;
+  coverStoragePath?: string | null;
+  fileType?: string;
+  fileSizeBytes?: number;
+  originalFilename?: string | null;
+  requiresAcknowledgement: boolean;
+  storagePath?: string | null;
+  driveUrl?: string | null;
+  description?: string | null;
+  revisionOfId?: string | null;
+  views: number;
+  acknowledgements: number;
+  expectedAcknowledgements: number;
+  comments: number;
+  validUntil?: string | null;
+};
+
+export type FormState = {
+  title: string;
+  companyId: string;
+  projectId: string;
+  deliverableId: string;
+  category: CategorySlug;
+  kind: string;
+  version: string;
+  description: string;
+  publish: boolean;
+  requiresAcknowledgement: boolean;
+  sourceMode: SourceMode;
+  driveUrl: string;
+  revisionOfId: string;
+  validUntil: string;
+};

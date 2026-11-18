@@ -1,3 +1,6 @@
+import { emailColors } from '../_shared/email-colors.ts';
+import type { NotificationDb } from "./database.ts";
+
 type DeclinedExtraNotification = {entity_id:string;company_id:string;user_id:string;title:string;body:string|null};
 type ExtraMode = "extra_presential_declined" | "extra_online_declined";
 const esc = (text:string) => text.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
@@ -8,7 +11,7 @@ const dateStr = (slot: {startsAt?: string}) => {
     month:"long",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(milliseconds));
 };
 export async function declinedExtraFields(
-  ws:any,
+  ws:NotificationDb,
   n:DeclinedExtraNotification,
   template:ExtraMode,
 ):Promise<{fields:Record<string,string>;blocks:{bloco_motivo:string}}> {
@@ -41,7 +44,7 @@ export async function declinedExtraFields(
     fields.valor=cents===20000?"R$ 200,00":"R$ 300,00";
   }
   const blocks={bloco_motivo:note
-    ? '<tr><td valign="top" width="34%" style="padding:10px 9px 10px 0;color:#8C807A;font:12px/19px Arial,Helvetica,sans-serif;">Motivo informado</td><td valign="top" style="padding:10px 0;color:#2B2B2B;font:600 14px/21px Arial,Helvetica,sans-serif;">'+esc(note)+'</td></tr>'
+    ? `<tr><td valign="top" width="34%" style="padding:10px 9px 10px 0;color:${emailColors.textMuted};font:12px/19px Arial,Helvetica,sans-serif;">Motivo informado</td><td valign="top" style="padding:10px 0;color:${emailColors.text};font:600 14px/21px Arial,Helvetica,sans-serif;">`+esc(note)+'</td></tr>'
     : ""};
   return {fields,blocks};
 }

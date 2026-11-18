@@ -1,0 +1,22 @@
+/* Mantém os valores do tema compacto após as folhas base do Workspace. */
+html[data-workspace-ui='v2'] {
+  --theme-page: var(--cali-color-sand-soft);
+  --theme-page-2: var(--cali-color-sand-soft);
+  --theme-surface: var(--cali-color-neutral-surface);
+  --theme-surface-soft: var(--cali-color-sand-soft);
+  --theme-surface-muted: var(--cali-color-neutral-soft);
+  --theme-text: var(--cali-color-neutral-strong);
+  --theme-muted: var(--cali-color-neutral-accent);
+  --theme-line: var(--cali-color-sand-line);
+  --theme-line-strong: var(--cali-color-neutral-line);
+  --theme-elevated-shadow: 0 20px 80px rgb(var(--cali-rgb-neutral-inverse)/0.2667);
+  --theme-input: var(--cali-color-neutral-surface);
+  --theme-input-border: var(--cali-color-sand-line);
+  --theme-accent: var(--cali-color-burgundy-accent);
+  --theme-accent-soft: var(--cali-color-red-surface);
+  --theme-gold: var(--cali-color-gold-accent);
+  --theme-gold-soft: var(--cali-color-gold-surface);
+  --theme-success: var(--cali-color-green-accent);
+  --theme-success-soft: var(--cali-color-green-surface);
+  --theme-danger: var(--cali-color-red-accent);
+}
