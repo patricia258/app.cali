@@ -12,6 +12,8 @@ Após solicitar o código, a tela mostra a contagem de dois minutos para reenvia
 
 O código vale por dez minutos e pode ser usado uma vez. Se a Edge aceitar o código e o navegador falhar ao abrir a sessão, a tela informa a falha de sessão e orienta pedir outro código.
 
+Na manutenção administrativa de e-mail, preserve a identidade Auth e o UUID do perfil. O TOTP permanece vinculado ao mesmo usuário; a alteração do perfil corta as sessões anteriores e exige novo login. O acesso Admin depende de perfil ativo, correspondência Auth/perfil/JWT, sessão e MFA, sem endereço fixo na autorização. Um endereço já usado por outra identidade exige reconciliação explícita, com ambas as contas e seus históricos preservados. [Contrato de identidade](../../tests/contracts/admin-identity.sql) · [Procedimento e dados](../DATA_CONTRACTS.md#identidade-administrativa-e-troca-de-e-mail)
+
 **Alvo.** Convite válido → login → segundo fator Admin e Partner → aceite pessoal vigente → rota autorizada. Revogação corta também JWTs antigos em RPC, Edge, Data API e Storage conforme o escopo da operação. Reativação exige nova sessão. Exigir as mesmas guardas para entrada direta, inclusive impressão Partner. [Contrato de acesso](../contracts/ACCESS.md) · [Equipe CALI e Partner](PARTNER.md#flow-15)
 
 **Aceite.** Testar emissão concorrente, código errado ou expirado, consumo único, callback e retorno seguro. Validar falha e retry de MFA/termos, login de cada papel, troca de sessão, refresh e logout. Tentar o mesmo JWT antes e depois de revogar e reativar. Cliente A e B devem permanecer isolados em UI e nas superfícies diretas.

@@ -14,6 +14,14 @@ Este documento define a execução no app.cali a partir da referência `773c9d4`
 
 A [matriz de permissões](PERMISSIONS.md) define quem pode operar cada fluxo.
 
+## Identidade administrativa e troca de e-mail
+
+`cali_workspace.is_admin()` autoriza o perfil ativo com papel `admin` cujo ID corresponde à sessão Auth. O endereço normalizado deve coincidir no perfil, em `auth.users` e no JWT; sessão vigente e MFA continuam obrigatórios. A regra não mantém uma lista fixa de endereços. [Migration](../supabase/migrations/20261118150000_admin_identity_follows_profile.sql) · [Contrato SQL](../tests/contracts/admin-identity.sql)
+
+A manutenção de um endereço usa a API administrativa de Auth para manter coerentes `auth.users` e a identidade de provedor `email`, seguida da atualização do perfil correspondente. Preserve o UUID, os fatores MFA e os vínculos de negócio. O trigger de alteração do perfil registra o corte; a pessoa deve entrar novamente e cumprir o MFA existente. Uma sessão com o endereço anterior não ganha acesso pelo simples reaproveitamento do ID.
+
+Se o endereço desejado já pertence a outra identidade, interrompa a troca até identificar seus vínculos e decidir a reconciliação. Preserve também essa identidade e seus históricos; não a exclua nem transfira privilégios só porque controla o mesmo endereço. Backup, endereços envolvidos, recibos e comparação de fatores ficam nos artefatos privados da operação, fora do Git.
+
 ## Contratos por lote
 
 | Prioridade | Fonte local e candidata | Contrato de adoção e aceite |

@@ -20,3 +20,6 @@ for contract in session onboarding feedback legacy-feedback-upgrade timer calend
     printf '\nrollback;\n'
   } | docker exec -i "$container" psql -U cali_restore_admin -d postgres -Xq -v ON_ERROR_STOP=1
 done
+
+printf 'Contrato SQL de identidade administrativa e troca de e-mail\n'
+docker exec -i "$container" psql -U cali_restore_admin -d postgres -Xq -v ON_ERROR_STOP=1 < admin-identity.sql
