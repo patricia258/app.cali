@@ -203,7 +203,7 @@ function statusLabel(status: WorkflowStatus | null | undefined, role: Role) {
 function RecordsFrame({ staff, role, children }: { staff: boolean; role: Role; children: ReactNode }) { return staff ? <>{children}</> : <Shell role={role}>{children}</Shell>; }
 /* `staff`: o Partner (Equipe CALI) usa esta mesma tela da administradora, com as funções "partner_*" do banco:
    conversa com o cliente e nota interna, Assumir / Aguardar cliente / Stand by / Retomar, cronômetro que vai para aprovação
-   e "Enviar para aprovação da Patricia" no lugar de Finalizar. Sem criar, enriquecer ou excluir registros. */
+   e "Enviar para aprovação da Administração CALI" no lugar de Finalizar. Sem criar, enriquecer ou excluir registros. */
 export type StaffRecordsScope = { companies: Company[] };
 export function StaffRecordsPage({ companies }: StaffRecordsScope) { return <WorkspaceRecordsPage role="admin" staff={{ companies }} />; }
 const adminFilterClass = 'tw:h-11 tw:flex-[0_1_14.62rem]';
@@ -539,7 +539,7 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     const result = await requestPartnerRecordClose(selected.id);
     setStatusSaving(false);
     if (result.error) { setError(result.error.message || 'Não foi possível enviar para aprovação.'); return; }
-    setCloseRequested((current) => ({ ...current, [selected.id]: true })); setNotice('Encerramento enviado para a Patricia aprovar.');
+    setCloseRequested((current) => ({ ...current, [selected.id]: true })); setNotice('Encerramento enviado para a Administração CALI aprovar.');
   }
   async function staffLoadTimer(recordId: string) {
     if (!recordsAvailable || !staff || !user?.id) return;
@@ -553,7 +553,7 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
       const result = await stopPartnerRecordTimer(staffTimer.id);
       if (result.error) { setError(result.error.message || 'Não foi possível pausar o cronômetro.'); return; }
       const outcome = result.data as { discarded?: boolean; minutes?: number } | null;
-      setStaffTimer(null); setNotice(outcome?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${outcome?.minutes} min enviada para aprovação da Patrícia.`);
+      setStaffTimer(null); setNotice(outcome?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${outcome?.minutes} min enviada para aprovação da Administração CALI.`);
     } else {
       const result = await startPartnerRecordTimer(selected.id);
       if (result.error) { setError(result.error.message || 'Não foi possível iniciar o cronômetro.'); return; }
@@ -723,8 +723,8 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
             {selected.workflowStatus === 'in_progress' && <><Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('waiting_client')}>Aguardar cliente</Button><Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('standby')}>Stand by</Button></>}
             {selected.workflowStatus === 'waiting_client' && <><Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Retomar</Button><Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('standby')}>Stand by</Button></>}
             {selected.workflowStatus === 'standby' && <Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Retomar</Button>}
-            {['in_progress', 'waiting_client', 'standby'].includes(selected.workflowStatus) && <Button className={recordDrawerPrimary} variant="primary" disabled={statusSaving || closeRequested[selected.id]} onClick={() => void staffRequestClose()}>{closeRequested[selected.id] ? 'Aguardando a Patricia' : 'Enviar para aprovação da Patricia'}</Button>}
-            {['completed', 'cancelled'].includes(selected.workflowStatus) && <span className="tw:text-cali-body tw:text-cali-muted">Ocorrência encerrada. Só a Patricia pode reabrir.</span>}
+            {['in_progress', 'waiting_client', 'standby'].includes(selected.workflowStatus) && <Button className={recordDrawerPrimary} variant="primary" disabled={statusSaving || closeRequested[selected.id]} onClick={() => void staffRequestClose()}>{closeRequested[selected.id] ? 'Aguardando a Administração CALI' : 'Enviar para aprovação da Administração CALI'}</Button>}
+            {['completed', 'cancelled'].includes(selected.workflowStatus) && <span className="tw:text-cali-body tw:text-cali-muted">Ocorrência encerrada. Só a Administração CALI pode reabrir.</span>}
           </div>
         </footer>}
         {role === 'admin' && !staff && <footer className={recordDrawerFooter}>

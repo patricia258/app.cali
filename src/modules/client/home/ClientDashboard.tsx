@@ -301,8 +301,8 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
 
   const contact = data.responsibles?.executive;
   const supportPartner = data.responsibles?.supportPartner;
-  const contactName = contact?.full_name || 'Patrícia Lima';
-  const contactRole = contact?.job_title || 'People Advisory Executive';
+  const contactName = contact?.full_name || 'Equipe CALI';
+  const contactRole = contact?.job_title || 'Atendimento CALI';
 
   return (
     <Shell role="client">

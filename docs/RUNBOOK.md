@@ -18,7 +18,7 @@ Configure a URL e a chave pública do Supabase de teste conforme [o exemplo de a
 
 1. Obtenha a estrutura do destino em leitura. Inclua schemas e dependências, grants, políticas, funções e triggers. Inventarie separadamente Edge Functions, Storage, Realtime, jobs e configurações de Auth.
 2. Restaure o dump de estrutura do CALI MAPA no destino isolado, aplique as migrations da branch e reconcilie o catálogo. O dump é a base do replay aceito. [Evidência do catálogo](DATA_CONTRACTS.md#autoridade-e-níveis-de-evidência)
-3. Carregue dados sintéticos representativos do legado. Inclua empresa, acessos, IDs, estados, anexos, links emitidos e alterações equivalentes às da versão publicada.
+3. No ensaio de upgrade, carregue dados sintéticos representativos do legado antes das migrations da candidata. Inclua empresa, acessos, IDs, estados, anexos, links emitidos e operações em andamento. Fotografe os vínculos e compare depois da instalação. Mantenha separado o laboratório de funcionalidades que recebe fixtures após as migrations.
 4. Verifique os alvos dos efeitos antes da execução. Registre revisão do app, schema e função Edge usados nas provas. Valide restauração e retorno à versão anterior quando houver alteração de dados.
 
 ## Ambiente local desta consolidação
@@ -28,6 +28,14 @@ O snapshot de 12/11/2026 contém a estrutura do CALI MAPA. A partir da raiz, rod
 O app abre em `http://127.0.0.1:56430`, com API local em `http://127.0.0.1:56431` e captura de e-mail em `http://127.0.0.1:56432`. O diretório local ignorado `.cali-db-schema.local/qa` contém os comandos de retomada, o ambiente de teste e as provas. A Edge de acesso usa Mailpit no laboratório. O Admin sintético entra por uma adaptação local da lista de e-mails permitidos, com MFA e termos ativos. Auth e Storage usam histórico de inicialização dos serviços Docker locais. O Realtime inicializa seu schema gerenciado na cópia de QA e usa a publicação de tabelas do app restaurada. As contas, arquivos e senhas de teste são gerados localmente.
 
 O smoke de partida cobriu login por código, MFA, aceite e isolamento por empresa na API, no Storage e no Realtime. O preflight do Auth no proxy local deve autorizar `x-supabase-api-version` para `http://127.0.0.1:56430`. O teste de navegador verifica esse cabeçalho e usa a rede real do laboratório para autenticar. O aceite de todas as jornadas segue a [matriz local](CONSOLIDATION_ACCEPTANCE.md).
+
+## Limpeza de dados de teste
+
+Delimite cada limpeza por IDs e origem comprovada, incluindo as exclusões pedidas pelo responsável. Nome contendo “teste”, autoria do desenvolvedor ou associação indireta não bastam para autorizar uma remoção. O manifesto distingue empresas, dependentes, arquivos, identidades Auth e configuração global.
+
+Antes de gravar, copie o recorte para um diretório local privado e ignorado pelo Git, incluindo binários e objetos Storage. Preserve a representação textual dos valores JSON para manter a escala numérica. Confira tamanhos e hashes e ensaie restauração e exclusão em banco isolado sem rede. Uma cópia parcial não autoriza a remoção da parte ainda sem backup.
+
+A execução usa transação, hashes de preimagem e comparação dos registros fora do manifesto. Resolva ciclos de FK apenas nos registros do escopo e mantenha constraints e triggers de produção ativos. Confira também cópias geradas na lixeira. No Storage, valide IDs, caminhos completos e versões antes de remover os objetos específicos, preservando os demais. Resposta ambígua de mutação exige leitura do estado antes de qualquer nova tentativa. Guarde o recibo e os resultados de verificação junto do backup, sem dados privados ou credenciais no PR.
 
 ## Preview e corte
 
@@ -46,4 +54,8 @@ Os hooks `edge_url_workspace_notification_email_hook`, `edge_url_workspace_admin
 
 Em homologação, `partner_timer_admin_email` identifica a conta Admin de teste que recebe o alerta do cronômetro. A configuração padrão é a Patrícia. O resumo diário usa `0 22 * * *` no catálogo em UTC, correspondente a 19h de Brasília.
 
-Em um corte futuro de produção, reconcilie as gravações da última janela, verifique vínculos e contagens e confirme o caminho de retorno. Preserve os contratos utilizados pela revisão anterior durante a transição. [Migração e compatibilidade](DATA_CONTRACTS.md#migração-e-compatibilidade)
+Em um corte futuro de produção, siga primeiro a [matriz de compatibilidade](COMPATIBILITY.md). A `main` de referência não pode continuar operando sem adaptação contra todas as guardas e Edges novas. A transição precisa cobrir sessão, aceite, downloads autenticados e payloads de envio, além de exigir recarga das abas antigas. Drene os códigos emitidos pela Edge anterior e reconcilie as gravações da última janela. O retorno usa frontend compatível com o backend migrado; republicar a `main` original não é rollback suficiente. [Migração e compatibilidade](DATA_CONTRACTS.md#migração-e-compatibilidade)
+
+## Implantação acompanhada
+
+Felipe combinará a pausa com a única pessoa que usa o aplicativo. A pessoa salva o trabalho e fecha as abas anteriores. Quando Felipe iniciar a implantação, o acompanhamento confere backup, migrations, versão publicada e os registros existentes; ao terminar, informa o resultado das verificações. Não há tela de manutenção ou bloqueio novo de versão. Esta orientação não executa nem autoriza merge, deploy ou alteração em produção nesta rodada.

@@ -21,6 +21,22 @@ function intercept(context, origin, path, method, respond) {
 
 browserSuite([
   {
+    id: 'agenda-empty-company-list-has-no-demo-companies',
+    role: 'admin',
+    async run({ page, context, origin }) {
+      await intercept(context, origin, '/rest/v1/companies', 'GET', () => ({ json: [] }));
+      await page.goto(origin + '/admin/calendario');
+      await page.getByRole('button', { name: 'Filtros', exact: true }).click();
+      const companies = page.getByRole('combobox', { name: 'Cliente', exact: true });
+      await companies.waitFor();
+      const names = await companies.locator('option').allTextContents();
+      assert(names.every((name) => !/Aurora|Novatech|Studio Norte/.test(name)));
+      assert.deepEqual(names, ['Todos os clientes']);
+      return { emptyCompanyList: true, inventedCompanies: false };
+    },
+  },
+
+  {
     id: 'agenda-admin-delete-refreshes-google-list',
     role: 'admin',
     async run({ context, page, origin }) {

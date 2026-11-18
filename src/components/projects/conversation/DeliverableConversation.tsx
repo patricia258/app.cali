@@ -8,7 +8,7 @@ import { useDeliverableConversationIdentities } from './hooks/useDeliverableConv
 import { useDeliverableConversationMessages } from './hooks/useDeliverableConversationMessages';
 import { useRefreshDeliverableConversation } from './hooks/useRefreshDeliverableConversation';
 
-const defaultAdmin = { full_name: 'Patrícia Lima' };
+const defaultAdmin = { full_name: 'Equipe CALI' };
 const defaultClient = { full_name: 'Cliente' };
 const workspace = { full_name: 'CALI Workspace' };
 
@@ -29,6 +29,7 @@ export function DeliverableConversation({ role, companyId, deliverableId, active
   function identity(message: Message) {
     const byId = message.author_user_id && people?.identities.get(message.author_user_id);
     if (byId) return byId;
+    if (message.author_user_id) return message.source_actor === 'client' ? defaultClient : defaultAdmin;
     if (message.source_actor === 'client') return people?.client ?? defaultClient;
     if (message.source_actor === 'system') return workspace;
     return people?.admin ?? defaultAdmin;

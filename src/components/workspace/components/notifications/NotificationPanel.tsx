@@ -4,11 +4,12 @@ import type { ReactNode } from 'react';
 type Props = {
   id: string;
   unread: number;
+  status?: 'loading' | 'ready' | 'error';
   onMarkAll: () => void;
   children: ReactNode;
 };
 
-export function NotificationPanel({ id, unread, onMarkAll, children }: Props) {
+export function NotificationPanel({ id, unread, status = 'ready', onMarkAll, children }: Props) {
   return (
     <div
       id={id}
@@ -49,7 +50,7 @@ export function NotificationPanel({ id, unread, onMarkAll, children }: Props) {
             <strong className="tw:block tw:text-base/[inherit] tw:tracking-[-0.015em] tw:workspace-compact:text-base tw:workspace-compact:tracking-normal">Notificações</strong>
             <span className="tw:mt-0.5 tw:block tw:text-cali-label/[inherit] tw:text-cali-muted tw:workspace-compact:mt-0
               tw:workspace-compact:text-xs/[inherit] tw:workspace-compact:text-cali-neutral-accent">
-              {unread ? `${unread} não lida${unread > 1 ? 's' : ''}` : 'Tudo em dia'}
+              {status === 'loading' ? 'Carregando…' : status === 'error' ? 'Atualização indisponível' : unread ? `${unread} não lida${unread > 1 ? 's' : ''}` : 'Tudo em dia'}
             </span>
           </div>
         </div>

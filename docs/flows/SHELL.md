@@ -6,13 +6,15 @@
 
 **Atual.** Shell organiza menus, atalhos, tour, sino e perfil por papel. Minha conta oferece edição do perfil, Termos, Privacidade, contato de acesso e links institucionais em Sobre a CALI. O Cliente registra e acompanha pedidos de dados próprios. Admin e Partner usam o canal institucional de privacidade. O atalho de ocorrência respeita a disponibilidade do módulo no shell. [Shell](../../src/components/workspace/WorkspaceShellLayout.tsx) · [Minha conta](../../src/components/workspace/DirectProfileControl.tsx) · [Ajuda no login](../../src/modules/access/sign-in/LoginPage.tsx)
 
+**Identidade.** Menu e saudação Admin compartilham o perfil do usuário autenticado. A saudação usa o primeiro nome cadastrado e acompanha a edição em Minha conta. Carregamento, nome vazio e falha usam saudação neutra. Se o perfil não carregou, Minha conta oferece nova tentativa e aguarda a leitura antes de liberar a gravação. Autoria sem identidade disponível usa “Equipe CALI”. A interface desconsidera o antigo cache de perfil em localStorage. Contato sem responsável definido usa o nome institucional, e organizador ausente é identificado como não informado. Autor com ID conhecido e perfil indisponível recebe identificação neutra, inclusive quando existe outro Admin na conversa. O sino carrega exclusivamente notificações da sessão, com lista vazia antes da resposta e em falha inicial.
+
 **Dados e integrações.** Identidade e preferências do usuário, versão dos Termos, pedido de dados, notificação, destino, estado de leitura, empresa e público. Login e Minha conta usam o mesmo endereço institucional. [Contatos](../../src/domain/caliContacts.ts)
 
 **Alvo.** Abrir Minha conta para perfil, suporte e dados. Abrir o sino para acompanhar ações e abrir o destino autorizado na sessão atual. [Privacidade e encerramento](CLIENT.md#flow-18)
 
 **Aceite.** Editar perfil sem mudar papel ou vínculo. Testar busca/atalho, tour, abrir/ler no sino e acesso a link após perder autorização. Conferir suporte e termos em Minha conta e acompanhar pedido pela conta Cliente.
 
-**Evidência e lacunas.** Playwright sintético cobriu Login, Cliente, Admin e Partner com módulo limitado, incluindo consulta e submissão de pedido Cliente, navegação e links. A operação de tratamento dos pedidos depende de responsáveis CALI. [Provas de Minha conta](../../tests/e2e/account-and-overview.cjs)
+**Evidência e lacunas.** A regressão da saudação cobre outro nome Admin, edição, nome vazio, cache legado e recuperação após falha do perfil. Conversas verificam autor desconhecido, e o sino verifica falha sem itens fictícios. Na rodada de 17/11/2026, passaram lint, tipos, build, 134 testes da suíte base e 97 cenários de navegador dos fluxos afetados, incluindo retestes no build final. Playwright sintético cobriu Login, Cliente, Admin e Partner com módulo limitado, incluindo consulta e submissão de pedido Cliente, navegação e links. A operação de tratamento dos pedidos depende de responsáveis CALI. [Provas de Minha conta](../../tests/e2e/account-and-overview.cjs)
 
 ## RESUMO-01
 

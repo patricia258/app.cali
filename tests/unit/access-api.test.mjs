@@ -47,6 +47,23 @@ test('OTP recusa erro de código, papel desconhecido e sucesso sem credencial', 
   assert.equal(await readWorkspaceSession(), null);
 });
 
+test('adaptador de transição abre sessão com token_hash da Edge anterior', async (t) => {
+  const http = await workspaceHttp(t);
+  const { verifyAccessCode } = await http.load('access/codes.ts');
+  const { readWorkspaceSession } = await http.load('access/session.ts');
+  http.respond(otp, { ok: true, role: 'client', token_hash: 'legacy-otp-proof' });
+  http.respond('/auth/v1/verify', {
+    ...http.session, user: http.user, token_type: 'bearer', expires_in: 3600,
+  });
+
+  assert.deepEqual(await verifyAccessCode('cliente@example.test', '012345'), {
+    data: { ok: true, role: 'client' }, error: null,
+  });
+  assert.equal(http.requests[1].body.token_hash, 'legacy-otp-proof');
+  assert.equal(http.requests[1].body.type, 'email');
+  assert.equal((await readWorkspaceSession()).user.id, actorId);
+});
+
 test('OTP aceito diferencia falha ao abrir a sessão de código recusado', async (t) => {
   const http = await workspaceHttp(t);
   const { verifyAccessCode } = await http.load('access/codes.ts');

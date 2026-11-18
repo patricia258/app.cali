@@ -65,3 +65,5 @@ O painel de Ocorrências consulta a conversa, o encerramento, a avaliação e a 
 **Aceite.** Testar devolução, reenvio e aprovação. Negar publicação direta pelo Partner via RPC/DML e publicação por Cliente. Antes da aprovação, verificar ausência no mural, agenda, sino, e-mail e bytes da capa Cliente. Depois, conferir público, ciência, reações e uma publicação sob retry.
 
 **Evidência e lacunas.** Ensaio SQL local cobre publicação única, devolução e negativa de publicação direta. Conferir o público no catálogo hospedado. Patrícia pode reavaliar a revisão após observar o volume do primeiro rollout.
+
+A Agenda usa as empresas e os eventos da consulta autenticada. Base vazia, carregamento e falha preservam a ausência de dados. Empresas e eventos de demonstração ficam fora da interface operacional.

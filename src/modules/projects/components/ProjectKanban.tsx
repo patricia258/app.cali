@@ -51,7 +51,7 @@ export function ProjectKanban({ items, staff, onOpen, onMove }: Props) {
         }}
         onDrop={(event) => drop(event, status)}>
         <header className="tw:flex tw:items-center tw:justify-between tw:px-0.5 tw:pt-0.5 tw:pb-1 tw:text-sm">
-          <strong>{staff && status === 'internal_review' ? 'Revisão da Patricia' : deliverableLabels[status]}</strong>
+          <strong>{staff && status === 'internal_review' ? 'Revisão da CALI' : deliverableLabels[status]}</strong>
           <span className="tw:text-cali-muted">{cards.length}</span>
         </header>
         {cards.map((item) => {

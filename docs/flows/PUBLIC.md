@@ -34,7 +34,7 @@
 
 **Aceite.** Link ativo/fechado, condicional, tipos de campo, envio com anexo e caminho forjado de outro formulário. Simular queda após gravação e confirmação concorrente. Testar resposta legada sem reenvio, colisão de slug no restore, QR/prévia sem sessão e exportação com anexos autorizados.
 
-**Evidência e lacunas.** SQL, Edge e Mailpit locais cobriram retomada, tentativa repetida, restauração e anexos. Confirmar slugs e arquivos legados com amostra autorizada e testar entrega externa somente na caixa de teste.
+**Evidência e lacunas.** SQL, Edge e Mailpit locais cobriram retomada, tentativa repetida, restauração e anexos. Na eliminação da empresa, o proprietário do anexo é o UUID do formulário, incluindo os IDs da lixeira; slug nunca identifica a propriedade do arquivo. O contrato local cobre slug coincidente com UUID vizinho, cercas, finalização sem rearquivo e retry. Manifesto antigo sem UUID comprovável exige reconciliação antes de outro lote. Confirmar slugs e arquivos legados com amostra autorizada e testar entrega externa somente na caixa de teste. [Contrato de eliminação Forms](../../tests/contracts/forms-elimination.sql) · [Compatibilidade](../COMPATIBILITY.md)
 
 ## FLOW-17c
 

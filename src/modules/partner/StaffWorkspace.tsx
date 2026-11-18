@@ -42,10 +42,10 @@ const duration = (minutes: number) => `${Math.floor(minutes / 60)}h${String(minu
 const welcomeSteps: WelcomeStep[] = [
   { label: 'BOAS-VINDAS À EQUIPE CALI', title: 'Que bom ter você no time', text: 'Este é o seu espaço de trabalho na CALI. Veja em um minuto como ele funciona.' },
   { href: '/equipe', label: 'VISÃO GERAL', title: 'O resumo do seu dia', text: 'As empresas que você atende, as prioridades e a agenda.' },
-  { href: '/equipe/projetos', label: 'PROJETOS', title: 'Entregas e prazos', text: 'Atualize a situação das entregas, registre etapas e converse com o cliente ou com a Patricia.' },
-  { href: '/equipe/horas', label: 'HORAS', title: 'O tempo trabalhado', text: 'Use o cronômetro (play e pausar) no dia a dia. Lançamento manual pede justificativa e passa pela Patricia.' },
+  { href: '/equipe/projetos', label: 'PROJETOS', title: 'Entregas e prazos', text: 'Atualize a situação das entregas, registre etapas e converse com o cliente ou com a Administração CALI.' },
+  { href: '/equipe/horas', label: 'HORAS', title: 'O tempo trabalhado', text: 'Use o cronômetro (play e pausar) no dia a dia. Lançamento manual pede justificativa e passa pela Administração CALI.' },
   { href: '/equipe/ocorrencias', label: 'OCORRÊNCIAS', title: 'Dúvidas e pedidos dos clientes', text: 'O cliente vê o seu nome na resposta.' },
-  { href: '/equipe/aprovacoes', label: 'APROVAÇÕES', title: 'O que depende da Patricia', text: 'Criações, alterações, horas e o que vai ao cliente passam por ela antes. Aqui você acompanha a resposta.' },
+  { href: '/equipe/aprovacoes', label: 'APROVAÇÕES', title: 'O que depende da Administração CALI', text: 'Criações, alterações, horas e o que vai ao cliente passam por ela antes. Aqui você acompanha a resposta.' },
   { label: 'TUDO PRONTO', title: 'Pode começar', text: 'Para rever esta apresentação, abra o menu do seu perfil.' },
 ];
 
@@ -109,7 +109,7 @@ const STATUS: Record<string, string> = { not_started: 'Não iniciada', in_progre
 const reports: BrowseConfig = {
   eyebrow: 'EQUIPE CALI / RELATÓRIOS',
   title: 'Relatórios',
-  text: 'Relatórios das suas empresas. Os já enviados ao cliente abrem na versão impressa ao clicar. Só a Patricia aprova e envia.',
+  text: 'Relatórios das suas empresas. Os já enviados ao cliente abrem na versão impressa ao clicar. Só a Administração CALI aprova e envia.',
   empty: 'Nenhum relatório nas suas empresas.',
   async load() {
     const rows = await readPartnerReports();
@@ -127,11 +127,11 @@ function PartnerReports({ me }: { me: PartnerWorkspace }) {
   const visible = (rows || []).filter((row) => (!company || row.company_id === company) && (!text || `${row.title} ${row.sub}`.toLocaleLowerCase('pt-BR').includes(text)));
   return <><Head eyebrow={config.eyebrow} title={config.title} text={config.text} />
     <div className="tw:flex tw:gap-3 tw:max-[23rem]:flex-wrap"><CompanySelect me={me} value={company} onChange={setCompany} all /><Input className="tw:max-w-[24.62rem] tw:flex-1" placeholder="Buscar" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Buscar" /></div>
-    {failed ? <InlineNotice>Não foi possível carregar. Recarregue a página; se continuar, fale com a Patricia.</InlineNotice> : !rows ? <LoadingState>Carregando…</LoadingState> : visible.length ? <WorkflowList className="v2-staff-browse">{visible.map((row) => <WorkflowListRow className={`tw:grid tw:grid-cols-[minmax(0,1fr)_auto_8.46rem]! tw:items-center tw:gap-4.5 tw:[@media(max-width:860px)]:grid-cols-[minmax(0,1fr)_auto]! ${row.href ? 'is-link tw:cursor-pointer tw:hover:bg-cali-surface-soft!' : 'tw:cursor-default'}`} key={row.id} role={row.href ? 'link' : undefined} tabIndex={row.href ? 0 : undefined} onClick={() => { if (row.href) window.open(row.href, '_blank', 'noopener'); }}><div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-1"><strong className="tw:text-cali-body tw:text-cali-text">{row.title}</strong><small className="tw:text-sm tw:text-cali-muted">{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><StatusBadge variant="workflow">{row.tag}</StatusBadge><small className="tw:text-sm tw:text-cali-muted tw:[@media(max-width:860px)]:hidden">{row.when ? dayLabel(row.when) : '—'}</small></WorkflowListRow>)}</WorkflowList> : <div className="empty">{config.empty}</div>}
+    {failed ? <InlineNotice>Não foi possível carregar. Recarregue a página; se continuar, fale com a Administração CALI.</InlineNotice> : !rows ? <LoadingState>Carregando…</LoadingState> : visible.length ? <WorkflowList className="v2-staff-browse">{visible.map((row) => <WorkflowListRow className={`tw:grid tw:grid-cols-[minmax(0,1fr)_auto_8.46rem]! tw:items-center tw:gap-4.5 tw:[@media(max-width:860px)]:grid-cols-[minmax(0,1fr)_auto]! ${row.href ? 'is-link tw:cursor-pointer tw:hover:bg-cali-surface-soft!' : 'tw:cursor-default'}`} key={row.id} role={row.href ? 'link' : undefined} tabIndex={row.href ? 0 : undefined} onClick={() => { if (row.href) window.open(row.href, '_blank', 'noopener'); }}><div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-1"><strong className="tw:text-cali-body tw:text-cali-text">{row.title}</strong><small className="tw:text-sm tw:text-cali-muted">{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><StatusBadge variant="workflow">{row.tag}</StatusBadge><small className="tw:text-sm tw:text-cali-muted tw:[@media(max-width:860px)]:hidden">{row.when ? dayLabel(row.when) : '—'}</small></WorkflowListRow>)}</WorkflowList> : <div className="empty">{config.empty}</div>}
     <p className="tw:my-5 tw:flex tw:items-center tw:gap-2.5 tw:text-sm/[inherit] tw:text-cali-sand-text">Tela de consulta. Você vê, mas não altera por aqui.</p></>;
 }
 
-/* Acompanhamento do que foi enviado para a Patricia. O envio acontece dentro de cada tela (entregável, ocorrência, horas,
+/* Acompanhamento do que foi enviado para a Administração CALI. O envio acontece dentro de cada tela (entregável, ocorrência, horas,
    alteração em projeto); aqui a pessoa só acompanha a resposta. */
 const KINDS: Record<string, string> = { deliverable: 'Entregável', report: 'Relatório', document: 'Documento', notice: 'Comunicado', other: 'Outro', record_close: 'Encerrar ocorrência', change: 'Alteração em projeto' };
 function Reviews({ me }: { me: PartnerWorkspace }) {
@@ -152,7 +152,7 @@ function Reviews({ me }: { me: PartnerWorkspace }) {
   }, [me.id]);
   const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const tone: Record<string, [string, string]> = { pending: ['tw:bg-cali-warning-surface tw:text-cali-warning', 'Aguardando'], approved: ['tw:bg-cali-success-surface tw:text-cali-success', 'Aprovado'], returned: ['tw:bg-cali-red-surface tw:text-cali-danger', 'Devolvido'] };
   const visible = (rows || []).filter((row) => filter === 'all' || row.status === 'pending'); const waiting = (rows || []).filter((row) => row.status === 'pending').length;
-  return <><Head eyebrow="EQUIPE CALI / APROVAÇÕES" title="Aprovações" text="O que você enviou para a Patricia e o que ela respondeu." />
+  return <><Head eyebrow="EQUIPE CALI / APROVAÇÕES" title="Aprovações" text="O que você enviou para a CALI e o que ela respondeu." />
     <div className="tw:mb-4.5 tw:flex tw:gap-3 tw:max-[53.125rem]:flex-wrap"><WorkflowSegments><button type="button" className={filter === 'pending' ? 'on' : ''} onClick={() => setFilter('pending')}>Aguardando ({waiting})</button><button type="button" className={filter === 'all' ? 'on' : ''} onClick={() => setFilter('all')}>Tudo</button></WorkflowSegments></div>
     {!rows ? <LoadingState>Carregando…</LoadingState> : visible.length ? <WorkflowList className="v2-staff-sent">{visible.map((row) => <WorkflowListRow className="tw:cursor-default tw:grid-cols-[8.46rem_4.92rem_minmax(0,1fr)_auto]! tw:items-center tw:gap-4.5 tw:[@media(max-width:860px)]:grid-cols-1!" key={row.id}><time className="tw:text-sm tw:text-cali-muted">{moment(row.created_at)}</time><strong className="tw:text-cali-body tw:text-cali-text">{row.kind === 'hours' ? 'Horas' : KINDS[row.kind] || row.kind}</strong><div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-1"><strong className="tw:text-cali-body tw:text-cali-text">{row.title}</strong><small className="tw:text-sm tw:text-cali-muted">{[companyName.get(row.company_id) || 'Empresa', row.note, row.decision_note ? `Resposta: ${row.decision_note}` : ''].filter(Boolean).join(' · ')}</small></div><StatusBadge variant="workflow" tone={tone[row.status]?.[0] || ''}>{tone[row.status]?.[1] || row.status}</StatusBadge></WorkflowListRow>)}</WorkflowList> : <div className="empty">{filter === 'pending' ? 'Nada aguardando no momento.' : 'Você ainda não enviou nada para aprovação.'}</div>}</>;
 }

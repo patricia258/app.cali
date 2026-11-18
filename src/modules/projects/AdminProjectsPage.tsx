@@ -221,7 +221,7 @@ function SubtaskStatusSelect({ title, status, onChange }: { title:string; status
   const staffMode = Boolean(useContext(StaffModeContext)); const options = subtaskStatusOptions(staffMode, status);
   const tone = subtaskTone[status] || 'not_started';
   return <label className={`${projectStatusControl} ${statusTone[tone]}`} onClick={(e)=>e.stopPropagation()}>
-    <span className={`status-dot-v3 ${projectStatusDot} ${dotColorByStatus[tone] ?? 'tw:bg-cali-gold'}`}/><Select variant="bare" className={projectStatusSelect} aria-label={`Situação de ${title}`} value={status} disabled={options.length===1} title={options.length===1?'Só a Patricia altera esta situação':undefined} onChange={(e)=>onChange(e.target.value)}>{options.map((value)=><option key={value} value={value}>{subtaskStatusLabel(value,staffMode)}</option>)}</Select>
+    <span className={`status-dot-v3 ${projectStatusDot} ${dotColorByStatus[tone] ?? 'tw:bg-cali-gold'}`}/><Select variant="bare" className={projectStatusSelect} aria-label={`Situação de ${title}`} value={status} disabled={options.length===1} title={options.length===1?'Só a Administração CALI altera esta situação':undefined} onChange={(e)=>onChange(e.target.value)}>{options.map((value)=><option key={value} value={value}>{subtaskStatusLabel(value,staffMode)}</option>)}</Select>
   </label>;
 }
 function StatusSelect({ item, onChange, headerTone }: {
@@ -251,11 +251,11 @@ function StatusSelect({ item, onChange, headerTone }: {
       aria-label={`Status de ${item.title}`}
       value={item.status}
       disabled={disabled}
-      title={staffMode && disabled ? 'Só a Patricia altera esta situação' : undefined}
+      title={staffMode && disabled ? 'Só a Administração CALI altera esta situação' : undefined}
       onChange={(event) => onChange(event.target.value as DeliverableStatus)}
     >
       {choices.map((status) => (
-        <option key={status} value={status}>{staffMode && status === 'internal_review' ? 'Revisão da Patricia' : deliverableLabels[status]}</option>
+        <option key={status} value={status}>{staffMode && status === 'internal_review' ? 'Revisão da CALI' : deliverableLabels[status]}</option>
       ))}
     </Select>
   </label>;
@@ -690,7 +690,7 @@ export function AdminProjectsPage({ staff, emptyPortfolio = false }: { staff?: S
     if(!isSupabaseConfigured||!staff||!selectedDeliverable)return;
     const {error}=await requestPartnerDeliverableReview(selectedDeliverable.id);
     if(error){ setStaffNotice(error.message||'Não foi possível enviar para aprovação.'); return; }
-    setStaffReviewPending((c)=>({...c,[selectedDeliverable.id]:true})); setStaffNotice('Entregável enviado para a Patricia aprovar.'); await loadWorkspace();
+    setStaffReviewPending((c)=>({...c,[selectedDeliverable.id]:true})); setStaffNotice('Entregável enviado para a Administração CALI aprovar.'); await loadWorkspace();
   }
   async function sendStaffMessage(){
     if(!isSupabaseConfigured||!selectedDeliverable||!selectedProject||(!messageText.trim()&&!messageFile))return; const toClient=conversationChannel==='client'; let attachmentNote='';
@@ -733,7 +733,7 @@ export function AdminProjectsPage({ staff, emptyPortfolio = false }: { staff?: S
       const { data, error } = await stopPartnerTimer(activeTimer.id, description);
       if (error) console.error(error);
       else {
-        setStaffNotice(data?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${data?.minutes} min enviada para aprovação da Patrícia.`);
+        setStaffNotice(data?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${data?.minutes} min enviada para aprovação da CALI.`);
         await loadWorkspace();
       }
     }

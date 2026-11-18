@@ -62,38 +62,6 @@ export const calendarTypeMeta: Record<CalendarEventType, { label: string; color:
   other: { label: 'Outro', color: caliPalette.sand.dark, soft: paletteColorWithAlpha(caliPalette.sand.dark, 0.12) },
 };
 
-export const previewCalendarEvents: WorkspaceCalendarEvent[] = [
-  {
-    id: 'cal-1', protocol: 'CALI-EVT-2026-000031', title: 'Reunião mensal · Grupo Aurora', companyId: 'aurora', company: 'Grupo Aurora', type: 'meeting', color: caliPalette.red.darker,
-    startsAt: '2026-08-31T09:30:00-03:00', endsAt: '2026-08-31T10:30:00-03:00', allDay: false, mode: 'remote', location: 'Google Meet',
-    meetingUrl: 'https://meet.google.com/', description: 'Fechamento do ciclo, indicadores e prioridades para setembro.', visibility: 'client', reminderMinutes: 30, autoTranscription: true,
-    attendees: [{ name: 'Marina Costa', email: 'marina@grupoaurora.com.br', status: 'accepted' }], sourceType: 'manual', syncStatus: 'local',
-  },
-  {
-    id: 'cal-2', protocol: 'CALI-EVT-2026-000032', title: 'Validação de indicadores', companyId: 'aurora', company: 'Grupo Aurora', type: 'validation', color: caliPalette.gold.base,
-    startsAt: '2026-09-03T14:00:00-03:00', endsAt: '2026-09-03T15:00:00-03:00', allDay: false, mode: 'remote', location: 'Google Meet',
-    description: 'Decisão do cliente sobre a estrutura de indicadores.', visibility: 'client', reminderMinutes: 30, autoTranscription: true, attendees: [{ name: 'Marina Costa', email: 'marina@grupoaurora.com.br', status: 'pending' }], sourceType: 'manual', syncStatus: 'local',
-  },
-  {
-    id: 'cal-3', title: 'Ritual de gestão · prazo', companyId: 'studio-norte', company: 'Studio Norte', type: 'deadline', color: caliPalette.orange.dark,
-    startsAt: '2026-09-05T18:00:00-03:00', allDay: false, description: 'Prazo do entregável Ritual de gestão com lideranças.', visibility: 'internal', attendees: [], sourceType: 'deliverable', sourceEntityId: 'deliverable-preview-1', sourceProtocol: 'CALI-ENT-2026-000018', synthetic: true,
-  },
-  {
-    id: 'cal-4', protocol: 'CALI-EVT-2026-000033', title: 'Checkpoint executivo', companyId: 'novatech', company: 'Novatech', type: 'meeting', color: caliPalette.red.darker,
-    startsAt: '2026-09-08T10:00:00-03:00', endsAt: '2026-09-08T10:45:00-03:00', allDay: false, mode: 'remote', location: 'Google Meet',
-    description: 'Checkpoint do advisory com liderança.', visibility: 'client', reminderMinutes: 30, autoTranscription: true, attendees: [{ name: 'Ricardo Martins', email: 'ricardo@novatech.com.br', status: 'pending' }], sourceType: 'manual', syncStatus: 'local',
-  },
-  {
-    id: 'cal-5', title: 'Estrutura de governança · prazo', companyId: 'aurora', company: 'Grupo Aurora', type: 'deadline', color: caliPalette.orange.dark,
-    startsAt: '2026-09-08T18:00:00-03:00', allDay: false, description: 'Prazo do entregável Estrutura de governança.', visibility: 'internal', attendees: [], sourceType: 'deliverable', sourceEntityId: 'deliverable-preview-2', sourceProtocol: 'CALI-ENT-2026-000019', synthetic: true,
-  },
-  {
-    id: 'cal-6', protocol: 'CALI-EVT-2026-000034', title: 'Workshop de liderança', companyId: 'studio-norte', company: 'Studio Norte', type: 'training', color: caliPalette.sand.darker,
-    startsAt: '2026-09-11T13:30:00-03:00', endsAt: '2026-09-11T16:30:00-03:00', allDay: false, mode: 'in_person', location: 'Sede do cliente',
-    description: 'Encontro presencial com lideranças.', visibility: 'client', reminderMinutes: 30, autoTranscription: false, attendees: [], sourceType: 'manual', syncStatus: 'local',
-  },
-];
-
 export function dateKey(date: Date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');

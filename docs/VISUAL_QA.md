@@ -2,6 +2,20 @@
 
 A referência é o build da `main` no commit `773c9d4`. O candidato é a revisão da branch de consolidação. Compare versões com os mesmos papéis, dados sintéticos, data, viewport e navegador. A documentação de [regras de produto](PRODUCT_RULES.md) explica mudanças deliberadas, como a revisão do Partner e o histórico por empresa.
 
+## Conferência local de navegador de 17/11/2026
+
+O build sintético de `6b4117aa` passou 290 casos E2E: 106 rotas, 32 guardas e 152 ações de fluxo. As 39 provas diretas do DS passaram com um navegador por caso. A galeria gerou 32 capturas em quatro larguras, nos temas Dia e Noite. A inspeção corrigiu uma falha da própria fixture: a capa automática precisava de um contêiner relativo para não cobrir o topo da galeria. A prova agora mede sua contenção e confirma que o botão anterior permanece acessível. Nenhum componente de produção mudou nessa correção.
+
+A conferência dirigida comparou 22 estados de páginas inteiras em 1440 e 390 px contra `773c9d4`, sempre em série, com um cenário por navegador. Ambas as versões abriram os 22 estados; houve 22 diferenças e nenhuma falha de captura ou limitação da referência. As diferenças foram revisadas nas capturas lado a lado e nos textos: paleta e controles do DS no Login e nos formulários; termos de 30 dias; agradecimento no link DISC antigo; cabeçalho único e ações móveis sem o vão antigo; identidade do usuário na saudação; agenda futura e NPS da carteira; aviso de previsão após a meta em Projetos; posição do percentual e identidade da empresa em Horas; continuação do relatório em três folhas. São mudanças já documentadas nos fluxos, sem nova alteração visual de produto neste lote. O resultado não representa igualdade de pixels.
+
+Os casos funcionais também conferiram o lançamento manual de Horas com os campos do DS, recuo simétrico dos selects de Projetos, busca em uma linha a 1203 px e navegação única em 390 e 1651 px. Capturas desses estados foram inspecionadas. Os manifests da comparação são `e0cdc29a628e458c6b5fd0c7a187a0381c168d00db7643c5c036cf04a0307a39` para a referência e `e7c9e33e278e733d6ebc338512a7ec51dcc4511376389b049f0b11c30eee8e28` para o candidato. Logs, medições e capturas permanecem locais em `/private/tmp/cali-merge-{ds,e2e,visual}-20261117`; não contêm dados de produção.
+
+A primeira tentativa foi corretamente interrompida por pressão de memória nível 2. Após liberar aplicativos, o nível caiu para 1 e as rodadas concluíram. A amostra durante o E2E mediu um Chromium de QA, sete processos e 925,8 MiB de RSS agregado. É uma amostra, não o pico da execução inteira. Não foram desativadas as proteções de memória e disco.
+
+O experimento de manutenção, protocolo mínimo e novas telas de bloqueio foi retirado a pedido do responsável pelo projeto. Seus 11 casos temporários também saíram da suíte. Os artefatos exploratórios permanecem fora do Git e não representam a versão final. O aceite deste lote mantém a suíte original de 290 casos, os 39 testes do DS, a comparação visual com a `main` e as provas separadas de migração e preservação de dados.
+
+Após a retirada, o projeto foi recompilado e os 290 casos passaram novamente nas 28 suítes. A pressão de memória interrompeu a primeira passagem após 196 casos aprovados; os 94 restantes passaram no lote seguinte, usando o mesmo build e um navegador por caso. Os 39 testes do DS passaram novamente, com 32 capturas. A árvore `src`, as APIs, os arquivos públicos e a configuração Vercel voltaram à base `6b4117aa`. Os 209 arquivos do build restaurado coincidem byte a byte com o artefato usado nas 22 comparações contra a `main`, com hash `e7c9e33e278e733d6ebc338512a7ec51dcc4511376389b049f0b11c30eee8e28`; por isso essas capturas continuam representando a interface final. O resumo e a proveniência estão em `/private/tmp/cali-merge-e2e-scoped-final-20261117`; os logs e as capturas do DS estão em `/private/tmp/cali-merge-ds-scoped-final-20261117` e no arquivo `.log` correspondente.
+
 ## Páginas inteiras
 
 ```sh

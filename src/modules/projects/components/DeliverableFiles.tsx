@@ -150,7 +150,7 @@ export function DeliverableFiles({
     }
     onNotice(
       action === 'propose'
-        ? 'Enviado para a Patricia liberar ao cliente.'
+        ? 'Enviado para a Administração CALI liberar ao cliente.'
         : action === 'release'
           ? 'Liberado para o cliente em Documentos.'
           : action === 'suspend'
@@ -263,7 +263,7 @@ export function DeliverableFiles({
                       {state === 'published'
                         ? 'Liberado ao cliente'
                         : state === 'draft'
-                          ? 'Aguardando liberação da Patricia'
+                          ? 'Aguardando liberação da CALI'
                           : state === 'archived'
                             ? 'Suspenso'
                             : 'Arquivo de trabalho'}

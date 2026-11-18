@@ -1,20 +1,21 @@
+import { InlineNotice } from '../ds/InlineNotice';
 import { Input } from '../ds/Input';
 import { Select } from '../ds/Select';
 import { Textarea } from '../ds/Textarea';
 import { Button } from '../ds/Button';
 import { DialogFrame } from '../ds/DialogFrame';
 import { FieldLabel } from '../ds/FieldLabel';
-import { ChangeEvent, useEffect, useRef, useState, type ReactNode } from 'react';
+import { ChangeEvent, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Building2, Camera, Check, ChevronDown, Download, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, ShieldCheck, UserRound, X } from 'lucide-react';
 import { exportOwnWorkspaceData, listOwnPrivacyRequests, requestWorkspaceDataRights } from '../../api/workspace/privacy';
 import {
-  readOwnWorkspaceProfile,
   readProfileCompany,
-  updateOwnWorkspaceProfile,
   uploadWorkspaceProfileImage,
   workspaceProfileAvailable,
 } from '../../api/workspace/profile';
+import { useOwnWorkspaceProfile } from './hooks/useOwnWorkspaceProfile';
+import { useUpdateOwnWorkspaceProfile } from './hooks/useUpdateOwnWorkspaceProfile';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
 import { accessSupportLink, caliInstagram, caliLinkedIn, privacySupportLink } from '../../domain/caliContacts';
 import { legalEnabled } from '../../domain/legalTexts';
@@ -52,7 +53,7 @@ const signatureStyles:SignatureOption[]=[
 
 const legacyStyleMap:Record<string,SignatureStyle>={classic:'heritage',fluid:'calligraphic',delicate:'contemporary',formal:'executive'};
 const profileFallback:Record<Exclude<Role,'partner'>,ProfileData>={
-  admin:{full_name:'Patrícia Lima',email:'patricia@calirh.com',job_title:'People Advisory Executive',phone:'',whatsapp:'',linkedin_url:'',instagram_url:'',avatar_url:'',avatar_position_x:50,avatar_position_y:50,avatar_zoom:1,signature_mode:'generated',signature_url:'',signature_style:'executive'},
+  admin:{full_name:'',email:'',job_title:'',phone:'',whatsapp:'',linkedin_url:'',instagram_url:'',avatar_url:'',avatar_position_x:50,avatar_position_y:50,avatar_zoom:1,signature_mode:'generated',signature_url:'',signature_style:'executive'},
   client:{full_name:'',email:'',job_title:'',phone:'',whatsapp:'',linkedin_url:'',instagram_url:'',avatar_url:'',avatar_position_x:50,avatar_position_y:50,avatar_zoom:1,signature_mode:'generated',signature_url:'',signature_style:'calligraphic'},
 };
 const occurrencePaths = {
@@ -91,10 +92,30 @@ function safeSignatureStyle(value: string | null | undefined):SignatureStyle{
 type ProfileTrigger=(context:{profile:ProfileData;avatar:ReactNode;companyName:string;openEditor:()=>void})=>ReactNode;
 export function DirectProfileControl({role,trigger,partnerHasOccurrences = false}:{role:Role;trigger?:ProfileTrigger;partnerHasOccurrences?:boolean}){
   const { user } = useWorkspaceAuth();
+  const ownProfile = useOwnWorkspaceProfile();
+  const updateProfile = useUpdateOwnWorkspaceProfile();
   const fallback = profileFallback[role === 'admin' ? 'admin' : 'client'];
   const occurrencePath = role === 'partner' ? (partnerHasOccurrences ? '/equipe/ocorrencias' : null) : occurrencePaths[role];
   const privacySection = useRef<HTMLElement>(null);
-  const[profile,setProfile]=useState<ProfileData>(fallback),[draft,setDraft]=useState<ProfileData>(fallback);
+  const profile = useMemo<ProfileData>(() => {
+    const data = ownProfile.data;
+    return {
+      ...fallback,
+      full_name: data?.full_name?.trim() || '',
+      email: data?.email || user?.email || '',
+      job_title: data?.job_title || '',
+      phone: data?.phone || '', whatsapp: data?.whatsapp || '',
+      linkedin_url: data?.linkedin_url || '', instagram_url: data?.instagram_url || '',
+      avatar_url: data?.avatar_url || '',
+      avatar_position_x: Number(data?.avatar_position_x ?? 50),
+      avatar_position_y: Number(data?.avatar_position_y ?? 50),
+      avatar_zoom: Number(data?.avatar_zoom ?? 1),
+      signature_mode: data?.signature_mode === 'uploaded' ? 'uploaded' : 'generated',
+      signature_url: data?.signature_url || '',
+      signature_style: data?.signature_style ? safeSignatureStyle(data.signature_style) : fallback.signature_style,
+    };
+  }, [fallback, ownProfile.data, user?.email]);
+  const [draft,setDraft]=useState<ProfileData>(profile);
   const[modalOpen,setModalOpen]=useState(false),[saving,setSaving]=useState(false),[message,setMessage]=useState('');
   const[companyName,setCompanyName]=useState('');
   // Direitos do titular (LGPD, art. 18): baixar os próprios dados e pedir acesso, correção ou exclusão.
@@ -109,36 +130,24 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
   const[activeSection,setActiveSection]=useState<'details'|'signature'>('details');
   const[cropOpen,setCropOpen]=useState(false);
 
-  useEffect(()=>{
-    setProfile(fallback);setDraft(fallback);setCompanyName('');setCompanyLogo('');
-    const cached=user?window.localStorage.getItem(`cali-workspace-profile-${user.id}`):null;
-    if(cached){try{const raw: Partial<ProfileData> | null = JSON.parse(cached);const parsed: ProfileData = {...fallback,...raw,signature_style:safeSignatureStyle(raw?.signature_style)};setProfile(parsed);setDraft(parsed);}catch{/* A leitura do servidor ainda atualiza o perfil. */}}
-    let mounted=true;
-    async function load(){
-      if(!user||!mounted)return;
-      const data = await readOwnWorkspaceProfile(user.id);
-      if (!mounted || !data) return;
-      if (role === 'client' && data.company_id) {
-        const company = await readProfileCompany(data.company_id);
-        if (!mounted) return;
+  useEffect(() => {
+    setDraft(profile);
+  }, [profile]);
+
+  useEffect(() => {
+    setCompanyName('');setCompanyLogo('');
+    let current = true;
+    const companyId = ownProfile.data?.company_id;
+    if (role === 'client' && companyId) {
+      void readProfileCompany(companyId).then(async (company) => {
+        if (!current) return;
         setCompanyName(company?.display_name || '');
         const logo = await resolveWorkspaceMedia(company?.logo_url || company?.logo_workspace_url);
-        if (!mounted) return;
-        setCompanyLogo(logo);
-      }
-      const next:ProfileData={
-        full_name:data.full_name||fallback.full_name,
-        email:data.email||user.email||fallback.email,
-        job_title:data.job_title||fallback.job_title,
-        phone:data.phone||'',whatsapp:data.whatsapp||'',linkedin_url:data.linkedin_url||'',instagram_url:data.instagram_url||'',avatar_url:data.avatar_url||'',
-        avatar_position_x:Number(data.avatar_position_x??50),avatar_position_y:Number(data.avatar_position_y??50),avatar_zoom:Number(data.avatar_zoom??1),
-        signature_mode:data.signature_mode==='uploaded'?'uploaded':'generated',signature_url:data.signature_url||'',signature_style:safeSignatureStyle(data.signature_style),
-      };
-      setProfile(next);setDraft(next);
+        if (current) setCompanyLogo(logo);
+      });
     }
-    void load();
-    return()=>{mounted=false;};
-  },[fallback,role,user?.id]);
+    return () => { current = false; };
+  }, [role, ownProfile.data?.company_id, user?.id]);
 
   useEffect(() => {
     setLoadedPrivacy(null);
@@ -175,13 +184,13 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
     event.target.value='';
   }
   async function saveProfile(){
-    if(!draft.full_name.trim())return;
+    if(!draft.full_name.trim() || !ownProfile.data || !ownProfile.isSuccess || ownProfile.isFetching)return;
     setSaving(true);setMessage('');
     const next={...draft,full_name:draft.full_name.trim(),signature_style:draft.signature_mode==='generated'?'calligraphic' as const:draft.signature_style,linkedin_url:normalizeExternalUrl(draft.linkedin_url),instagram_url:normalizeExternalUrl(draft.instagram_url)};
     try{
-      const savedUserId = await updateOwnWorkspaceProfile(user?.id, next);
-      if (savedUserId) window.localStorage.setItem(`cali-workspace-profile-${savedUserId}`, JSON.stringify(next));
-      setProfile(next);setDraft(next);setModalOpen(false);
+      const receipt = await updateProfile.mutateAsync(next);
+      if (!receipt?.isCurrent()) return;
+      setDraft(next);setModalOpen(false);
     }catch(error){setMessage(error instanceof Error?error.message:'Não foi possível salvar o perfil.');}
     finally{setSaving(false);}
   }
@@ -331,12 +340,17 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
             <a href={caliLinkedIn} target="_blank" rel="noreferrer">LinkedIn</a>
           </span>
         </ProfileInfoSection>
+        {ownProfile.isError && <InlineNotice role="alert" tone="danger">
+          Não foi possível carregar seu perfil.{' '}
+          <button type="button" className="tw:cursor-pointer tw:border-0 tw:bg-transparent tw:text-inherit tw:underline" onClick={() => void ownProfile.refetch()}>Tentar novamente</button>
+        </InlineNotice>}
+        {ownProfile.isPending && <p role="status">Carregando seu perfil…</p>}
         {message?<div className="tw:mt-3.5 tw:rounded-cali-compact-control tw:bg-cali-sand-soft tw:px-4 tw:py-3.5 tw:text-sm/[inherit] tw:text-cali-sand-strong">{message}</div>:null}
         <div className="modal-actions tw:sticky tw:bottom-0 tw:z-2 tw:-mx-8.5! tw:my-0! tw:flex tw:min-h-[5.692rem] tw:flex-none tw:justify-end tw:gap-3 tw:border-0 tw:border-t tw:border-solid tw:border-cali-brand/8 tw:bg-cali-surface-soft! tw:px-8.5! tw:py-3.5! tw:shadow-[0_-14px_34px_rgb(var(--cali-rgb-red-inverse)/0.0549)] tw:backdrop-blur-[1.385rem] tw:workspace-night:border-cali-sand-soft/9 tw:workspace-night:bg-cali-neutral-inverse! tw:[@media(max-width:43.75rem)]:-mx-5! tw:[@media(max-width:43.75rem)]:px-5!
           tw:workspace-documents:[@media(max-width:38.75rem)]:flex-col tw:workspace-documents:[@media(max-width:38.75rem)]:items-stretch
           tw:workspace-documents:[@media(max-width:38.75rem)]:[&>button]:w-full
           tw:workspace-documents:[&>button]:h-10.5 tw:workspace-documents:[&>button]:font-[750]
-          tw:workspace-documents:[&>button]:whitespace-nowrap tw:[&>button]:inline-flex tw:[&>button]:items-center tw:[&>button]:gap-2 tw:[&>button]:border tw:[&>button]:border-solid tw:[&>button]:font-normal tw:[&>button:disabled]:opacity-40"><button type="button" className="tw:min-h-[3.308rem] tw:rounded-[0.846rem]! tw:px-5! tw:text-base/[inherit]! tw:border-cali-burgundy-accent/35! tw:bg-transparent! tw:text-cali-brand! tw:shadow-none! tw:hover:bg-cali-brand/6! tw:workspace-night:border-cali-orange-line/35! tw:workspace-night:text-cali-day-canvas! tw:workspace-night:hover:bg-cali-orange-line/8!" onClick={()=>setModalOpen(false)}>Fechar</button><button type="button" className="tw:min-h-[3.308rem] tw:rounded-[0.846rem]! tw:border-cali-brand! tw:bg-cali-brand! tw:px-5! tw:text-base/[inherit]! tw:text-cali-neutral-surface! tw:shadow-none! tw:hover:border-cali-burgundy-text! tw:hover:bg-cali-burgundy-text!" onClick={saveProfile} disabled={saving}>{saving?<Loader2 size={17} className="tw:motion-safe:animate-[spin_.8s_linear_infinite]"/>:<Check size={17}/>} {saving?'Salvando…':'Salvar alterações'}</button></div>
+          tw:workspace-documents:[&>button]:whitespace-nowrap tw:[&>button]:inline-flex tw:[&>button]:items-center tw:[&>button]:gap-2 tw:[&>button]:border tw:[&>button]:border-solid tw:[&>button]:font-normal tw:[&>button:disabled]:opacity-40"><button type="button" className="tw:min-h-[3.308rem] tw:rounded-[0.846rem]! tw:px-5! tw:text-base/[inherit]! tw:border-cali-burgundy-accent/35! tw:bg-transparent! tw:text-cali-brand! tw:shadow-none! tw:hover:bg-cali-brand/6! tw:workspace-night:border-cali-orange-line/35! tw:workspace-night:text-cali-day-canvas! tw:workspace-night:hover:bg-cali-orange-line/8!" onClick={()=>setModalOpen(false)}>Fechar</button><button type="button" className="tw:min-h-[3.308rem] tw:rounded-[0.846rem]! tw:border-cali-brand! tw:bg-cali-brand! tw:px-5! tw:text-base/[inherit]! tw:text-cali-neutral-surface! tw:shadow-none! tw:hover:border-cali-burgundy-text! tw:hover:bg-cali-burgundy-text!" onClick={saveProfile} disabled={saving || !ownProfile.data || !ownProfile.isSuccess || ownProfile.isFetching}>{saving?<Loader2 size={17} className="tw:motion-safe:animate-[spin_.8s_linear_infinite]"/>:<Check size={17}/>} {saving?'Salvando…':'Salvar alterações'}</button></div>
       </DialogFrame>
     </div>,document.body):null}
   </>;

@@ -45,6 +45,8 @@ O ESLint usa configuração plana com as regras recomendadas de JavaScript, Type
 
 O relatório de cobertura Node tem como denominador os arquivos instrumentados. A matriz de navegação e os testes de navegador têm resultados próprios. Componentes internos podem ser exercitados pela página que os monta. Cada contrato SQL identifica as operações de banco e os perfis exercitados. Consulte as fichas de fluxo e o inventário das Edges para os cenários que exigem homologação com provedores externos.
 
+O contrato autocontido [admin-identity.sql](../tests/contracts/admin-identity.sql) integra `run-sql.sh` após os contratos que usam `fixture-actors.sql`. Executa com transação e rollback em PostgreSQL local isolado, usando as guardas reais de sessão e MFA. Verifica troca de e-mail com UUID e TOTP preservados, corte da sessão anterior, novo login elegível e negativas de papel, identidade e segundo fator. Não depende de identidades ou endereços reais de produção.
+
 A [comparação visual](VISUAL_QA.md) documenta os dois workflows locais, a referência e as jornadas adicionais de componentes de fluxo.
 
 ## Ambiente
@@ -52,3 +54,11 @@ A [comparação visual](VISUAL_QA.md) documenta os dois workflows locais, a refe
 Use o Chrome instalado ou execute `npx playwright-core install chromium`. O runner E2E gera um build com endpoint sintético e inicia um servidor loopback. Os testes diretos dos componentes montam fixtures locais. Ambos bloqueiam rede externa. [Opções do Playwright](../tests/e2e/README.md)
 
 Para os contratos, suba o [banco e os serviços de QA](RUNBOOK.md#ambiente-local-desta-consolidação) e aplique as migrations da revisão. A suíte confere o destino local antes de rodar. A [matriz de aceite](CONSOLIDATION_ACCEPTANCE.md) inclui comparações visuais e ensaios de recuperação e entrega. Mantenha capturas, logs, dumps e dados descartáveis fora da branch.
+
+## Conferência de dados anteriores às migrations
+
+O replay `bash tests/contracts/replay-dump.sh 773c9d4 --upgrade-fixtures` restaura o dump de estrutura isolado, carrega as preimagens no schema anterior e aplica as migrations da candidata. Preservação e autorização são verificadas separadamente: não altere convites ou vínculos para tornar a fixture verde. Os controles do próprio teste devem falhar quando um acesso elegível é negado ou um inelegível é admitido.
+
+`public-legacy-http.mjs` acrescenta o contrato Forms antigo com dois argumentos e bytes reais de um anexo sintético. Os bundles HTTP devem ser recompilados com o [builder e pin documentados](../tests/contracts/README.md) antes de reiniciar os workers locais. Esses testes não utilizam produção e não acrescentam controles de implantação ao produto.
+
+O replay também exercita o backfill de revisões em quatro modos do trigger de timestamp, com sucesso e falha forçada em cada um. A fixture compara `updated_at` sem exceção. Uma regressão nessa data é visível ao Cliente e deve falhar. A lista de migrations usa descritor próprio, e a contagem aplicada deve coincidir com a lista esperada; processos de teste não podem consumir sua entrada e pular arquivos. [Resultados e recorte histórico de 922 registros](COMPATIBILITY.md#conferência-com-os-registros-históricos-do-backup)

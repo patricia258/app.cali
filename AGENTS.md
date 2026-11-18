@@ -21,6 +21,22 @@
 - Mantenha a paleta em `public/brand/color-palette.css`, com até sete tons nomeados por família. Use tokens de papel na interface. Ao editar a paleta, execute `node scripts/sync-cali-palette.mjs` e valide também e-mails e exportações que usam os valores resolvidos.
 - Importe o CSS indispensável pelo componente ou módulo dono. Confira acesso direto, navegação interna e recarga. A aparência de uma tela deve independer das rotas visitadas antes.
 
+## Identidade de usuários
+
+- Saudação, nome, e-mail, cargo, avatar e autoria de ações vêm do perfil e da sessão correspondentes. Perfil ausente, em carregamento ou com falha usa apresentação neutra.
+- Compartilhe a consulta do perfil por ator e reflita edições nos consumidores. Respostas antigas seguem a proteção de cache da sessão.
+- Dados de demonstração pertencem às fixtures de teste. Carregamento, base vazia e falha de leitura usam os estados correspondentes.
+- Ao revisar interfaces, confira identidades e valores de negócio fixados como substitutos de dados. Registre e comunique as ocorrências encontradas.
+
+## Compatibilidade e corte
+
+- Antes do merge de produção, restaure o catálogo de referência isolado, carregue fixtures representativas da versão anterior **antes** das migrations e compare IDs, campos, vínculos, históricos, anexos, acessos e operações em andamento depois do upgrade. Testes semeados apenas após o upgrade não comprovam migração dos dados antigos.
+- Verifique separadamente a preservação dos dados, os contratos dos consumidores antigos durante a implantação e a configuração operacional do destino. Assinatura de RPC preservada não prova compatibilidade de resposta, autorização, estado ou efeito externo.
+- Migrations de reconciliação são aditivas e reexecutáveis. Copie somente vínculos comprováveis, preserve a origem e reporte conflitos. Não reative convites, atribua usuários ou invente autores e datas para tornar o ensaio verde.
+- Mudanças de login, termos, Storage e payloads exigem sequência de transição documentada e ensaiada. A revisão antiga só pode ser caminho de retorno se funcionar contra o backend já migrado. Registre os bloqueadores e os limites de cada prova em [Compatibilidade](docs/COMPATIBILITY.md).
+
+- O aceite desta revisão está limitado à compatibilidade das migrations e à preservação de dados existentes. A única operadora fará uma pausa combinada com Felipe na implantação. Não introduza telas de manutenção, bloqueio de versões ou automação de corte por iniciativa própria. Acompanhe a execução quando Felipe a iniciar e informe o resultado verificado.
+
 ## Comunicação
 
 Use a skill `caveman` em modo `full` para respostas. Preserve a precisão técnica e a clareza em decisões de escopo. Mantenha o modo até o usuário pedir `normal mode` ou `stop caveman`.

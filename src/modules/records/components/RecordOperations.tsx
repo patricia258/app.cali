@@ -43,7 +43,7 @@ function UnopenedRecordRemoval({ actorId, recordId, protocol, onDeleted }: { act
     <div className="tw:flex tw:items-center tw:justify-between tw:gap-5.5 tw:rounded-2xl tw:border tw:border-solid tw:border-[color-mix(in_srgb,var(--cali-color-gold-accent)_30%,var(--theme-line))] tw:bg-[color-mix(in_srgb,var(--cali-color-gold-accent)_6%,var(--theme-surface))] tw:px-4.5 tw:py-3.5 tw:[@media(max-width:720px)]:flex-col tw:[@media(max-width:720px)]:items-stretch">
       <div className="tw:grid tw:gap-0.5">
         <strong className="tw:text-sm tw:text-cali-text">Ainda não foi aberta pela CALI</strong>
-        <span className="tw:text-xs tw:leading-[1.45] tw:text-cali-muted">Você pode excluir esta solicitação enquanto ela não tiver sido visualizada pela Patrícia.</span>
+        <span className="tw:text-xs tw:leading-[1.45] tw:text-cali-muted">Você pode excluir esta solicitação enquanto ela não tiver sido visualizada pela Administração CALI.</span>
       </div>
       <button type="button" className="tw:min-h-[2.92rem] tw:flex-none tw:rounded-xl tw:border tw:border-solid tw:border-cali-red-accent/34 tw:bg-cali-red-accent/7 tw:px-3.5 tw:text-cali-detail tw:font-extrabold tw:text-cali-red-accent tw:hover:bg-cali-red-accent/12 tw:workspace-night:text-cali-burgundy-soft tw:[@media(max-width:720px)]:w-full" disabled={isPending} onClick={() => void confirmRemoval()}>Excluir solicitação</button>
       {error && <InlineNotice>{error.message}</InlineNotice>}

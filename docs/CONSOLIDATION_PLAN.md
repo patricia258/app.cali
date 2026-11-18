@@ -10,6 +10,8 @@ A `main` publicada continua no ambiente de produção atual. Nesta entrega, a co
 
 A validação usa registros representativos do legado com dados sanitizados. Inclui valores nulos, estados antigos, IDs, vínculos, anexos, históricos e links emitidos. Em uma troca futura, o backfill precisa incluir as gravações feitas pela `main` até o corte e aceitar reexecução. Preservar os contratos antigos enquanto houver consumidores ativos e conferir o retorno à revisão anterior com os dados já processados.
 
+A [revisão de compatibilidade](COMPATIBILITY.md) registra os contratos que impedem instalar toda a branch mantendo o JavaScript anterior em uso. O aceite de produção exige fixtures anteriores às migrations, preflight do destino, reconciliação de acessos e prova da transição de frontend, Edge e políticas. Conservar os dados não torna automaticamente os consumidores antigos compatíveis. O corte fica pendente enquanto houver bloqueadores nessa matriz.
+
 A rodada de execução avança pelos critérios abaixo até o aceite local e o Preview previsto. Cada checkpoint registra o resultado e alimenta o lote seguinte. A execução continua após verificações e correções recuperáveis. Um bloqueio que depende de informação, acesso ou decisão externa exige comunicar o que falta e concluir o trabalho independente. O [ambiente de partida](RUNBOOK.md#ambiente-local-desta-consolidação) usa o schema restaurado e dados sintéticos.
 
 ## Critérios de encerramento
@@ -68,3 +70,9 @@ A revisão de campos reutilizáveis começou após a rodada do TanStack Query. I
 - [Matriz de aceite](CONSOLIDATION_ACCEPTANCE.md) cobre perfis, cenários e evidência de teste.
 
 A [base versionada de testes](TESTING.md) permanece na branch. Capturas, dumps e scripts descartáveis ficam fora do repositório.
+
+## Escopo da conferência final — 17/11/2026
+
+O objetivo desta rodada é validar migrations e dados já registrados. Felipe combinará uma pausa de uso com a única pessoa que opera o sistema e solicitará acompanhamento quando fizer a implantação. Não há implementação de tela de manutenção, bloqueio por versão ou automação de corte. O experimento desses controles foi retirado da candidata, incluindo a migration adicional de protocolo. As 42 migrations de produto e as correções anteriores permanecem.
+
+O replay cria as preimagens antes de instalar as migrations, compara IDs, campos, vínculos, históricos, anexos e acessos e prova que o teste rejeita tanto perda de autorização válida quanto liberação indevida. As diferenças de contrato durante a implantação são informativas para a sequência acompanhada; não exigem manter versões antigas operando simultaneamente. [Provas e limites](COMPATIBILITY.md)

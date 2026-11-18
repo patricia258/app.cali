@@ -77,7 +77,8 @@ browserSuite([
     id: 'admin-deliverable-conversation-keeps-channel-and-draft-on-retry',
     role: 'admin',
     async run({ context, page, origin, snapshot }) {
-      const rows = [...tables.comments];
+      const unknownAuthor = { ...tables.comments[0], id: 'qa-unknown-admin', source_actor: 'admin', author_user_id: 'af000000-0000-4000-8000-000000000099', body: 'Mensagem de outro Admin sem perfil disponível.' };
+      const rows = [...tables.comments, unknownAuthor];
       const writes = [];
       await context.route((url) => where(url, 'comments'), (route) => {
         const request = route.request();
@@ -97,6 +98,7 @@ browserSuite([
       const dialog = await openDelivery(page, origin);
       await dialog.getByRole('button', { name: /^Conversas/ }).click();
       await dialog.getByText(tables.comments[0].body, { exact: true }).waitFor();
+      await dialog.locator('[data-message-id="qa-unknown-admin"]').getByText('Equipe CALI', { exact: true }).waitFor();
       const field = dialog.getByRole('textbox', { name: 'Mensagem', exact: true });
       await field.fill('Rascunho público QA');
       await dialog.getByRole('button', { name: 'Interno', exact: true }).click();
@@ -595,7 +597,7 @@ browserSuite([
       const dialog = await openDelivery(page, origin);
       await dialog.getByRole('button', { name: 'Arquivos', exact: true }).click();
       const files = dialog.getByRole('region', { name: 'Pasta do entregável' });
-      await files.getByText('Aguardando liberação da Patricia').waitFor();
+      await files.getByText('Aguardando liberação da CALI').waitFor();
       await files.getByRole('button', { name: 'Liberar para o cliente', exact: true }).click();
       await files.getByText('Liberado ao cliente').waitFor();
       assert.equal(writes[0].status, 'published');

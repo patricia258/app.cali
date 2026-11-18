@@ -108,7 +108,7 @@ export function RecordMessageComposer({ role, partner, companyId, recordId, acto
   return (
     <div className="tw:grid tw:shrink-0 tw:grid-cols-[minmax(0,1fr)_auto] tw:items-center tw:gap-x-3 tw:gap-y-2.5 tw:border-0 tw:border-t tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-7.5 tw:pt-3.5 tw:pb-4.5" data-v2-operation="conversation-compose">
       <div className="tw:col-span-full tw:text-sm tw:font-bold">
-        <label htmlFor={id}>{partner && internal ? 'Nota interna para a Patricia' : role === 'admin' ? 'Responder ao cliente' : 'Responder nesta ocorrência'}</label>
+        <label htmlFor={id}>{partner && internal ? 'Nota interna para a CALI' : role === 'admin' ? 'Responder ao cliente' : 'Responder nesta ocorrência'}</label>
       </div>
       {!partner && attachments.length > 0 && <div className="tw:col-span-full tw:flex tw:flex-wrap tw:gap-1.5">
         {attachments.map((attachment) => <span key={attachment.id} className="tw:inline-flex tw:items-center tw:gap-2 tw:rounded-full tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:px-2 tw:py-1 tw:text-xs">
@@ -122,7 +122,7 @@ export function RecordMessageComposer({ role, partner, companyId, recordId, acto
         rows={3}
         value={draft}
         onValueChange={setDraft}
-        placeholder={partner && internal ? 'Só a Patricia vê esta nota…' : role === 'admin' ? 'Responder ao cliente…' : 'Escreva sua mensagem para a CALI…'}
+        placeholder={partner && internal ? 'Só a Administração CALI vê esta nota…' : role === 'admin' ? 'Responder ao cliente…' : 'Escreva sua mensagem para a CALI…'}
         onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }}
       />
       <input ref={fileInput} type="file" hidden multiple={!partner} accept={accept} onChange={(event) => { chooseFiles(event.target.files); event.target.value = ''; }} />

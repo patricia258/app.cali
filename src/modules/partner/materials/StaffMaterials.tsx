@@ -47,7 +47,7 @@ export function StaffMaterials() {
   }
 
   return <WorkflowPage as="section">
-    <WorkflowHeading><div><h1>Materiais</h1><p>Rascunhos atribuídos para revisão da Patrícia.</p></div></WorkflowHeading>
+    <WorkflowHeading><div><h1>Materiais</h1><p>Rascunhos atribuídos para revisão da CALI.</p></div></WorkflowHeading>
     {error && !selected && <InlineNotice as="p" role="alert">{error}</InlineNotice>}
     {items.length ? <ul className="tw:list-none tw:p-0">{items.map((item) => <li className={`${materialReviewCard} tw:grid tw:gap-[8px]`} key={item.id}>
       <strong>{item.title}</strong><span>{materialStatus[item.status]}</span>

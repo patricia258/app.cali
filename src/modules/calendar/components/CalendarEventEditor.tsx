@@ -95,7 +95,7 @@ export function CalendarEventEditor(props: Props) {
             </div>}
             {!staff && isSupabaseConfigured && <CalendarMeetingClassification value={classification} onChange={setClassification} />}
           </div>
-          <div className={`${dialogFooterClass} tw:justify-end`}><Button type="button" variant="secondary" className={dialogButtonClass} onClick={closeEditor}>Cancelar</Button><Button variant="primary" className={dialogButtonClass} disabled={saving || !form.title.trim()} type="submit">{saving ? 'Salvando…' : staff ? 'Enviar para aprovação da Patricia' : editingEvent ? 'Salvar alterações' : 'Adicionar evento'}</Button></div>
+          <div className={`${dialogFooterClass} tw:justify-end`}><Button type="button" variant="secondary" className={dialogButtonClass} onClick={closeEditor}>Cancelar</Button><Button variant="primary" className={dialogButtonClass} disabled={saving || !form.title.trim()} type="submit">{saving ? 'Salvando…' : staff ? 'Enviar para aprovação da CALI' : editingEvent ? 'Salvar alterações' : 'Adicionar evento'}</Button></div>
         </DialogForm>
       </div>
   );

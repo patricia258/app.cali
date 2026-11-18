@@ -5,7 +5,7 @@ export const workspaceProfileAvailable = supabase !== null;
 
 const profileFields = 'company_id,full_name,email,job_title,phone,whatsapp,linkedin_url,instagram_url,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom,signature_mode,signature_url,signature_style';
 
-type ProfileUpdate = {
+export type ProfileUpdate = {
   full_name: string;
   job_title: string;
   phone: string;
@@ -21,9 +21,12 @@ type ProfileUpdate = {
   signature_style: string;
 };
 
-export async function readOwnWorkspaceProfile(userId: string) {
-  const result = await supabase?.from('profiles').select(profileFields).eq('id', userId).single();
-  return result?.data ?? null;
+export async function readOwnWorkspaceProfile(userId: string, signal?: AbortSignal) {
+  if (!supabase) return null;
+  const query = supabase.from('profiles').select(profileFields).eq('id', userId);
+  const { data, error } = await (signal ? query.abortSignal(signal) : query).single();
+  if (error) throw error;
+  return data;
 }
 
 export async function readProfileCompany(companyId: string) {

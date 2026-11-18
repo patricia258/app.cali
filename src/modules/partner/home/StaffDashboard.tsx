@@ -107,7 +107,7 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
         return <OverviewCompanyLink key={client.id} href={has('projects') ? '/equipe/projetos' : '/equipe'} company={client.display_name}
           logo={logos[client.id] ? <img src={logos[client.id]} alt="" /> : mark(client.display_name)}
           detail={[PLAN[String(client.service_plan || '').toLowerCase()] || client.service_plan, client.monthly_hours_contracted ? `${client.monthly_hours_contracted}h por mês` : '', has('projects') ? `${mine.length} ${mine.length === 1 ? 'entrega em andamento' : 'entregas em andamento'}` : ''].filter(Boolean).join(' · ')}
-          status={<StatusBadge variant="admin" tone={state[1]}>{state[0]}</StatusBadge>} />; })}</div> : <EmptyState as="p" variant="admin">Nenhuma empresa atribuída a você ainda. Fale com a Patricia.</EmptyState>}
+          status={<StatusBadge variant="admin" tone={state[1]}>{state[0]}</StatusBadge>} />; })}</div> : <EmptyState as="p" variant="admin">Nenhuma empresa atribuída a você ainda. Fale com a CALI.</EmptyState>}
     </WorkspaceOverviewPanel>
 
     <WorkspaceOverviewPanel title="O que está liberado para você">

@@ -8,11 +8,19 @@ const minimumDiskBytes = 1024 ** 3;
 
 function assertBrowserResources({ availableDiskBytes, memoryPressure }) {
   if (memoryPressure >= 2) {
-    throw new Error('QA interrompido por pressão de memória do macOS.');
+    throw Object.assign(new Error(`QA interrompido por pressão de memória do macOS (nível ${memoryPressure}; necessário abaixo de 2).`), {
+      code: 'CALI_QA_RESOURCE_BLOCKED',
+      resource: 'memory',
+      memoryPressure,
+    });
   }
   if (availableDiskBytes < minimumDiskBytes) {
     const freeMiB = Math.floor(availableDiskBytes / (1024 ** 2));
-    throw new Error(`QA interrompido com ${freeMiB} MiB livres no disco temporário. O Chromium precisa de espaço para o perfil, as capturas e o swap.`);
+    throw Object.assign(new Error(`QA interrompido com ${freeMiB} MiB livres no disco temporário. O Chromium precisa de espaço para o perfil, as capturas e o swap.`), {
+      code: 'CALI_QA_RESOURCE_BLOCKED',
+      resource: 'disk',
+      availableDiskBytes,
+    });
   }
 }
 
